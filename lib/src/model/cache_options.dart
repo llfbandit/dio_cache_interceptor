@@ -7,6 +7,9 @@ import '../store/cache_store.dart';
 
 typedef CacheKeyBuilder = String Function(RequestOptions request);
 
+typedef Encrypt = Future<List<int>> Function(List<int> bytes);
+typedef Decrypt = Future<List<int>> Function(List<int> bytes);
+
 /// Policy to handle request behaviour.
 enum CachePolicy {
   /// Forces to return the cached value if available.
@@ -56,6 +59,12 @@ class CacheOptions {
   /// The store used for caching data.
   final CacheStore store;
 
+  /// Optional method to decrypt cache content
+  final Decrypt decrypt;
+
+  /// Optional method to encrypt cache content
+  final Encrypt encrypt;
+
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
 
@@ -68,11 +77,14 @@ class CacheOptions {
     this.keyBuilder = defaultCacheKeyBuilder,
     this.maxStale,
     this.priority = CachePriority.normal,
+    this.decrypt,
+    this.encrypt,
     @required this.store,
   })  : assert(policy != null),
         assert(keyBuilder != null),
         assert(priority != null),
-        assert(store != null);
+        assert(store != null),
+        assert((decrypt == null && encrypt == null) || (decrypt != null && encrypt != null));
 
   factory CacheOptions.fromExtra(RequestOptions request) {
     return request.extra[_extraKey];

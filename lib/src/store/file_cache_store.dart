@@ -60,11 +60,6 @@ class FileCacheStore extends CacheStore {
   }
 
   @override
-  Future<bool> exists(String key) {
-    return Future.value(_findFile(key) != null);
-  }
-
-  @override
   Future<CacheResponse> get(String key) async {
     final file = _findFile(key);
 

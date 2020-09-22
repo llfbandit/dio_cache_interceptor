@@ -132,32 +132,66 @@ class DioCacheInterceptor extends Interceptor {
     CacheOptions options,
     Response response,
   ) async {
+    final content = await _encryptContent(
+      options,
+      await serializeContent(response.request.responseType, response.data),
+    );
+
+    final headers = await _encryptContent(
+      options,
+      utf8.encode(jsonEncode(response.headers.map)),
+    );
+
     return CacheResponse(
       key: key,
       url: response.request.uri.toString(),
       eTag: response.headers[HttpHeaders.etagHeader]?.first,
       lastModified: response.headers[HttpHeaders.lastModifiedHeader]?.first,
       maxStale: options.maxStale,
-      content: await serializeContent(
-        response.request.responseType,
-        response.data,
-      ),
-      headers: utf8.encode(jsonEncode(response.headers.map)),
+      content: content,
+      headers: headers,
       priority: options.priority,
     );
   }
 
-  Future<CacheResponse> _getCacheResponse(RequestOptions request) {
+  Future<CacheResponse> _getCacheResponse(RequestOptions request) async {
     final cacheOpts = _getCacheOptions(request);
 
     final cacheKey = cacheOpts.keyBuilder(request);
     final store = cacheOpts.store ?? _store;
 
-    return store.get(cacheKey);
+    final result = await store.get(cacheKey);
+
+    if (result != null) {
+      result.content = await _decryptContent(cacheOpts, result.content);
+      result.headers = await _decryptContent(cacheOpts, result.headers);
+    }
+
+    return result;
   }
 
   Future<Response> _getResponse(RequestOptions request) async {
     final existing = await _getCacheResponse(request);
     return existing?.toResponse(request);
+  }
+
+  Future<List<int>> _decryptContent(
+    CacheOptions options,
+    List<int> bytes,
+  ) async {
+    if (bytes != null && options.decrypt != null) {
+      bytes = await options.decrypt(bytes);
+    }
+    return bytes;
+  }
+
+  Future<List<int>> _encryptContent(
+    CacheOptions options,
+    List<int> bytes,
+  ) async {
+    if (bytes != null && options.encrypt != null) {
+      bytes = await options.encrypt(bytes);
+    }
+    return bytes;
   }
 }

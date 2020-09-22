@@ -128,7 +128,6 @@ enum CachePolicy {
 - Memory store
 - Backup store
 - Cache-Control (well... a subset)
-- Content encryption option
 
 ## Features and bugs
 

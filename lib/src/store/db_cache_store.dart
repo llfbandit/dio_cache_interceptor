@@ -69,21 +69,6 @@ class DbCacheStore extends CacheStore {
   }
 
   @override
-  Future<bool> exists(String key) async {
-    final db = await _getDatabase();
-
-    if (db != null) {
-      final count = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT($_columnKey) FROM $_tableName'),
-      );
-
-      return count == 1;
-    }
-
-    return false;
-  }
-
-  @override
   Future<CacheResponse> get(String key) async {
     final db = await _getDatabase();
 

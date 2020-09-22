@@ -1,14 +1,11 @@
-## 0.2.0+2
+## 0.3.0
 
-- Nothing changed but package ownership.
-
-## 0.2.0+1
-
-- Nothing changed but package ownership.
+- Add decrypt/encrypt methods to CacheOptions (no encryption by default. Private directories for stores are prefered for common usage).
+- Remove 'exists' store method.
 
 ## 0.2.0
 
-- Nothing changed but package ownership.
+- Cancelled.
 
 ## 0.1.0
 

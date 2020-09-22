@@ -3,9 +3,6 @@ import '../model/cache_response.dart';
 
 /// Definition of store
 abstract class CacheStore {
-  /// Check if key exists in store
-  Future<bool> exists(String key);
-
   /// Retrieve cached response from store
   Future<CacheResponse> get(String key);
 

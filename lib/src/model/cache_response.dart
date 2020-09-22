@@ -28,10 +28,10 @@ class CacheResponse {
   final String eTag;
 
   /// Response body
-  final List<int> content;
+  List<int> content;
 
   /// Response headers
-  final List<int> headers;
+  List<int> headers;
 
   /// Cache priority
   final CachePriority priority;
