@@ -59,8 +59,8 @@ class CacheOptions {
   /// Override any HTTP directive to delete entry past this duration.
   final Duration maxStale;
 
-  /// The priority of a request will makes it
-  /// easier cleanable by a store if needed.
+  /// The priority of a cached value.
+  /// Ease the clean up if needed.
   final CachePriority priority;
 
   /// The store used for caching data.
@@ -80,11 +80,11 @@ enum CachePolicy {
   /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
-  cacheForce,
+  cacheStoreForce,
 
   /// Requests and skips cache save even if
   /// response has cache directives.
-  cacheNotStored,
+  cacheStoreNo,
 
   /// Forces to request, even if a valid
   /// cache is available.
