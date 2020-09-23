@@ -1,142 +1,192 @@
-// import '../../dio_cache_interceptor.dart';
+import '../../dio_cache_interceptor.dart';
 
-// /// A store that keeps responses into a simple [Map] in memory.
-// ///
-// class MemCacheStore extends CacheStore {
-//   final _LruMap<String, CacheResponse> _cache;
+/// A store that save each request result in a dedicated memory LRU map.
+///
+class MemCacheStore extends CacheStore {
+  final _LruMap _cache;
 
-//   MemCacheStore(int maxSize) : _cache = _LruMap<String, CacheResponse>(maxSize);
+  /// [maxSize]: Total allowed size in bytes (7MB by default)
+  /// [maxEntrySize]: Allowed size per entry in bytes (500KB by default).
+  ///
+  /// To prevent making this store useless be sure to
+  /// respect the following rule: maxEntrySize * 5 <= maxSize.
+  ///
+  MemCacheStore({
+    int maxSize = 7340032,
+    int maxEntrySize = 512000,
+  }) : _cache = _LruMap(maxSize, maxEntrySize);
 
-//   @override
-//   Future<void> clean({
-//     CachePriority priorityOrBelow = CachePriority.high,
-//     bool stalledOnly = false,
-//   }) {
-//     for (var i = 0; i <= priorityOrBelow.index; i++) {
-//       _cache.remove(CachePriority.values[i]);
-//     }
-//     return Future.value();
-//   }
+  @override
+  Future<void> clean({
+    CachePriority priorityOrBelow = CachePriority.high,
+    bool stalledOnly = false,
+  }) {
+    final keys = List<String>();
 
-//   @override
-//   Future<void> delete(String key, {bool stalledOnly = false}) {
-//     _cache.entries.forEach((entry) {
-//       entry.value.removeWhere((x) => x.key == key);
-//     });
-//     return Future.value();
-//   }
+    _cache.entries.forEach((key, resp) {
+      var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;
+      if (stalledOnly && resp.value.maxStale != null) {
+        shouldRemove &= DateTime.now().toUtc().isAfter(resp.value.maxStale);
+      }
 
-//   @override
-//   Future<CacheResponse> get(String key) {
-//     return Future.value(_cache.entries
-//         .expand((x) => x.value)
-//         .firstWhere((x) => x.key == key, orElse: () => null));
-//   }
+      if (shouldRemove) {
+        keys.add(key);
+      }
+    });
 
-//   @override
-//   Future<void> set(CacheResponse response) async {
-//     await delete(response.key);
+    keys.forEach((key) => _cache.remove(key));
 
-//     final withPriority = _cache.putIfAbsent(
-//       response.priority,
-//       () => <CacheResponse>[],
-//     );
+    return Future.value();
+  }
 
-//     withPriority.add(response);
-//   }
-// }
+  @override
+  Future<void> delete(String key, {bool stalledOnly = false}) {
+    final resp = _cache.entries[key];
+    if (resp == null) return Future.value();
+    final maxStale = resp.value.maxStale;
 
-// class _LruMap {
-//   _Link<String, CacheResponse> _head;
-//   _Link<String, CacheResponse> _tail;
+    if (stalledOnly &&
+        maxStale != null &&
+        DateTime.now().toUtc().isBefore(maxStale)) {
+      return Future.value();
+    }
 
-//   int _currentSize = 0;
-//   final int maxSize;
+    _cache.remove(key);
 
-//   final entries = <String, _Link<String, CacheResponse>>{};
+    return Future.value();
+  }
 
-//   _LruMap(this.maxSize);
+  @override
+  Future<bool> exists(String key) {
+    return Future.value(_cache.entries.containsKey(key));
+  }
 
-//   CacheResponse operator [](String key) {
-//     final entry = entries[key];
-//     if (entry == null) return null;
+  @override
+  Future<CacheResponse> get(String key) async {
+    final resp = _cache[key];
+    if (resp == null) return Future.value();
 
-//     _promote(entry);
-//     return entry.value;
-//   }
+    // Purge entry if stalled
+    final maxStale = resp.maxStale;
+    if (maxStale != null) {
+      if (DateTime.now().toUtc().isAfter(maxStale)) {
+        await delete(key);
+        return Future.value();
+      }
+    }
 
-//   void operator []=(String key, CacheResponse resp) {
-//     final entry = _Link(key, resp, _computeSize(resp));
+    return Future.value(resp);
+  }
 
-//     entries[key] = entry;
-//     _currentSize += entry.size;
-//     _promote(entry);
+  @override
+  Future<void> set(CacheResponse response) async {
+    _cache.remove(response.key);
+    _cache[response.key] = response;
 
-//     while (_currentSize > maxSize) {
-//       assert(_tail != null);
-//       remove(_tail.key);
-//     }
-//   }
+    return Future.value();
+  }
+}
 
-//   CacheResponse remove(String key) {
-//     final entry = entries[key];
-//     if (entry == null) return null;
+class _LruMap {
+  _Link _head;
+  _Link _tail;
 
-//     _currentSize -= entry.size;
-//     entries.remove(key);
+  final entries = <String, _Link>{};
 
-//     if (entry == _tail) {
-//       _tail = entry.next;
-//       _tail?.previous = null;
-//     }
-//     if (entry == _head) {
-//       _head = entry.previous;
-//       _head?.next = null;
-//     }
+  int _currentSize = 0;
+  final int maxSize;
+  final int maxEntrySize;
 
-//     return entry.value;
-//   }
+  _LruMap(this.maxSize, this.maxEntrySize) {
+    assert(maxEntrySize != null);
+    assert(maxEntrySize != maxSize);
+    assert(maxEntrySize * 5 <= maxSize);
+  }
 
-//   /// Moves [link] to the [_head] of the list.
-//   void _promote(_Link<String, CacheResponse> link) {
-//     if (link == _head) return;
+  CacheResponse operator [](String key) {
+    final entry = entries[key];
+    if (entry == null) return null;
 
-//     if (link == _tail) {
-//       _tail = link.next;
-//     }
+    _moveToHead(entry);
+    return entry.value;
+  }
 
-//     if (link.previous != null) {
-//       link.previous.next = link.next;
-//     }
-//     if (link.next != null) {
-//       link.next.previous = link.previous;
-//     }
+  void operator []=(String key, CacheResponse resp) {
+    final entrySize = _computeSize(resp);
+    // Entry too heavy, skip it
+    if (entrySize > maxEntrySize) return;
 
-//     _head?.next = link;
-//     link.previous = _head;
-//     _head = link;
-//     _tail ??= link;
-//     link.next = null;
-//   }
+    final entry = _Link(key, resp, entrySize);
 
-//   int _computeSize(CacheResponse resp) {
-//     resp.content;
-//     return 0;
-//   }
-// }
+    entries[key] = entry;
+    _currentSize += entry.size;
+    _moveToHead(entry);
 
-// /// A [MapEntry] which is also a part of a doubly linked list.
-// class _Link<K, V> implements MapEntry<K, V> {
-//   _Link<K, V> next;
-//   _Link<K, V> previous;
+    while (_currentSize > maxSize) {
+      assert(_tail != null);
+      remove(_tail.key);
+    }
+  }
 
-//   final int size;
+  CacheResponse remove(String key) {
+    final entry = entries[key];
+    if (entry == null) return null;
 
-//   @override
-//   final K key;
+    _currentSize -= entry.size;
+    entries.remove(key);
 
-//   @override
-//   final V value;
+    if (entry == _tail) {
+      _tail = entry.next;
+      _tail?.previous = null;
+    }
+    if (entry == _head) {
+      _head = entry.previous;
+      _head?.next = null;
+    }
 
-//   _Link(this.key, this.value, this.size);
-// }
+    return entry.value;
+  }
+
+  void _moveToHead(_Link link) {
+    if (link == _head) return;
+
+    if (link == _tail) {
+      _tail = link.next;
+    }
+
+    if (link.previous != null) {
+      link.previous.next = link.next;
+    }
+    if (link.next != null) {
+      link.next.previous = link.previous;
+    }
+
+    _head?.next = link;
+    link.previous = _head;
+    _head = link;
+    _tail ??= link;
+    link.next = null;
+  }
+
+  int _computeSize(CacheResponse resp) {
+    var size = resp.content?.length ?? 0;
+    size += resp.headers?.length ?? 0;
+
+    return size * 8;
+  }
+}
+
+class _Link implements MapEntry<String, CacheResponse> {
+  _Link next;
+  _Link previous;
+
+  final int size;
+
+  @override
+  final String key;
+
+  @override
+  final CacheResponse value;
+
+  _Link(this.key, this.value, this.size);
+}

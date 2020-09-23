@@ -5,9 +5,13 @@ import 'package:uuid/uuid.dart';
 import '../model/cache_priority.dart';
 import '../store/cache_store.dart';
 
+/// Key builder to customize your keys.
 typedef CacheKeyBuilder = String Function(RequestOptions request);
 
+/// Encrypt content method.
 typedef Encrypt = Future<List<int>> Function(List<int> bytes);
+
+/// Decrypt content method.
 typedef Decrypt = Future<List<int>> Function(List<int> bytes);
 
 /// Policy to handle request behaviour.
@@ -84,7 +88,8 @@ class CacheOptions {
         assert(keyBuilder != null),
         assert(priority != null),
         assert(store != null),
-        assert((decrypt == null && encrypt == null) || (decrypt != null && encrypt != null));
+        assert((decrypt == null && encrypt == null) ||
+            (decrypt != null && encrypt != null));
 
   factory CacheOptions.fromExtra(RequestOptions request) {
     return request.extra[_extraKey];

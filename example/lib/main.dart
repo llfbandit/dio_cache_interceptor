@@ -6,9 +6,7 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    return _MyAppState();
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -19,6 +17,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     cacheStore = DbCacheStore();
+    // cacheStore = MemCacheStore();
     dio = Dio()
       ..interceptors.add(
         DioCacheInterceptor(options: CacheOptions(store: cacheStore)),

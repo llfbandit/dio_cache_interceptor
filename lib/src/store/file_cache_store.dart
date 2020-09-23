@@ -60,14 +60,27 @@ class FileCacheStore extends CacheStore {
   }
 
   @override
+  Future<bool> exists(String key) {
+    return Future.value(_findFile(key) != null);
+  }
+
+  @override
   Future<CacheResponse> get(String key) async {
     final file = _findFile(key);
+    if (file == null) return Future.value();
 
-    if (file != null) {
-      return _deserializeContent(file);
+    final resp = await _deserializeContent(file);
+
+    // Purge entry if stalled
+    final maxStale = resp.maxStale;
+    if (maxStale != null) {
+      if (DateTime.now().toUtc().isAfter(maxStale)) {
+        await delete(key);
+        return Future.value();
+      }
     }
 
-    return Future.value(null);
+    return resp;
   }
 
   @override
@@ -92,7 +105,7 @@ class FileCacheStore extends CacheStore {
   List<int> _serializeContent(CacheResponse response) {
     final etag = utf8.encode(response.eTag ?? '');
     final lastModified = utf8.encode(response.lastModified ?? '');
-    final maxStale = utf8.encode(response.maxStale?.inSeconds ?? '');
+    final maxStale = utf8.encode(response.getMaxStaleSeconds() ?? '');
     final url = utf8.encode(response.url);
 
     return [
@@ -155,7 +168,8 @@ class FileCacheStore extends CacheStore {
       headers: headers,
       lastModified: lastModified,
       maxStale: maxStale.isNotEmpty
-          ? Duration(seconds: int.tryParse(maxStale))
+          ? DateTime.fromMillisecondsSinceEpoch(int.tryParse(maxStale) * 1000,
+              isUtc: true)
           : null,
       priority: _getPriority(file),
       url: url,
@@ -181,9 +195,9 @@ class FileCacheStore extends CacheStore {
     if (file != null) {
       if (stalledOnly) {
         final resp = await _deserializeContent(file);
-        final maxStale = resp.maxStale?.inSeconds ?? 0;
-        if (maxStale > DateTime.now().millisecondsSinceEpoch / 1000) {
-          return Future.value(null);
+        if (resp.maxStale != null &&
+            DateTime.now().toUtc().isBefore(resp.maxStale)) {
+          return Future.value();
         }
       }
 

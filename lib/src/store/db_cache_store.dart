@@ -54,6 +54,8 @@ class DbCacheStore extends CacheStore {
 
       await db.delete(_tableName, where: where.toString());
     }
+
+    return Future.value();
   }
 
   @override
@@ -66,6 +68,23 @@ class DbCacheStore extends CacheStore {
 
       await db.delete(_tableName, where: where.toString());
     }
+
+    return Future.value();
+  }
+
+  @override
+  Future<bool> exists(String key) async {
+    final db = await _getDatabase();
+
+    if (db != null) {
+      final count = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT($_columnKey) FROM $_tableName'),
+      );
+
+      return count == 1;
+    }
+
+    return Future.value(false);
   }
 
   @override
@@ -75,24 +94,36 @@ class DbCacheStore extends CacheStore {
     if (db != null) {
       final where = '$_columnKey = \"$key\"';
       final List<Map> resultList = await db.query(_tableName, where: where);
+      if (resultList.isEmpty) return Future.value();
 
-      if (resultList.isNotEmpty) {
-        final result = resultList.first;
+      final result = resultList.first;
 
-        return CacheResponse(
-          key: key,
-          content: result[_columnContent],
-          eTag: result[_columnETag],
-          headers: result[_columnHeaders],
-          lastModified: result[_columnLastModified],
-          maxStale: result[_columnMaxStale],
-          priority: CachePriority.values[result[_columnPriority]],
-          url: result[_columnUrl],
-        );
+      // Purge entry if stalled
+      final maxStale = result[_columnMaxStale];
+      if (maxStale != null) {
+        final date =
+            DateTime.fromMillisecondsSinceEpoch(maxStale * 1000, isUtc: true);
+        if (DateTime.now().toUtc().isAfter(date)) {
+          await delete(key);
+          return Future.value();
+        }
       }
+
+      return CacheResponse(
+        key: key,
+        content: result[_columnContent],
+        eTag: result[_columnETag],
+        headers: result[_columnHeaders],
+        lastModified: result[_columnLastModified],
+        maxStale: maxStale != null
+            ? DateTime.fromMillisecondsSinceEpoch(maxStale * 1000, isUtc: true)
+            : null,
+        priority: CachePriority.values[result[_columnPriority]],
+        url: result[_columnUrl],
+      );
     }
 
-    return null;
+    return Future.value();
   }
 
   @override
@@ -100,11 +131,6 @@ class DbCacheStore extends CacheStore {
     final db = await _getDatabase();
 
     if (db != null) {
-      final maxStale = (response.maxStale != null)
-          ? (DateTime.now().millisecondsSinceEpoch / 1000) +
-              response.maxStale.inSeconds
-          : null;
-
       await db.insert(
         _tableName,
         {
@@ -113,7 +139,7 @@ class DbCacheStore extends CacheStore {
           _columnETag: response.eTag,
           _columnHeaders: response.headers,
           _columnLastModified: response.lastModified,
-          _columnMaxStale: maxStale,
+          _columnMaxStale: response.getMaxStaleSeconds(),
           _columnPriority: response.priority.index,
           _columnUrl: response.url,
         },
@@ -124,7 +150,7 @@ class DbCacheStore extends CacheStore {
 
   void _whereMaxStale(bool stalledOnly, StringBuffer where) {
     if (stalledOnly) {
-      final expiry = DateTime.now().millisecondsSinceEpoch / 1000;
+      final expiry = DateTime.now().toUtc().millisecondsSinceEpoch / 1000;
 
       where.write(' AND ');
       where.write('$_columnMaxStale <= $expiry');

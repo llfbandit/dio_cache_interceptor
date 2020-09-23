@@ -9,6 +9,7 @@ import './store/cache_store.dart';
 import 'content_serialization.dart';
 import 'model/cache_options.dart';
 
+/// Cache interceptor
 class DioCacheInterceptor extends Interceptor {
   static const String _getMethodName = 'GET';
 
@@ -147,7 +148,9 @@ class DioCacheInterceptor extends Interceptor {
       url: response.request.uri.toString(),
       eTag: response.headers[HttpHeaders.etagHeader]?.first,
       lastModified: response.headers[HttpHeaders.lastModifiedHeader]?.first,
-      maxStale: options.maxStale,
+      maxStale: options.maxStale != null
+          ? DateTime.now().toUtc().add(options.maxStale)
+          : null,
       content: content,
       headers: headers,
       priority: options.priority,

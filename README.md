@@ -1,4 +1,4 @@
-Dio HTTP cache interceptor with multiple stores respecting HTTP directives.
+Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
 
 HTTP directives (currently):
 - ETag
@@ -7,7 +7,12 @@ HTTP directives (currently):
 ## Options
 `CacheOptions` is available widely on interceptor and on requests to take precedence over your global settings.
 
-See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/) for all properties.
+See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
+
+## Stores
+- DbCacheStore: Cache with DB (sqflite).
+- FileCacheStore: Cache with file system.
+- MemCacheStore: Volatile cache with LRU strategy.
 
 ## Usage
 
@@ -22,19 +27,22 @@ final dio = Dio()
   ..interceptors.add(DioCacheInterceptor(
     options: const CacheOptions(
       store: cacheStore, // Required. The store used.
-      policy: CachePolicy.requestFirst, // Default. Request firt and cache response.
-      hitCacheOnErrorExcept: [401], // Returns a cached response on error if available expected for status 401
-      priority: CachePriority.normal, // Default. Priority to separate critical cache entries
+      policy: CachePolicy.requestFirst, // Default. Requests firt and caches response.
+      hitCacheOnErrorExcept: [401, 403], // Returns a cached response on error if available but for statuses 401 & 403.
+      priority: CachePriority.normal, // Default. Priority to separate cache entries.
       maxStale: const Duration(days: 7), // Optional. Override any HTTP directive to delete entry past this duration.
     )
   )
 );
 
+// Request with global options
+var response = await dio.get('http://www.foo.com');
+
 // Apply specific options for the current request
-final response = await dio.get('http://www.foo.com',
+response = await dio.get('http://www.foo.com',
   options: Options(
     extra: CacheOptions(
-      policy: CachePolicy.cacheFirst,
+      policy: CachePolicy.refresh,
       store: cacheStore,
     ).toExtra(),
   ),
@@ -42,32 +50,6 @@ final response = await dio.get('http://www.foo.com',
 ```
 
 ## Options
-### Cache options
-```dart
-class CacheOptions {
-  /// Handle behaviour to request backend.
-  final CachePolicy policy;
-
-  /// Ability to return cache excepted on given status codes.
-  /// Giving an empty list will hit cache on any error.
-  final List<int> hitCacheOnErrorExcept;
-
-  /// Builds the unique key used for indexing a request in cache.
-  /// Default to [CacheOptions.defaultCacheKeyBuilder]
-  final CacheKeyBuilder keyBuilder;
-
-  /// Override any HTTP directive to delete entry past this duration.
-  final Duration maxStale;
-
-  /// The priority of a cached value.
-  /// Ease the clean up if needed.
-  final CachePriority priority;
-
-  /// The store used for caching data.
-  final CacheStore store;
-}
-```
-
 ### Cache policy
 ```dart
 enum CachePolicy {
@@ -96,38 +78,9 @@ enum CachePolicy {
 }
 ```
 
-## Stores
-- DbCacheStore: Cache with DB (sqflite).
-- FileCacheStore: Cache with file system.
-
-```dart
-  /// Retrieve cached response from store
-  Future<CacheResponse> get(String key);
-
-  /// Push response in store
-  Future<void> set(CacheResponse response);
-
-  /// Remove the given key from store.
-  /// [stalledOnly] flag will remove it only if the key is expired
-  /// (from maxStale).
-  Future<void> delete(String key, {bool stalledOnly = false});
-
-  /// Remove all keys from store.
-  /// [priorityOrBelow] flag will remove keys only for the priority or below.
-  /// [stalledOnly] flag will remove keys only if expired
-  /// (from maxStale).
-  ///
-  /// By default, all keys will be removed.
-  Future<void> clean({
-    CachePriority priorityOrBelow = CachePriority.high,
-    bool stalledOnly = false,
-  });
-```
-
 ## Roadmap
-- Memory store
-- Backup store
-- Cache-Control (well... a subset)
+- Backup store (primary, secondary)
+- Cache-Control (a subset)
 
 ## Features and bugs
 
@@ -137,4 +90,4 @@ Please file feature requests and bugs at the [issue tracker][tracker].
 
 ## License
 
-[license](https://github.com/llfbandit/dio_cache_interceptor/blob/master/LICENSE).
+[License](https://github.com/llfbandit/dio_cache_interceptor/blob/master/LICENSE).

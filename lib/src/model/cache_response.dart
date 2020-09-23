@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 import '../content_serialization.dart';
 import 'cache_priority.dart';
 
-/// Wrapper on top of [Response].
 class CacheResponse {
   /// Cache key available in [Response]
   static const String cacheKey = '@cache_key@';
@@ -21,8 +20,8 @@ class CacheResponse {
   /// Last modified header
   final String lastModified;
 
-  /// Max stale expiry duration
-  final Duration maxStale;
+  /// Max stale expiry
+  final DateTime maxStale;
 
   /// ETag header
   final String eTag;
@@ -47,13 +46,20 @@ class CacheResponse {
     @required this.priority,
   });
 
+  /// Returns date in seconds since epoch or null.
+  int getMaxStaleSeconds() {
+    if (maxStale != null) {
+      return maxStale.millisecondsSinceEpoch ~/ 1000;
+    }
+
+    return null;
+  }
+
   Response toResponse(RequestOptions options) {
     final decHeaders = jsonDecode(utf8.decode(headers)) as Map<String, dynamic>;
     final h = Headers();
 
-    decHeaders.forEach((key, value) {
-      h.set(key, value);
-    });
+    decHeaders.forEach((key, value) => h.set(key, value));
 
     return Response(
       data: deserializeContent(options.responseType, content),
