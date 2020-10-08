@@ -38,6 +38,8 @@ class FileCacheStore extends CacheStore {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
       final directory = _directories[CachePriority.values[i]];
 
+      if (!directory.existsSync()) return;
+
       if (stalledOnly) {
         directory.listSync().forEach((file) async {
           await deleteFile(file, stalledOnly: stalledOnly);
@@ -110,16 +112,16 @@ class FileCacheStore extends CacheStore {
 
     return [
       ...Int32List.fromList([
-        response.content.length,
+        response.content?.length ?? 0,
         etag.length,
-        response.headers.length,
+        response.headers?.length ?? 0,
         lastModified.length,
         maxStale.length,
         url.length,
       ]).buffer.asInt8List(),
-      ...response.content,
+      ...response.content ?? [],
       ...etag,
-      ...response.headers,
+      ...response.headers ?? [],
       ...lastModified,
       ...maxStale,
       ...url,
@@ -139,23 +141,26 @@ class FileCacheStore extends CacheStore {
     var fieldIndex = 0;
 
     var size = sizes[fieldIndex++];
-    final content = data.skip(i).take(size).toList();
+    final content = size != 0 ? data.skip(i).take(size).toList() : null;
 
     i += size;
     size = sizes[fieldIndex++];
-    final etag = utf8.decode(data.skip(i).take(size).toList());
+    final etag =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
     i += size;
     size = sizes[fieldIndex++];
-    final headers = data.skip(i).take(size).toList();
+    final headers = size != 0 ? data.skip(i).take(size).toList() : null;
 
     i += size;
     size = sizes[fieldIndex++];
-    final lastModified = utf8.decode(data.skip(i).take(size).toList());
+    final lastModified =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
     i += size;
     size = sizes[fieldIndex++];
-    final maxStale = utf8.decode(data.skip(i).take(size).toList());
+    final maxStale =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
     i += size;
     size = sizes[fieldIndex++];
@@ -167,7 +172,7 @@ class FileCacheStore extends CacheStore {
       eTag: etag,
       headers: headers,
       lastModified: lastModified,
-      maxStale: maxStale.isNotEmpty
+      maxStale: maxStale != null
           ? DateTime.fromMillisecondsSinceEpoch(int.tryParse(maxStale) * 1000,
               isUtc: true)
           : null,

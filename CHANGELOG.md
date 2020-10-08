@@ -1,3 +1,8 @@
+## 0.5.0
+- feat: add backup cache store
+- core: add stores testing
+- fix: file store associated fixes
+
 ## 0.4.0
 
 - Add MemCacheStore. Cache with LRU strategy on RAM.

@@ -8,3 +8,4 @@ export 'src/store/cache_store.dart';
 export 'src/store/db_cache_store.dart';
 export 'src/store/file_cache_store.dart';
 export 'src/store/mem_cache_store.dart';
+export 'src/store/backup_cache_store.dart';
