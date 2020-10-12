@@ -106,7 +106,7 @@ class DioCacheInterceptor extends Interceptor {
 
   void _addCacheDirectives(RequestOptions request, CacheResponse response) {
     if (response.eTag != null) {
-      request.headers[HttpHeaders.etagHeader] = response.eTag;
+      request.headers[HttpHeaders.ifNoneMatchHeader] = response.eTag;
     }
     if (response.lastModified != null) {
       request.headers[HttpHeaders.ifModifiedSinceHeader] =
