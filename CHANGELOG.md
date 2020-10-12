@@ -1,3 +1,7 @@
+## 0.5.1
+- fix: ETag conditional requesting with If-None-Match (Thanks @live9080).
+- Update README.MD
+
 ## 0.5.0
 - feat: add backup cache store
 - core: add stores testing

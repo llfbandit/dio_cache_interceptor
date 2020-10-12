@@ -10,6 +10,7 @@ HTTP directives (currently):
 See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
 
 ## Stores
+- BackupCacheStore: Combined store with primary and secondary.
 - DbCacheStore: Cache with DB (sqflite).
 - FileCacheStore: Cache with file system.
 - MemCacheStore: Volatile cache with LRU strategy.
@@ -79,8 +80,8 @@ enum CachePolicy {
 ```
 
 ## Roadmap
-- Backup store (primary, secondary)
 - Cache-Control (a subset)
+- Code coverage
 
 ## Features and bugs
 
