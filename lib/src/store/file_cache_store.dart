@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dio_cache_interceptor/src/model/cache_control.dart';
 import 'package:path/path.dart' as path;
 
 import '../model/cache_priority.dart';
 import '../model/cache_response.dart';
 import 'cache_store.dart';
 
-/// A store that save each request result in a dedicated file.
+/// A store saving responses in a dedicated file from a given root [directory].
 ///
 class FileCacheStore extends CacheStore {
   final Map<CachePriority, Directory> _directories;
@@ -16,7 +17,7 @@ class FileCacheStore extends CacheStore {
   FileCacheStore(Directory directory)
       : assert(directory != null),
         _directories = _genDirectories(directory) {
-    clean(stalledOnly: true);
+    clean(staleOnly: true);
   }
 
   File _findFile(String key) {
@@ -33,20 +34,20 @@ class FileCacheStore extends CacheStore {
   @override
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
-    bool stalledOnly = false,
+    bool staleOnly = false,
   }) async {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
       final directory = _directories[CachePriority.values[i]];
 
       if (!directory.existsSync()) return;
 
-      if (stalledOnly) {
+      if (staleOnly) {
         directory.listSync().forEach((file) async {
-          await deleteFile(file, stalledOnly: stalledOnly);
+          await deleteFile(file, staleOnly: staleOnly);
         });
       }
 
-      if (!stalledOnly || directory.listSync().isEmpty) {
+      if (!staleOnly || directory.listSync().isEmpty) {
         try {
           await directory.delete(recursive: true);
         } catch (_) {}
@@ -57,8 +58,8 @@ class FileCacheStore extends CacheStore {
   }
 
   @override
-  Future<void> delete(String key, {bool stalledOnly = false}) async {
-    return deleteFile(_findFile(key), stalledOnly: stalledOnly);
+  Future<void> delete(String key, {bool staleOnly = false}) async {
+    return deleteFile(_findFile(key), staleOnly: staleOnly);
   }
 
   @override
@@ -109,6 +110,10 @@ class FileCacheStore extends CacheStore {
     final lastModified = utf8.encode(response.lastModified ?? '');
     final maxStale = utf8.encode(response.getMaxStaleSeconds() ?? '');
     final url = utf8.encode(response.url);
+    final cacheControl = utf8.encode(response.cacheControl?.toHeader() ?? '');
+    final date = utf8.encode(response.date?.toIso8601String() ?? '');
+    final expires = utf8.encode(response.expires?.toIso8601String() ?? '');
+    final responseDate = utf8.encode(response.responseDate.toIso8601String());
 
     return [
       ...Int32List.fromList([
@@ -118,6 +123,10 @@ class FileCacheStore extends CacheStore {
         lastModified.length,
         maxStale.length,
         url.length,
+        cacheControl.length,
+        date.length,
+        expires.length,
+        responseDate.length,
       ]).buffer.asInt8List(),
       ...response.content ?? [],
       ...etag,
@@ -125,6 +134,10 @@ class FileCacheStore extends CacheStore {
       ...lastModified,
       ...maxStale,
       ...url,
+      ...cacheControl,
+      ...date,
+      ...expires,
+      ...responseDate,
     ];
   }
 
@@ -132,8 +145,8 @@ class FileCacheStore extends CacheStore {
     final data = await file.readAsBytes();
 
     // Get field sizes
-    // 6 fields. int is encoded with 4 bytes
-    var i = 6 * 4;
+    // 10 fields. int is encoded with 32 bits (4 bytes)
+    var i = 10 * 4;
     final sizes = Int8List.fromList(
       data.take(i).toList(),
     ).buffer.asInt32List();
@@ -164,19 +177,44 @@ class FileCacheStore extends CacheStore {
 
     i += size;
     size = sizes[fieldIndex++];
-    final url = utf8.decode(data.skip(i).take(size).toList());
+    final url =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+
+    i += size;
+    size = sizes[fieldIndex++];
+    final cacheControl =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+
+    i += size;
+    size = sizes[fieldIndex++];
+    final date =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+
+    i += size;
+    size = sizes[fieldIndex++];
+    final expires =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+
+    i += size;
+    size = sizes[fieldIndex++];
+    final responseDate =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
     return CacheResponse(
-      key: path.basename(file.path),
+      cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
       content: content,
+      date: date != null ? DateTime.tryParse(date) : null,
       eTag: etag,
+      expires: expires != null ? DateTime.tryParse(expires) : null,
       headers: headers,
+      key: path.basename(file.path),
       lastModified: lastModified,
       maxStale: maxStale != null
           ? DateTime.fromMillisecondsSinceEpoch(int.tryParse(maxStale) * 1000,
               isUtc: true)
           : null,
       priority: _getPriority(file),
+      responseDate: DateTime.tryParse(responseDate),
       url: url,
     );
   }
@@ -195,10 +233,10 @@ class FileCacheStore extends CacheStore {
 
   Future<void> deleteFile(
     File file, {
-    bool stalledOnly = false,
+    bool staleOnly = false,
   }) async {
     if (file != null) {
-      if (stalledOnly) {
+      if (staleOnly) {
         final resp = await _deserializeContent(file);
         if (resp.maxStale != null &&
             DateTime.now().toUtc().isBefore(resp.maxStale)) {

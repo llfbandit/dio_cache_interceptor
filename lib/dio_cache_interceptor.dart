@@ -1,6 +1,7 @@
 library dio_cache_interceptor;
 
 export 'src/dio_cache_interceptor.dart';
+export 'src/model/cache_control.dart';
 export 'src/model/cache_options.dart';
 export 'src/model/cache_priority.dart';
 export 'src/model/cache_response.dart';

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/src/model/cache_control.dart';
 import 'package:flutter/foundation.dart';
 
 import './model/cache_response.dart';
@@ -13,11 +14,13 @@ import 'model/cache_options.dart';
 class DioCacheInterceptor extends Interceptor {
   static const String _getMethodName = 'GET';
 
-  final CacheOptions options;
+  final CacheOptions _options;
   final CacheStore _store;
 
-  DioCacheInterceptor({@required this.options})
+  DioCacheInterceptor({@required CacheOptions options})
       : assert(options != null),
+        assert(options.store != null),
+        _options = options,
         _store = options.store;
 
   @override
@@ -34,8 +37,7 @@ class DioCacheInterceptor extends Interceptor {
 
     final cacheResp = await _getCacheResponse(request);
     if (cacheResp != null) {
-      if (options.policy == CachePolicy.cacheFirst ||
-          options.policy == CachePolicy.cacheStoreForce) {
+      if (_shouldReturnCache(options, cacheResp)) {
         return cacheResp.toResponse(request);
       }
 
@@ -71,7 +73,7 @@ class DioCacheInterceptor extends Interceptor {
         response,
       );
 
-      await cacheOptions.store.set(cacheResp);
+      await _getCacheStore(cacheOptions).set(cacheResp);
     }
 
     return super.onResponse(response);
@@ -79,7 +81,8 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   Future<dynamic> onError(DioError err) async {
-    if (_shouldSkipRequest(err.request.method)) {
+    if (err.type == DioErrorType.CANCEL ||
+        _shouldSkipRequest(err.request.method)) {
       return super.onError(err);
     }
 
@@ -117,11 +120,41 @@ class DioCacheInterceptor extends Interceptor {
   bool _hasCacheDirectives(Response response) {
     var result = response.headers[HttpHeaders.etagHeader] != null;
     result |= response.headers[HttpHeaders.lastModifiedHeader] != null;
+
+    final cacheControl = CacheControl.fromHeader(
+      response.headers[HttpHeaders.cacheControlHeader],
+    );
+
+    result &= !(cacheControl?.noStore ?? false);
+
     return result;
   }
 
+  bool _shouldReturnCache(CacheOptions options, CacheResponse cacheResp) {
+    // Forced cache response
+    if (options.policy == CachePolicy.cacheStoreForce) {
+      return true;
+    }
+
+    // Cache first requested, check max age, expires, etc.
+    if (options.policy == CachePolicy.cacheFirst) {
+      return !(cacheResp.cacheControl?.isStale(
+            cacheResp.responseDate,
+            cacheResp.date,
+            cacheResp.expires,
+          ) ??
+          false);
+    }
+
+    return false;
+  }
+
   CacheOptions _getCacheOptions(RequestOptions request) {
-    return CacheOptions.fromExtra(request) ?? options;
+    return CacheOptions.fromExtra(request) ?? _options;
+  }
+
+  CacheStore _getCacheStore(CacheOptions options) {
+    return options.store ?? _store;
   }
 
   bool _shouldSkipRequest(String method) {
@@ -143,27 +176,45 @@ class DioCacheInterceptor extends Interceptor {
       utf8.encode(jsonEncode(response.headers.map)),
     );
 
+    final httpDate = response.headers[HttpHeaders.dateHeader]?.first;
+    final date =
+        (httpDate != null) ? HttpDate.parse(httpDate) : DateTime.now().toUtc();
+
+    final httpExpiresDate = response.headers[HttpHeaders.expiresHeader]?.first;
+    var expiresDate;
+    if (httpExpiresDate != null) {
+      try {
+        expiresDate = HttpDate.parse(httpDate);
+      } catch (_) {
+        // Invalid date format, meaning something already expired
+        expiresDate = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+      }
+    }
+
     return CacheResponse(
-      key: key,
-      url: response.request.uri.toString(),
+      cacheControl: CacheControl.fromHeader(
+        response.headers[HttpHeaders.cacheControlHeader],
+      ),
+      content: content,
+      date: date,
       eTag: response.headers[HttpHeaders.etagHeader]?.first,
+      expires: expiresDate,
+      headers: headers,
+      key: key,
       lastModified: response.headers[HttpHeaders.lastModifiedHeader]?.first,
       maxStale: options.maxStale != null
           ? DateTime.now().toUtc().add(options.maxStale)
           : null,
-      content: content,
-      headers: headers,
       priority: options.priority,
+      responseDate: DateTime.now().toUtc(),
+      url: response.request.uri.toString(),
     );
   }
 
   Future<CacheResponse> _getCacheResponse(RequestOptions request) async {
     final cacheOpts = _getCacheOptions(request);
-
     final cacheKey = cacheOpts.keyBuilder(request);
-    final store = cacheOpts.store ?? _store;
-
-    final result = await store.get(cacheKey);
+    final result = await _getCacheStore(cacheOpts).get(cacheKey);
 
     if (result != null) {
       result.content = await _decryptContent(cacheOpts, result.content);
@@ -178,23 +229,17 @@ class DioCacheInterceptor extends Interceptor {
     return existing?.toResponse(request);
   }
 
-  Future<List<int>> _decryptContent(
-    CacheOptions options,
-    List<int> bytes,
-  ) async {
+  Future<List<int>> _decryptContent(CacheOptions options, List<int> bytes) {
     if (bytes != null && options.decrypt != null) {
-      bytes = await options.decrypt(bytes);
+      return options.decrypt(bytes);
     }
-    return bytes;
+    return Future.value(bytes);
   }
 
-  Future<List<int>> _encryptContent(
-    CacheOptions options,
-    List<int> bytes,
-  ) async {
+  Future<List<int>> _encryptContent(CacheOptions options, List<int> bytes) {
     if (bytes != null && options.encrypt != null) {
-      bytes = await options.encrypt(bytes);
+      return options.encrypt(bytes);
     }
-    return bytes;
+    return Future.value(bytes);
   }
 }

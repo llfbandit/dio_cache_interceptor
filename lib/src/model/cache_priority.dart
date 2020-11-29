@@ -1,4 +1,7 @@
-/// Cache priority
+/// Cache priority.
+///
+/// Could be useful if you have multiple levels of cache.
+/// This allows to separate entries and ease cleanup.
 enum CachePriority {
   /// Cache defined as low priority
   low,

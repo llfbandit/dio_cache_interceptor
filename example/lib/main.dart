@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
@@ -21,14 +23,14 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     cacheStore = DbCacheStore();
-    // cacheStore = MemCacheStore();
+    // cacheStore = MemCacheStore(maxSize: 10485760, maxEntrySize: 1048576);
     dio = Dio()
       ..interceptors.add(
         DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
       );
-    //
+
     // or
-    //
+
     // getApplicationSupportDirectory().then((dir) {
     //   cacheStore = FileCacheStore(dir);
 
@@ -60,20 +62,20 @@ class _MyAppState extends State<MyApp> {
                   child: Text('Clear single entry'),
                 ),
                 RaisedButton(
-                  onPressed: () async => await _cacheFirstCall(),
-                  child: Text('Cache first call'),
+                  onPressed: () async => await _requestFirstCall(),
+                  child: Text('Call (Request first policy)'),
                 ),
                 RaisedButton(
                   onPressed: () async => await _refreshCall(),
-                  child: Text('Refresh call'),
+                  child: Text('Call (Refresh policy)'),
                 ),
                 RaisedButton(
-                  onPressed: () async => await _requestFirstCall(),
-                  child: Text('Request first call'),
+                  onPressed: () async => await _cacheFirstCall(),
+                  child: Text('Call (Cache first policy)'),
                 ),
                 RaisedButton(
                   onPressed: () async => await _cacheStoreNoCall(),
-                  child: Text('Cache store no call'),
+                  child: Text('Call (Cache store no policy)'),
                 ),
                 Text(text),
               ],
@@ -85,22 +87,26 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future _cacheStoreNoCall() async {
-    var resp = await _call(policy: CachePolicy.cacheStoreNo);
+    final resp = await _call(policy: CachePolicy.cacheStoreNo);
+    if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
 
   Future _requestFirstCall() async {
-    var resp = await _call();
+    final resp = await _call();
+    if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
 
   Future _refreshCall() async {
-    var resp = await _call(policy: CachePolicy.refresh);
+    final resp = await _call(policy: CachePolicy.refresh);
+    if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
 
   Future _cacheFirstCall() async {
-    var resp = await _call(policy: CachePolicy.cacheFirst);
+    final resp = await _call(policy: CachePolicy.cacheFirst);
+    if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
 
@@ -114,7 +120,7 @@ class _MyAppState extends State<MyApp> {
 
   Future _cleanStore() async {
     await cacheStore.clean();
-    setState(() => text = 'Store cleared');
+    setState(() => text = 'Store cleared completely');
   }
 
   Future<Response> _call({
@@ -126,18 +132,47 @@ class _MyAppState extends State<MyApp> {
       options = CacheOptions(store: cacheStore, policy: policy).toOptions();
     }
 
-    return dio.get(url, options: options);
+    try {
+      return await dio.get(url, options: options);
+    } on DioError catch (err) {
+      setState(() => text = err.toString());
+      return Future.value(null);
+    }
   }
 
   String _getResponseContent(Response response) {
+    final date = response.headers[HttpHeaders.dateHeader]?.first ?? null;
+    final etag = response.headers[HttpHeaders.etagHeader]?.first ?? null;
+    final expires = response.headers[HttpHeaders.expiresHeader]?.first ?? null;
+    final lastModified =
+        response.headers[HttpHeaders.lastModifiedHeader]?.first ?? null;
+    final cacheControl =
+        response.headers[HttpHeaders.cacheControlHeader]?.first ?? null;
+
     final buffer = StringBuffer();
     buffer.writeln('');
-    buffer.writeln('Call returned ${response.statusCode}');
+    buffer.writeln('Call returned ${response.statusCode}\n');
+
     buffer.writeln('Request headers:');
-    buffer.writeln('${response.request.headers.toString()}');
-    buffer.writeln('');
-    buffer.writeln('Response headers (truncated):');
-    buffer.writeln('${response.headers.toString().substring(0, 200)}...');
+    buffer.writeln('${response.request.headers.toString()}\n');
+
+    buffer.writeln('Response headers (cache related):');
+    if (date != null) {
+      buffer.writeln('${HttpHeaders.dateHeader}: $date');
+    }
+    if (etag != null) {
+      buffer.writeln('${HttpHeaders.etagHeader}: $etag');
+    }
+    if (expires != null) {
+      buffer.writeln('${HttpHeaders.expiresHeader}: $expires');
+    }
+    if (lastModified != null) {
+      buffer.writeln('${HttpHeaders.lastModifiedHeader}: $lastModified');
+    }
+    if (cacheControl != null) {
+      buffer.writeln('${HttpHeaders.cacheControlHeader}: $cacheControl');
+    }
+
     buffer.writeln('');
     buffer.writeln('Response body (truncated):');
     buffer.writeln('${response.data.toString().substring(0, 200)}...');

@@ -7,14 +7,18 @@ void main(String description, CacheStore store) {
   group(description, () {
     Future<void> _addFooResponse() {
       final resp = CacheResponse(
-        key: 'foo',
-        url: 'https://foo.com',
+        cacheControl: null,
+        content: utf8.encode('foo'),
+        date: DateTime.now(),
         eTag: 'an etag',
+        expires: null,
+        headers: null,
+        key: 'foo',
         lastModified: null,
         maxStale: null,
-        content: utf8.encode('foo'),
-        headers: null,
         priority: CachePriority.normal,
+        responseDate: DateTime.now(),
+        url: 'https://foo.com',
       );
 
       return store.set(resp);

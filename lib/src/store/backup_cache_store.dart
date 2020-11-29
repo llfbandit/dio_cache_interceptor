@@ -4,7 +4,7 @@ import '../model/cache_priority.dart';
 import '../model/cache_response.dart';
 import 'cache_store.dart';
 
-/// A store that save each request result in a dedicated [primary]
+/// A store saving responses in a dedicated [primary]
 /// store and [secondary] store.
 ///
 /// Cached responses are read from [primary] first, and then
@@ -29,22 +29,22 @@ class BackupCacheStore extends CacheStore {
   @override
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
-    bool stalledOnly = false,
+    bool staleOnly = false,
   }) async {
     secondary.clean(
       priorityOrBelow: priorityOrBelow,
-      stalledOnly: stalledOnly,
+      staleOnly: staleOnly,
     );
     await primary.clean(
       priorityOrBelow: priorityOrBelow,
-      stalledOnly: stalledOnly,
+      staleOnly: staleOnly,
     );
   }
 
   @override
-  Future<void> delete(String key, {bool stalledOnly = false}) async {
-    secondary.delete(key, stalledOnly: stalledOnly);
-    await primary.delete(key, stalledOnly: stalledOnly);
+  Future<void> delete(String key, {bool staleOnly = false}) async {
+    secondary.delete(key, staleOnly: staleOnly);
+    await primary.delete(key, staleOnly: staleOnly);
   }
 
   @override

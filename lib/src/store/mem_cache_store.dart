@@ -1,6 +1,6 @@
 import '../../dio_cache_interceptor.dart';
 
-/// A store that save each request result in a dedicated memory LRU map.
+/// A store saving responses in a dedicated memory LRU map.
 ///
 class MemCacheStore extends CacheStore {
   final _LruMap _cache;
@@ -8,8 +8,8 @@ class MemCacheStore extends CacheStore {
   /// [maxSize]: Total allowed size in bytes (7MB by default)
   /// [maxEntrySize]: Allowed size per entry in bytes (500KB by default).
   ///
-  /// To prevent making this store useless be sure to
-  /// respect the following rule: maxEntrySize * 5 <= maxSize.
+  /// To prevent making this store useless, be sure to
+  /// respect the following lower-limit rule: maxEntrySize * 5 <= maxSize.
   ///
   MemCacheStore({
     int maxSize = 7340032,
@@ -19,13 +19,13 @@ class MemCacheStore extends CacheStore {
   @override
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
-    bool stalledOnly = false,
+    bool staleOnly = false,
   }) {
     final keys = List<String>();
 
     _cache.entries.forEach((key, resp) {
       var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;
-      if (stalledOnly && resp.value.maxStale != null) {
+      if (staleOnly && resp.value.maxStale != null) {
         shouldRemove &= DateTime.now().toUtc().isAfter(resp.value.maxStale);
       }
 
@@ -40,12 +40,12 @@ class MemCacheStore extends CacheStore {
   }
 
   @override
-  Future<void> delete(String key, {bool stalledOnly = false}) {
+  Future<void> delete(String key, {bool staleOnly = false}) {
     final resp = _cache.entries[key];
     if (resp == null) return Future.value();
     final maxStale = resp.value.maxStale;
 
-    if (stalledOnly &&
+    if (staleOnly &&
         maxStale != null &&
         DateTime.now().toUtc().isBefore(maxStale)) {
       return Future.value();
@@ -79,7 +79,7 @@ class MemCacheStore extends CacheStore {
   }
 
   @override
-  Future<void> set(CacheResponse response) async {
+  Future<void> set(CacheResponse response) {
     _cache.remove(response.key);
     _cache[response.key] = response;
 

@@ -3,28 +3,28 @@ import '../model/cache_response.dart';
 
 /// Definition of store
 abstract class CacheStore {
-  /// Check if key exists in store
+  /// Checks if key exists in store
   Future<bool> exists(String key);
 
-  /// Retrieve cached response from store
+  /// Retrieves cached response from store
   Future<CacheResponse> get(String key);
 
-  /// Push response in store
+  /// Pushes response in store
   Future<void> set(CacheResponse response);
 
-  /// Remove the given key from store.
-  /// [stalledOnly] flag will remove it only if the key is expired
+  /// Removes the given key from store.
+  /// [staleOnly] flag will remove it only if the key is expired
   /// (from maxStale).
-  Future<void> delete(String key, {bool stalledOnly = false});
+  Future<void> delete(String key, {bool staleOnly = false});
 
-  /// Remove all keys from store.
+  /// Removes all keys from store.
   /// [priorityOrBelow] flag will remove keys only for the priority or below.
-  /// [stalledOnly] flag will remove keys only if expired
+  /// [staleOnly] flag will remove keys only if expired
   /// (from maxStale).
   ///
   /// By default, all keys will be removed.
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
-    bool stalledOnly = false,
+    bool staleOnly = false,
   });
 }

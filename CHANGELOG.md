@@ -1,3 +1,20 @@
+## 0.6.0
+- feat: Add `Cache-control` header for response directives (all values are stored).
+- feat: Add `Date` header.
+- feat: Add `Expires` header (if date is invalid (i.e. 0), date is considered expired to 1970-01-01).
+- feat: Cached response is now stored with absolute date (also used for max-age calculation).
+- feat: `CacheStore` is no more required in `CacheOptions` to ease subsequent requests with global options.
+- feat: `Response` object has now `CacheResponse.fromCache: true` extra boolean if coming from cache with `CacheResponse.cacheKey`.
+- fix: `Response` extra are no more concatenated with `RequestOptions` extra (use `Response.request.extra` for this).
+- fix(wording): `stalledOnly` renamed to `staleOnly` in `CacheStore`.
+- various minor fixes and improvements.
+
+Note:  
+This version should be backward compatible (data related) with 0.5.x versions (Please report any issues).  
+Even so, you're advised to clean stores to refresh entries with new headers.
+
+With this version, 1.0 should be around the corner.
+
 ## 0.5.1
 - fix: ETag conditional requesting with If-None-Match (Thanks @live9080).
 - Update README.MD

@@ -1,17 +1,15 @@
 Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
 
-HTTP directives (currently):
+## HTTP directives:
 - ETag
 - Last-Modified
-
-## Options
-`CacheOptions` is available widely on interceptor and on requests to take precedence over your global settings.
-
-See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
+- Cache-Control
+- Date
+- Expires
 
 ## Stores
 - BackupCacheStore: Combined store with primary and secondary.
-- DbCacheStore: Cache with DB (sqflite).
+- DbCacheStore: Cache with database (sqflite).
 - FileCacheStore: Cache with file system.
 - MemCacheStore: Volatile cache with LRU strategy.
 
@@ -20,41 +18,46 @@ See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/d
 ```dart
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
-// The store used.
-final cacheStore = DbCacheStore();
-
-// Add cache interceptor and global options
-final dio = Dio()
-  ..interceptors.add(DioCacheInterceptor(
-    options: const CacheOptions(
-      store: cacheStore, // Required. The store used.
-      policy: CachePolicy.requestFirst, // Default. Requests firt and caches response.
-      hitCacheOnErrorExcept: [401, 403], // Returns a cached response on error if available but for statuses 401 & 403.
-      priority: CachePriority.normal, // Default. Priority to separate cache entries.
-      maxStale: const Duration(days: 7), // Optional. Override any HTTP directive to delete entry past this duration.
-    )
-  )
+// Global options
+final options = const CacheOptions(
+  store: DbCacheStore(), // Required.
+  policy: CachePolicy.requestFirst, // Default. Requests first and caches response.
+  hitCacheOnErrorExcept: [401, 403], // Optional. Returns a cached response on error if available but for statuses 401 & 403.
+  priority: CachePriority.normal, // Optional. Default. Allows 3 cache levels and ease cleanup.
+  maxStale: const Duration(days: 7), // Very optional. Overrides any HTTP directive to delete entry past this duration.
 );
 
-// Request with global options
+// Add cache interceptor with global/default options
+final dio = Dio()
+  ..interceptors.add(DioCacheInterceptor(options: options),
+);
+
+...
+
+// Request with default options
 var response = await dio.get('http://www.foo.com');
 
-// Apply specific options for the current request
+// Request with dedicated options
 response = await dio.get('http://www.foo.com',
   options: Options(
-    extra: CacheOptions(
-      policy: CachePolicy.refresh,
-      store: cacheStore,
-    ).toExtra(),
+    extra: CacheOptions(policy: CachePolicy.refresh).toExtra(),
   ),
 );
 ```
 
 ## Options
+`CacheOptions` are widely available on interceptor and on requests to take precedence.  
+There is no merge behaviour between interceptor and dedicated request options but store property.
+
+See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
+
+### Encryption
+Optionally, you can encrypt content and headers with your own algorithm via `Encrypt` / `Decrypt` methods if your storage is located in public folder.
+
 ### Cache policy
 ```dart
 enum CachePolicy {
-  /// Forces to return the cached value if available.
+  /// Returns the cached value if available.
   /// Requests otherwise.
   cacheFirst,
 
@@ -67,27 +70,31 @@ enum CachePolicy {
 
   /// Requests and skips cache save even if
   /// response has cache directives.
+  /// 
+  /// Note: previously stored response stays untouched.
   cacheStoreNo,
 
   /// Forces to request, even if a valid
-  /// cache is available.
+  /// cache is available and caches if
+  /// response has cache directives.
   refresh,
 
-  /// Requests and caches if
-  /// response has cache directives.
+  /// Requests and caches if response has directives.
   requestFirst,
 }
 ```
-
-## Roadmap
-- Cache-Control (a subset)
-- Code coverage
 
 ## Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/llfbandit/dio_cache_interceptor/issues
+
+### Testing
+From example folder:
+```sh
+flutter run test/test_suite.dart
+```
 
 ## License
 
