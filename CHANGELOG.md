@@ -1,3 +1,9 @@
+## 1.0.0
+- core: Same version as 0.6.0. Updating dependencies.
+- core: Add missing analysis pedantic file.
+- fix: Remaining minor warnings.
+- core: No known issue. Bump to 1.0 to be prepared for null safety version.
+
 ## 0.6.0
 - feat: Add `Cache-control` header for response directives (all values are stored).
 - feat: Add `Date` header.

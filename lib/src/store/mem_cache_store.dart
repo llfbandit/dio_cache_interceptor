@@ -21,7 +21,7 @@ class MemCacheStore extends CacheStore {
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   }) {
-    final keys = List<String>();
+    final keys = <String>[];
 
     _cache.entries.forEach((key, resp) {
       var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;

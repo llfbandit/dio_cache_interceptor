@@ -24,8 +24,8 @@ class CacheControl {
     this.privacy,
     this.noCache = false,
     this.noStore = false,
-    List<String> other,
-  }) : this.other = other ?? [];
+    List<String> otherAttrs,
+  }) : other = otherAttrs ?? [];
 
   factory CacheControl.fromHeader(List<String> headerValues) {
     if (headerValues == null) return null;
@@ -34,7 +34,7 @@ class CacheControl {
     String privacy;
     bool noCache;
     bool noStore;
-    List<String> other = List<String>();
+    final other = <String>[];
 
     for (var value in headerValues) {
       if (value == 'no-cache') {
@@ -55,13 +55,13 @@ class CacheControl {
       privacy: privacy,
       noCache: noCache,
       noStore: noStore,
-      other: other,
+      otherAttrs: other,
     );
   }
 
   /// Serialize cache-control values
   String toHeader() {
-    final values = List<String>()
+    final values = <String>[]
       ..add(maxAge != null ? 'max-age=$maxAge' : '')
       ..add(privacy ?? '')
       ..add((noCache ?? false) ? 'no-cache' : '')

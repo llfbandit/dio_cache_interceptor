@@ -141,13 +141,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   String _getResponseContent(Response response) {
-    final date = response.headers[HttpHeaders.dateHeader]?.first ?? null;
-    final etag = response.headers[HttpHeaders.etagHeader]?.first ?? null;
-    final expires = response.headers[HttpHeaders.expiresHeader]?.first ?? null;
+    final date = response.headers[HttpHeaders.dateHeader]?.first;
+    final etag = response.headers[HttpHeaders.etagHeader]?.first;
+    final expires = response.headers[HttpHeaders.expiresHeader]?.first;
     final lastModified =
-        response.headers[HttpHeaders.lastModifiedHeader]?.first ?? null;
+        response.headers[HttpHeaders.lastModifiedHeader]?.first;
     final cacheControl =
-        response.headers[HttpHeaders.cacheControlHeader]?.first ?? null;
+        response.headers[HttpHeaders.cacheControlHeader]?.first;
 
     final buffer = StringBuffer();
     buffer.writeln('');

@@ -30,21 +30,21 @@ class BackupCacheStore extends CacheStore {
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
-  }) async {
+  }) {
     secondary.clean(
       priorityOrBelow: priorityOrBelow,
       staleOnly: staleOnly,
     );
-    await primary.clean(
+    return primary.clean(
       priorityOrBelow: priorityOrBelow,
       staleOnly: staleOnly,
     );
   }
 
   @override
-  Future<void> delete(String key, {bool staleOnly = false}) async {
+  Future<void> delete(String key, {bool staleOnly = false}) {
     secondary.delete(key, staleOnly: staleOnly);
-    await primary.delete(key, staleOnly: staleOnly);
+    return primary.delete(key, staleOnly: staleOnly);
   }
 
   @override
@@ -57,12 +57,12 @@ class BackupCacheStore extends CacheStore {
     final resp = await primary.get(key);
     if (resp != null) return resp;
 
-    return await secondary.get(key);
+    return secondary.get(key);
   }
 
   @override
-  Future<void> set(CacheResponse response) async {
+  Future<void> set(CacheResponse response) {
     secondary.set(response);
-    await primary.set(response);
+    return primary.set(response);
   }
 }
