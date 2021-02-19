@@ -9,7 +9,19 @@ environment:
   sdk: '>=2.10.0 <3.0.0'
 
 dependencies:
+<<<<<<< HEAD
   dio: ^3.0.10
+=======
+  flutter:
+    sdk: flutter
+  dio:
+    git:
+      url: git://github.com/TitanKing/dio.git
+      path: dio
+      ref: null-safety
+  sqflite: ^1.3.2+3
+  uuid: ^2.2.2
+>>>>>>> hack dependency
   meta: ^1.2.4
   moor: ^3.4.0
   path: ^1.7.0
