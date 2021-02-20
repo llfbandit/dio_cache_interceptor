@@ -22,7 +22,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    cacheStore = DbCacheStore();
+    cacheStore = DbCacheStore(logStatements: true);
     // cacheStore = MemCacheStore(maxSize: 10485760, maxEntrySize: 1048576);
     dio = Dio()
       ..interceptors.add(

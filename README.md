@@ -9,9 +9,16 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 
 ## Stores
 - BackupCacheStore: Combined store with primary and secondary.
-- DbCacheStore: Cache with database (sqflite).
+- DbCacheStore: Cache with database (Moor).
 - FileCacheStore: Cache with file system.
 - MemCacheStore: Volatile cache with LRU strategy.
+
+## Web support:
+- For DbCacheStore, you must include 'sql.js' library. Follow Moor install [documentation](https://moor.simonbinder.eu/web/) for further info.
+- FileCacheStore is obviously not supported on web platform.
+
+## DbCacheStore - Desktop support:
+- Follow Moor install [documentation](https://moor.simonbinder.eu/docs/platforms/).
 
 ## Usage
 

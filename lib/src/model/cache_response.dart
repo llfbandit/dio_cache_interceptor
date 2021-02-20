@@ -1,11 +1,10 @@
 import 'dart:convert' show jsonDecode, utf8;
-import 'dart:io' show HttpStatus;
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
 import 'package:meta/meta.dart';
 
-import '../content_serialization.dart';
+import '../util/content_serialization.dart';
 import 'cache_priority.dart';
 
 /// Response representation from cache store.
@@ -86,7 +85,7 @@ class CacheResponse {
       data: deserializeContent(options.responseType, content),
       extra: {cacheKey: key, fromCache: true},
       headers: h,
-      statusCode: HttpStatus.notModified,
+      statusCode: 304,
       request: options,
     );
   }

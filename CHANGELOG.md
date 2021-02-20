@@ -1,3 +1,9 @@
+## 2.0.0-beta.1
+- __Breaking__: Moved from sqflite to Moor(:ffi) package for DbCacheStore.
+- __Breaking__: Data stored with DbCacheStore is not compatible with previous versions.
+- feat: Open support for linux, macOS, Windows and web platforms.
+- core: Updated code to get rid of dart:io package for web platform.
+
 ## 1.0.0
 - core: Same version as 0.6.0. Updating dependencies.
 - core: Add missing analysis pedantic file.

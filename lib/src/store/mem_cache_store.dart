@@ -2,7 +2,7 @@ import '../../dio_cache_interceptor.dart';
 
 /// A store saving responses in a dedicated memory LRU map.
 ///
-class MemCacheStore extends CacheStore {
+class MemCacheStore implements CacheStore {
   final _LruMap _cache;
 
   /// [maxSize]: Total allowed size in bytes (7MB by default)

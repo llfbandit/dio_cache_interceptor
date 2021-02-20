@@ -15,7 +15,7 @@ import 'cache_store.dart';
 ///
 /// Mostly useful when you want MemCacheStore before another.
 ///
-class BackupCacheStore extends CacheStore {
+class BackupCacheStore implements CacheStore {
   /// Primary cache store
   final CacheStore primary;
 

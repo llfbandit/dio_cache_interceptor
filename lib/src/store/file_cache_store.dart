@@ -11,7 +11,7 @@ import 'cache_store.dart';
 
 /// A store saving responses in a dedicated file from a given root [directory].
 ///
-class FileCacheStore extends CacheStore {
+class FileCacheStore implements CacheStore {
   final Map<CachePriority, Directory> _directories;
 
   FileCacheStore(Directory directory)
