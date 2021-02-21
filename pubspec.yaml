@@ -6,7 +6,11 @@ issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 version: 2.0.0-beta.2
 
 environment:
+<<<<<<< HEAD
   sdk: '>=2.10.0 <3.0.0'
+=======
+  sdk: '>=2.12.0-0 <3.0.0'
+>>>>>>> fixing tests
 
 dependencies:
 <<<<<<< HEAD
@@ -19,13 +23,21 @@ dependencies:
       url: git://github.com/TitanKing/dio.git
       path: dio
       ref: null-safety
+<<<<<<< HEAD
   sqflite: ^1.3.2+3
   uuid: ^2.2.2
 >>>>>>> hack dependency
+=======
+  sqflite: 2.0.0-nullsafety.2
+  uuid: 3.0.0-nullsafety.1
+>>>>>>> fixing tests
   meta: ^1.2.4
   moor: ^3.4.0
   path: ^1.7.0
   uuid: ^2.2.2
+
+dependency_overrides:
+  path_provider_platform_interface: 2.0.0-nullsafety
 
 dev_dependencies:
   moor_generator: ^3.4.1

@@ -3,15 +3,10 @@ import 'package:uuid/uuid.dart';
 
 import '../model/cache_priority.dart';
 import '../store/cache_store.dart';
+import 'cipher.dart';
 
 /// Key builder to customize your keys.
 typedef CacheKeyBuilder = String Function(RequestOptions request);
-
-/// Encrypt content/headers method.
-typedef Encrypt = Future<List<int>> Function(List<int> bytes);
-
-/// Decrypt content/headers method.
-typedef Decrypt = Future<List<int>> Function(List<int> bytes);
 
 /// Policy to handle request behaviour.
 enum CachePolicy {
@@ -52,27 +47,24 @@ class CacheOptions {
   /// Other errors, such as socket exceptions (connect, send TO, receive TO,
   /// ...),
   /// will trigger the cache.
-  final List<int> hitCacheOnErrorExcept;
+  final List<int>? hitCacheOnErrorExcept;
 
   /// Builds the unique key used for indexing a request in cache.
   /// Default to [CacheOptions.defaultCacheKeyBuilder]
   final CacheKeyBuilder keyBuilder;
 
   /// Overrides any HTTP directive to delete entry past this duration.
-  final Duration maxStale;
+  final Duration? maxStale;
 
   /// The priority of a cached value.
   /// Ease the clean up if needed.
   final CachePriority priority;
 
   /// Optional store used for caching data.
-  final CacheStore store;
+  final CacheStore? store;
 
-  /// Optional method to decrypt cache content
-  final Decrypt decrypt;
-
-  /// Optional method to encrypt cache content
-  final Encrypt encrypt;
+  /// Optional encryption/decryption for cache content
+  final Cipher? cipher;
 
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
@@ -86,14 +78,9 @@ class CacheOptions {
     this.keyBuilder = defaultCacheKeyBuilder,
     this.maxStale,
     this.priority = CachePriority.normal,
-    this.decrypt,
-    this.encrypt,
+    this.cipher,
     this.store,
-  })  : assert(policy != null),
-        assert(keyBuilder != null),
-        assert(priority != null),
-        assert((decrypt == null && encrypt == null) ||
-            (decrypt != null && encrypt != null));
+  });
 
   factory CacheOptions.fromExtra(RequestOptions request) {
     return request.extra[_extraKey];

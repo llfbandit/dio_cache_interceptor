@@ -7,7 +7,8 @@ Future<List<int>> serializeContent(ResponseType type, dynamic content) async {
     case ResponseType.bytes:
       return content;
     case ResponseType.stream:
-      return (await (content as Stream<List<int>>).toList()).expand((x) => x);
+      return (await (content as Stream<List<int>>).toList()).expand((x) => x)
+          as List<int>;
     case ResponseType.plain:
       return utf8.encode(content);
     case ResponseType.json:

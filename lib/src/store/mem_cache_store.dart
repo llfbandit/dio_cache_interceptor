@@ -25,7 +25,7 @@ class MemCacheStore implements CacheStore {
 
     _cache.entries.forEach((key, resp) {
       var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;
-      if (staleOnly && resp.value.maxStale != null) {
+      if (staleOnly) {
         shouldRemove &= DateTime.now().toUtc().isAfter(resp.value.maxStale);
       }
 
@@ -45,9 +45,7 @@ class MemCacheStore implements CacheStore {
     if (resp == null) return Future.value();
     final maxStale = resp.value.maxStale;
 
-    if (staleOnly &&
-        maxStale != null &&
-        DateTime.now().toUtc().isBefore(maxStale)) {
+    if (staleOnly && DateTime.now().toUtc().isBefore(maxStale)) {
       return Future.value();
     }
 
@@ -62,20 +60,18 @@ class MemCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     final resp = _cache[key];
     if (resp == null) return Future.value();
 
     // Purge entry if stalled
     final maxStale = resp.maxStale;
-    if (maxStale != null) {
-      if (DateTime.now().toUtc().isAfter(maxStale)) {
-        await delete(key);
-        return Future.value();
-      }
+    if (DateTime.now().toUtc().isAfter(maxStale)) {
+      await delete(key);
+      return null;
     }
 
-    return Future.value(resp);
+    return resp;
   }
 
   @override
@@ -93,8 +89,8 @@ class MemCacheStore implements CacheStore {
 }
 
 class _LruMap {
-  _Link _head;
-  _Link _tail;
+  _Link? _head;
+  _Link? _tail;
 
   final entries = <String, _Link>{};
 
@@ -103,12 +99,11 @@ class _LruMap {
   final int maxEntrySize;
 
   _LruMap(this.maxSize, this.maxEntrySize) {
-    assert(maxEntrySize != null);
     assert(maxEntrySize != maxSize);
     assert(maxEntrySize * 5 <= maxSize);
   }
 
-  CacheResponse operator [](String key) {
+  CacheResponse? operator [](String key) {
     final entry = entries[key];
     if (entry == null) return null;
 
@@ -129,11 +124,11 @@ class _LruMap {
 
     while (_currentSize > maxSize) {
       assert(_tail != null);
-      remove(_tail.key);
+      remove(_tail!.key);
     }
   }
 
-  CacheResponse remove(String key) {
+  CacheResponse? remove(String key) {
     final entry = entries[key];
     if (entry == null) return null;
 
@@ -160,10 +155,10 @@ class _LruMap {
     }
 
     if (link.previous != null) {
-      link.previous.next = link.next;
+      link.previous!.next = link.next;
     }
     if (link.next != null) {
-      link.next.previous = link.previous;
+      link.next!.previous = link.previous;
     }
 
     _head?.next = link;
@@ -174,16 +169,16 @@ class _LruMap {
   }
 
   int _computeSize(CacheResponse resp) {
-    var size = resp.content?.length ?? 0;
-    size += resp.headers?.length ?? 0;
+    var size = resp.content.length;
+    size += resp.headers.length;
 
     return size * 8;
   }
 }
 
 class _Link implements MapEntry<String, CacheResponse> {
-  _Link next;
-  _Link previous;
+  _Link? next;
+  _Link? previous;
 
   final int size;
 

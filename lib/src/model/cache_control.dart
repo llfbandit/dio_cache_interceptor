@@ -20,20 +20,20 @@ class CacheControl {
   final List<String> other;
 
   CacheControl({
-    this.maxAge,
-    this.privacy,
+    this.maxAge = 0,
+    this.privacy = '',
     this.noCache = false,
     this.noStore = false,
-    List<String> otherAttrs,
-  }) : other = otherAttrs ?? [];
+    List<String> otherAttrs = const [],
+  }) : other = otherAttrs;
 
   factory CacheControl.fromHeader(List<String> headerValues) {
-    if (headerValues == null) return null;
+    if (headerValues.isEmpty) return CacheControl();
 
-    int maxAge;
-    String privacy;
-    bool noCache;
-    bool noStore;
+    var maxAge = 0;
+    var privacy = '';
+    var noCache = false;
+    var noStore = false;
     final other = <String>[];
 
     for (var value in headerValues) {
@@ -44,7 +44,7 @@ class CacheControl {
       } else if (value == 'public' || value == 'private') {
         privacy = value;
       } else if (value.startsWith('max-age')) {
-        maxAge = int.tryParse(value.substring(value.indexOf('=') + 1));
+        maxAge = int.tryParse(value.substring(value.indexOf('=') + 1)) ?? 0;
       } else {
         other.add(value);
       }
@@ -62,10 +62,10 @@ class CacheControl {
   /// Serialize cache-control values
   String toHeader() {
     final values = <String>[]
-      ..add(maxAge != null ? 'max-age=$maxAge' : '')
-      ..add(privacy ?? '')
-      ..add((noCache ?? false) ? 'no-cache' : '')
-      ..add((noStore ?? false) ? 'no-store' : '')
+      ..add(maxAge != 0 ? 'max-age=$maxAge' : '')
+      ..add(privacy)
+      ..add(noCache ? 'no-cache' : '')
+      ..add(noStore ? 'no-store' : '')
       ..addAll(other);
 
     return values.join(', ');
@@ -76,12 +76,12 @@ class CacheControl {
   /// [responseDate] given is from response absolute time.
   /// [date] given is from Date response header.
   /// [expires] given is from Expires response header.
-  bool isStale(DateTime responseDate, DateTime date, DateTime expires) {
-    if ((noCache ?? false) || other.contains('must-revalidate')) {
+  bool isStale(DateTime responseDate, DateTime? date, DateTime? expires) {
+    if (noCache || other.contains('must-revalidate')) {
       return true;
     }
 
-    if (maxAge == null) {
+    if (maxAge == 0) {
       if (date != null && expires != null) {
         return expires.difference(date).isNegative;
       }

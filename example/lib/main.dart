@@ -18,8 +18,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String text = '';
-  CacheStore cacheStore;
-  Dio dio;
+  late CacheStore cacheStore;
+  late Dio dio;
 
   @override
   void initState() {
@@ -108,7 +108,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future _requestFirstCall() async {
-    final resp = await _call();
+    final resp = await _call(policy: CachePolicy.cacheFirst);
     if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
@@ -140,9 +140,9 @@ class _MyAppState extends State<MyApp> {
 
   Future<Response> _call({
     String url = 'http://www.wikipedia.org',
-    CachePolicy policy,
+    required CachePolicy policy,
   }) async {
-    Options options;
+    Options? options;
     if (policy != null) {
       options = CacheOptions(store: cacheStore, policy: policy).toOptions();
     }
@@ -169,7 +169,7 @@ class _MyAppState extends State<MyApp> {
     buffer.writeln('Call returned ${response.statusCode}\n');
 
     buffer.writeln('Request headers:');
-    buffer.writeln('${response.request.headers.toString()}\n');
+    buffer.writeln('${response.request!.headers.toString()}\n');
 
     buffer.writeln('Response headers (cache related):');
     if (date != null) {

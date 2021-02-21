@@ -14,7 +14,7 @@ class MockAdapter extends HttpClientAdapter {
   Future<ResponseBody> fetch(
     RequestOptions options,
     Stream<List<int>> requestStream,
-    Future cancelFuture,
+    Future? cancelFuture,
   ) async {
     final uri = options.uri;
     if (uri.host == mockHost) {
@@ -30,7 +30,6 @@ class MockAdapter extends HttpClientAdapter {
               Headers.contentTypeHeader: [Headers.jsonContentType],
             },
           );
-          break;
         case '/test-auth':
           {
             return Future.delayed(Duration(milliseconds: 300), () {
@@ -58,7 +57,6 @@ class MockAdapter extends HttpClientAdapter {
               );
             });
           }
-          break;
         case '/download':
           return Future.delayed(Duration(milliseconds: 300), () {
             return ResponseBody(
@@ -71,7 +69,6 @@ class MockAdapter extends HttpClientAdapter {
               },
             );
           });
-          break;
 
         case '/token':
           {

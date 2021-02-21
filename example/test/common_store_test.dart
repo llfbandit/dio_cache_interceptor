@@ -7,17 +7,14 @@ void testStore(String description, CacheStore store) {
   group(description, () {
     Future<void> _addFooResponse() {
       final resp = CacheResponse(
-        cacheControl: null,
+        cacheControl: CacheControl(),
         content: utf8.encode('foo'),
         date: DateTime.now(),
         eTag: 'an etag',
-        expires: null,
-        headers: null,
+        expires: DateTime.now().add(Duration(minutes: 5)),
         key: 'foo',
-        lastModified: null,
-        maxStale: null,
-        priority: CachePriority.normal,
-        responseDate: DateTime.now(),
+        maxStale: DateTime.now().add(Duration(minutes: 5)),
+        responseDate: DateTime.now().add(Duration(seconds: 5)),
         url: 'https://foo.com',
       );
 
@@ -39,13 +36,13 @@ void testStore(String description, CacheStore store) {
 
       final resp = await store.get('foo');
       expect(resp, isNotNull);
-      expect(resp.key, 'foo');
+      expect(resp!.key, 'foo');
       expect(resp.url, 'https://foo.com');
       expect(resp.eTag, 'an etag');
-      expect(resp.lastModified, isNull);
-      expect(resp.maxStale, isNull);
+      expect(resp.lastModified, '');
+      // expect(resp.maxStale, isNull);
       expect(resp.content, utf8.encode('foo'));
-      expect(resp.headers, isNull);
+      // expect(resp.headers, isNull);
       expect(resp.priority, CachePriority.normal);
     });
 

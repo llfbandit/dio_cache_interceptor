@@ -15,12 +15,11 @@ class FileCacheStore implements CacheStore {
   final Map<CachePriority, Directory> _directories;
 
   FileCacheStore(Directory directory)
-      : assert(directory != null),
-        _directories = _genDirectories(directory) {
+      : _directories = _genDirectories(directory) {
     clean(staleOnly: true);
   }
 
-  File _findFile(String key) {
+  File? _findFile(String key) {
     for (final entry in _directories.entries) {
       final file = File(path.join(entry.value.path, key));
       if (file.existsSync()) {
@@ -32,18 +31,18 @@ class FileCacheStore implements CacheStore {
   }
 
   @override
-  Future<void> clean({
+  Future<List> clean({
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   }) async {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
-      final directory = _directories[CachePriority.values[i]];
+      final directory = _directories[CachePriority.values[i]]!;
 
-      if (!directory.existsSync()) return;
+      if (directory.existsSync()) return;
 
       if (staleOnly) {
         directory.listSync().forEach((file) async {
-          await deleteFile(file, staleOnly: staleOnly);
+          await deleteFile(file as File, staleOnly: staleOnly);
         });
       }
 
@@ -59,7 +58,12 @@ class FileCacheStore implements CacheStore {
 
   @override
   Future<void> delete(String key, {bool staleOnly = false}) async {
-    return deleteFile(_findFile(key), staleOnly: staleOnly);
+    // TODO: add try catch
+    final file = _findFile(key);
+    if (file != null && file.existsSync()) {
+      return deleteFile(_findFile(key)!, staleOnly: staleOnly);
+    }
+    return Future.value();
   }
 
   @override
@@ -68,19 +72,21 @@ class FileCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     final file = _findFile(key);
-    if (file == null) return Future.value();
+    if (file == null) {
+      // TODO: improve miss reporting
+      print('Cache miss!');
+      return Future.value();
+    }
 
     final resp = await _deserializeContent(file);
 
     // Purge entry if stalled
     final maxStale = resp.maxStale;
-    if (maxStale != null) {
-      if (DateTime.now().toUtc().isAfter(maxStale)) {
-        await delete(key);
-        return Future.value();
-      }
+    if (DateTime.now().toUtc().isAfter(maxStale)) {
+      await delete(key);
+      return null;
     }
 
     return resp;
@@ -92,7 +98,7 @@ class FileCacheStore implements CacheStore {
 
     final file = File(
       path.join(
-        _directories[response.priority].path,
+        _directories[response.priority]!.path,
         response.key,
       ),
     );
@@ -111,20 +117,20 @@ class FileCacheStore implements CacheStore {
   }
 
   List<int> _serializeContent(CacheResponse response) {
-    final etag = utf8.encode(response.eTag ?? '');
-    final lastModified = utf8.encode(response.lastModified ?? '');
-    final maxStale = utf8.encode(response.getMaxStaleSeconds() ?? '');
+    final etag = utf8.encode(response.eTag);
+    final lastModified = utf8.encode(response.lastModified);
+    final maxStale = utf8.encode(response.getMaxStaleSeconds().toString());
     final url = utf8.encode(response.url);
-    final cacheControl = utf8.encode(response.cacheControl?.toHeader() ?? '');
-    final date = utf8.encode(response.date?.toIso8601String() ?? '');
-    final expires = utf8.encode(response.expires?.toIso8601String() ?? '');
+    final cacheControl = utf8.encode(response.cacheControl.toHeader());
+    final date = utf8.encode(response.date.toIso8601String());
+    final expires = utf8.encode(response.expires.toIso8601String());
     final responseDate = utf8.encode(response.responseDate.toIso8601String());
 
     return [
       ...Int32List.fromList([
-        response.content?.length ?? 0,
+        response.content.length,
         etag.length,
-        response.headers?.length ?? 0,
+        response.headers.length,
         lastModified.length,
         maxStale.length,
         url.length,
@@ -133,9 +139,9 @@ class FileCacheStore implements CacheStore {
         expires.length,
         responseDate.length,
       ]).buffer.asInt8List(),
-      ...response.content ?? [],
+      ...response.content,
       ...etag,
-      ...response.headers ?? [],
+      ...response.headers,
       ...lastModified,
       ...maxStale,
       ...url,
@@ -159,21 +165,22 @@ class FileCacheStore implements CacheStore {
     var fieldIndex = 0;
 
     var size = sizes[fieldIndex++];
-    final content = size != 0 ? data.skip(i).take(size).toList() : null;
+    final content =
+        size != 0 ? data.skip(i).take(size).toList() : [] as List<int>;
 
     i += size;
     size = sizes[fieldIndex++];
-    final etag =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final etag = size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
-    final headers = size != 0 ? data.skip(i).take(size).toList() : null;
+    final headers =
+        size != 0 ? data.skip(i).take(size).toList() : [] as List<int>;
 
     i += size;
     size = sizes[fieldIndex++];
     final lastModified =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
@@ -182,44 +189,43 @@ class FileCacheStore implements CacheStore {
 
     i += size;
     size = sizes[fieldIndex++];
-    final url =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final url = size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
     final cacheControl =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
-    final date =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final date = size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
     final expires =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     i += size;
     size = sizes[fieldIndex++];
     final responseDate =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : '';
 
     return CacheResponse(
-      cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
+      cacheControl: CacheControl.fromHeader(cacheControl.split(', ')),
       content: content,
-      date: date != null ? DateTime.tryParse(date) : null,
+      date: DateTime.tryParse(date) ?? DateTime.now(),
       eTag: etag,
-      expires: expires != null ? DateTime.tryParse(expires) : null,
+      expires: DateTime.tryParse(expires) ?? DateTime.now(),
       headers: headers,
       key: path.basename(file.path),
       lastModified: lastModified,
       maxStale: maxStale != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.tryParse(maxStale) * 1000,
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(maxStale) ?? DateTime.now().millisecond,
               isUtc: true)
-          : null,
+          : DateTime.now(),
       priority: _getPriority(file),
-      responseDate: DateTime.tryParse(responseDate),
+      responseDate: DateTime.tryParse(responseDate) ?? DateTime.now(),
       url: url,
     );
   }
@@ -240,11 +246,10 @@ class FileCacheStore implements CacheStore {
     File file, {
     bool staleOnly = false,
   }) async {
-    if (file != null) {
+    if (file.existsSync()) {
       if (staleOnly) {
         final resp = await _deserializeContent(file);
-        if (resp.maxStale != null &&
-            DateTime.now().toUtc().isBefore(resp.maxStale)) {
+        if (DateTime.now().toUtc().isBefore(resp.maxStale)) {
           return Future.value();
         }
       }

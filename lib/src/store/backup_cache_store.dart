@@ -22,9 +22,7 @@ class BackupCacheStore implements CacheStore {
   /// Secondary cache store
   final CacheStore secondary;
 
-  BackupCacheStore({@required this.primary, @required this.secondary})
-      : assert(primary != null),
-        assert(secondary != null);
+  BackupCacheStore({required this.primary, required this.secondary});
 
   @override
   Future<void> clean({
@@ -53,7 +51,7 @@ class BackupCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     final resp = await primary.get(key);
     if (resp != null) return resp;
 
