@@ -14,7 +14,7 @@ class HttpDate {
    * "RFC-2616 section 3.1.1").
    */
   static DateTime parse(String date) {
-    final SP = 32;
+    final sp = 32;
     const wkdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const weekdays = [
       'Monday',
@@ -128,7 +128,7 @@ class HttpDate {
     int seconds;
     if (format == formatAsctime) {
       month = expectMonth(' ');
-      if (date.codeUnitAt(index) == SP) index++;
+      if (date.codeUnitAt(index) == sp) index++;
       day = expectNum(' ');
       hours = expectNum(':');
       minutes = expectNum(':');

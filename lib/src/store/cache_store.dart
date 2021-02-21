@@ -27,4 +27,7 @@ abstract class CacheStore {
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   });
+
+  /// Releases underlying resources (if any)
+  Future<void> close();
 }

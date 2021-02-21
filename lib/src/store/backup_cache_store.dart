@@ -65,4 +65,10 @@ class BackupCacheStore implements CacheStore {
     secondary.set(response);
     return primary.set(response);
   }
+
+  @override
+  Future<void> close() async {
+    await primary.close();
+    return secondary.close();
+  }
 }

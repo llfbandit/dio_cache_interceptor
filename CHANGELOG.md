@@ -1,3 +1,7 @@
+## 2.0.0-beta.2
+- fix: Hide FileCacheStore for web support.
+- core: Remove flutter dependency.
+
 ## 2.0.0-beta.1
 - __Breaking__: Moved from sqflite to Moor(:ffi) package for DbCacheStore.
 - __Breaking__: Data stored with DbCacheStore is not compatible with previous versions.

@@ -78,7 +78,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
 
   Future<CacheResponse> get(String key) async {
     // Get record
-    final query = await select(dioCache)
+    final query = select(dioCache)
       ..where((t) => t.key.equals(key))
       ..limit(1);
     final result = await query.getSingle();

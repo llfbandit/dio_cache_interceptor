@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart' as pp;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,16 +23,23 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    cacheStore = DbCacheStore(logStatements: true);
+    pp.getApplicationDocumentsDirectory().then((dir) {
+      cacheStore = DbCacheStore(databasePath: dir.path, logStatements: true);
+
+      dio = Dio()
+        ..interceptors.add(
+          DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
+        );
+    });
     // cacheStore = MemCacheStore(maxSize: 10485760, maxEntrySize: 1048576);
-    dio = Dio()
-      ..interceptors.add(
-        DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
-      );
+    // dio = Dio()
+    //   ..interceptors.add(
+    //     DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
+    //   );
 
     // or
 
-    // getApplicationSupportDirectory().then((dir) {
+    // pp.getApplicationSupportDirectory().then((dir) {
     //   cacheStore = FileCacheStore(dir);
 
     //   dio = Dio()
@@ -41,6 +49,13 @@ class _MyAppState extends State<MyApp> {
     // });
 
     super.initState();
+  }
+
+  @override
+  void dispose() async {
+    dio.close();
+    await cacheStore?.close();
+    return super.dispose();
   }
 
   @override

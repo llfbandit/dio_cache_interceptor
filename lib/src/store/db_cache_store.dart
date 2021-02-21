@@ -2,6 +2,7 @@ import 'package:dio_cache_interceptor/src/model/cache_priority.dart';
 import 'package:dio_cache_interceptor/src/model/cache_response.dart';
 import 'package:dio_cache_interceptor/src/store/cache_store.dart';
 import 'package:dio_cache_interceptor/src/store/db_cache_store/database.dart';
+import 'package:meta/meta.dart';
 
 /// A store saving responses in a dedicated database
 /// from an optional [directory].
@@ -14,12 +15,12 @@ class DbCacheStore implements CacheStore {
   /// - Useful if you want more than one DB.
   final String databaseName;
 
-  /// Data base location. Optional.
+  /// Data base location.
   ///
-  /// By default:
-  /// - On Android, data/data/package_name/databases.
-  /// - On iOS, Documents directory.
-  /// - On desktop, current directory.
+  /// - On mobile, prefer getApplicationDocumentsDirectory()
+  ///   given by path_provider.
+  /// - On desktop, current directory by default.
+  /// - On web, this is ignored.
   final String databasePath;
 
   /// Log DB statements. Defaults to [false].
@@ -29,7 +30,7 @@ class DbCacheStore implements CacheStore {
   DioCacheDatabase _db;
 
   DbCacheStore({
-    this.databasePath,
+    @required this.databasePath,
     this.databaseName = tableName,
     this.logStatements = false,
   }) {
@@ -83,10 +84,19 @@ class DbCacheStore implements CacheStore {
   }
 
   DioCacheDatabase _getDatabase() {
-    return _db ??= openDb(
+    if (_db != null) return _db;
+
+    _db = openDb(
       databasePath: databasePath,
       databaseName: databaseName,
       logStatements: logStatements,
     );
+
+    return _db;
+  }
+
+  @override
+  Future<void> close() {
+    return _db?.close();
   }
 }

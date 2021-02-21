@@ -105,6 +105,11 @@ class FileCacheStore implements CacheStore {
     await file.writeAsBytes(bytes, flush: true);
   }
 
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+
   List<int> _serializeContent(CacheResponse response) {
     final etag = utf8.encode(response.eTag ?? '');
     final lastModified = utf8.encode(response.lastModified ?? '');

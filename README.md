@@ -10,15 +10,18 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 ## Stores
 - BackupCacheStore: Combined store with primary and secondary.
 - DbCacheStore: Cache with database (Moor).
-- FileCacheStore: Cache with file system.
+- FileCacheStore: Cache with file system (no web support obviously).
 - MemCacheStore: Volatile cache with LRU strategy.
 
-## Web support:
-- For DbCacheStore, you must include 'sql.js' library. Follow Moor install [documentation](https://moor.simonbinder.eu/web/) for further info.
-- FileCacheStore is obviously not supported on web platform.
+### DbCacheStore:
+#### Android - iOS support:
+- Add sqlite3_flutter_libs as dependency in your app (version 0.4.0+1 or later).
 
-## DbCacheStore - Desktop support:
+#### Desktop support:
 - Follow Moor install [documentation](https://moor.simonbinder.eu/docs/platforms/).
+
+#### Web support:
+- You must include 'sql.js' library. Follow Moor install [documentation](https://moor.simonbinder.eu/web/) for further info.
 
 ## Usage
 
@@ -27,7 +30,7 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 // Global options
 final options = const CacheOptions(
-  store: DbCacheStore(), // Required.
+  store: DbCacheStore(databasePath: 'a_path'), // Required.
   policy: CachePolicy.requestFirst, // Default. Requests first and caches response.
   hitCacheOnErrorExcept: [401, 403], // Optional. Returns a cached response on error if available but for statuses 401 & 403.
   priority: CachePriority.normal, // Optional. Default. Allows 3 cache levels and ease cleanup.
@@ -39,7 +42,7 @@ final dio = Dio()
   ..interceptors.add(DioCacheInterceptor(options: options),
 );
 
-...
+// ...
 
 // Request with default options
 var response = await dio.get('http://www.foo.com');

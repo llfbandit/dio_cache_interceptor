@@ -85,6 +85,11 @@ class MemCacheStore implements CacheStore {
 
     return Future.value();
   }
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
 }
 
 class _LruMap {

@@ -1,7 +1,9 @@
+import 'package:meta/meta.dart';
+
 import '../database.dart';
 
 DioCacheDatabase openDb({
-  String databasePath,
+  @required String databasePath,
   String databaseName,
   bool logStatements = false,
 }) {

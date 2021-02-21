@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:test/test.dart';
 
-void main(String description, CacheStore store) {
+void testStore(String description, CacheStore store) {
   group(description, () {
     Future<void> _addFooResponse() {
       final resp = CacheResponse(
