@@ -13,7 +13,12 @@ dependencies:
   meta: ^1.2.4
   moor: ^3.4.0
   path: ^1.7.0
-  uuid: ^2.2.2
+  path_provider: 2.0.0-nullsafety.1
+  sqlite3_flutter_libs: ^0.4.0+1
+
+dependency_overrides:
+  sqlite3: 0.1.10-nullsafety.0
+  ffi: ^1.0.0
 
 dev_dependencies:
   moor_generator: ^3.4.1
