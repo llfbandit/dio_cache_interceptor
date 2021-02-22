@@ -27,8 +27,8 @@ class CacheControl {
     List<String> otherAttrs = const [],
   }) : other = otherAttrs;
 
-  factory CacheControl.fromHeader(List<String> headerValues) {
-    if (headerValues.isEmpty) return CacheControl();
+  factory CacheControl.fromHeader(List<String>? headerValues) {
+    if (headerValues == null || headerValues.isEmpty) return CacheControl();
 
     var maxAge = 0;
     var privacy = '';

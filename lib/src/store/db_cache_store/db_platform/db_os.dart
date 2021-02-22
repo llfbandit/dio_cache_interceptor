@@ -8,12 +8,12 @@ import 'package:path/path.dart' as p;
 import '../database.dart';
 
 DioCacheDatabase openDb({
-  @required String databasePath,
-  String databaseName,
+  required String databasePath,
+  String databaseName = 'brando', // This is a Jojo's reference.
   bool logStatements = false,
 }) {
   Directory(databasePath).createSync(recursive: true);
-  final dbFile = File(p.join(databasePath ?? '', '$databaseName.db'));
+  final dbFile = File(p.join(databasePath, '$databaseName.db'));
 
   if (Platform.isIOS || Platform.isAndroid) {
     final executor = LazyDatabase(() async {

@@ -56,11 +56,10 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   Future<void> deleteKey(String key, {bool staleOnly = false}) async {
     final query = delete(dioCache)
       ..where((t) {
-        var expr = t.key.equals(key);
-        if (staleOnly) {
-          expr = expr & t.maxStale.isSmallerOrEqualValue(DateTime.now());
-        }
-        return expr;
+        final Expression<bool?> expr = t.key.equals(key);
+        return staleOnly
+            ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now())
+            : expr;
       });
 
     await query.go();
@@ -82,26 +81,26 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       ..where((t) => t.key.equals(key))
       ..limit(1);
     final result = await query.getSingle();
-    if (result == null) return Future.value();
 
     // Purge entry if stalled
     if (result.maxStale != null) {
-      if (DateTime.now().isAfter(result.maxStale)) {
+      if (DateTime.now().isAfter(result.maxStale!)) {
         await deleteKey(key);
         return Future.value();
       }
     }
 
     return CacheResponse(
-      cacheControl: CacheControl.fromHeader(result.cacheControl?.split(', ')),
-      content: result.content,
-      date: result.date,
-      eTag: result.eTag,
-      expires: result.expires,
-      headers: result.headers,
+      cacheControl: CacheControl.fromHeader(result.cacheControl!.split(', ')),
+      content: result.content != null ? result.content!.toList() : const [],
+      date: result.date ?? DateTime.now().toUtc(),
+      eTag: result.eTag ?? '',
+      expires: result.expires ?? DateTime.now().toUtc(),
+      headers: result.headers != null ? result.headers!.toList() : const [],
       key: key,
-      lastModified: result.lastModified,
-      maxStale: result.maxStale,
+      lastModified:
+          result.lastModified ?? DateTime.now().toUtc().toIso8601String(),
+      maxStale: result.maxStale ?? DateTime.now().toUtc(),
       priority: CachePriority.values[result.priority],
       responseDate: result.responseDate,
       url: result.url,
@@ -112,11 +111,11 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     await into(dioCache).insert(
       _DioCacheData(
         date: response.date,
-        cacheControl: response.cacheControl?.toHeader(),
-        content: response.content,
+        cacheControl: response.cacheControl.toHeader(),
+        content: Uint8List.fromList(response.content),
         eTag: response.eTag,
         expires: response.expires,
-        headers: response.headers,
+        headers: Uint8List.fromList(response.headers),
         key: response.key,
         lastModified: response.lastModified,
         maxStale: response.maxStale,

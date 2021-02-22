@@ -9,11 +9,11 @@ void testStore(String description, CacheStore store) {
       final resp = CacheResponse(
         cacheControl: CacheControl(),
         content: utf8.encode('foo'),
-        date: DateTime.now(),
+        date: DateTime.now().toUtc(),
         eTag: 'an etag',
-        expires: DateTime.now().add(Duration(minutes: 5)),
+        expires: DateTime.now().toUtc().add(Duration(minutes: 5)),
         key: 'foo',
-        maxStale: DateTime.now().add(Duration(minutes: 5)),
+        maxStale: DateTime.now().toUtc().add(Duration(minutes: 5)),
         responseDate: DateTime.now().add(Duration(seconds: 5)),
         url: 'https://foo.com',
       );

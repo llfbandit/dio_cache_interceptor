@@ -86,7 +86,7 @@ class FileCacheStore implements CacheStore {
     final maxStale = resp.maxStale;
     if (DateTime.now().toUtc().isAfter(maxStale)) {
       await delete(key);
-      return null;
+      return Future.value();
     }
 
     return resp;
@@ -166,7 +166,7 @@ class FileCacheStore implements CacheStore {
 
     var size = sizes[fieldIndex++];
     final content =
-        size != 0 ? data.skip(i).take(size).toList() : [] as List<int>;
+        size != 0 ? data.skip(i).take(size).toList() : const [] as List<int>;
 
     i += size;
     size = sizes[fieldIndex++];
@@ -174,8 +174,7 @@ class FileCacheStore implements CacheStore {
 
     i += size;
     size = sizes[fieldIndex++];
-    final headers =
-        size != 0 ? data.skip(i).take(size).toList() : [] as List<int>;
+    final headers = size != 0 ? data.skip(i).take(size).toList() : null;
 
     i += size;
     size = sizes[fieldIndex++];
@@ -213,19 +212,21 @@ class FileCacheStore implements CacheStore {
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(cacheControl.split(', ')),
       content: content,
-      date: DateTime.tryParse(date) ?? DateTime.now(),
+      date: DateTime.tryParse(date) ?? DateTime.now().toUtc(),
       eTag: etag,
-      expires: DateTime.tryParse(expires) ?? DateTime.now(),
-      headers: headers,
+      expires: DateTime.tryParse(expires) ?? DateTime.now().toUtc(),
+      headers: headers ?? [],
       key: path.basename(file.path),
       lastModified: lastModified,
       maxStale: maxStale != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              int.tryParse(maxStale) ?? DateTime.now().millisecond,
+              (int.tryParse(maxStale) ??
+                      DateTime.now().toUtc().millisecondsSinceEpoch) *
+                  1000,
               isUtc: true)
           : DateTime.now(),
       priority: _getPriority(file),
-      responseDate: DateTime.tryParse(responseDate) ?? DateTime.now(),
+      responseDate: DateTime.tryParse(responseDate) ?? DateTime.now().toUtc(),
       url: url,
     );
   }

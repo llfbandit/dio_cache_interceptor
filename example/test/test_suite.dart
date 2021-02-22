@@ -1,15 +1,16 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart' as pp;
+import 'dart:io';
 
 import './common_store_test.dart' as common;
 
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final dir = await pp.getApplicationDocumentsDirectory();
+  final Directory? dir = await pp.getApplicationDocumentsDirectory();
 
-  final dbCacheStore = DbCacheStore(databasePath: dir.path);
+  final dbCacheStore = DbCacheStore(databasePath: dir!.path);
   final fileCacheStore = FileCacheStore(dir);
   final memCacheStore = MemCacheStore();
   final backupCacheStore = BackupCacheStore(
