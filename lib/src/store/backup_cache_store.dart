@@ -10,9 +10,6 @@ import 'cache_store.dart';
 /// Cached responses are read from [primary] first, and then
 /// from [secondary].
 ///
-/// Note: [secondary] is not awaited on writing operations
-/// (including set / clean / delete).
-///
 /// Mostly useful when you want MemCacheStore before another.
 ///
 class BackupCacheStore implements CacheStore {
@@ -30,21 +27,21 @@ class BackupCacheStore implements CacheStore {
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
-  }) {
-    secondary.clean(
+  }) async {
+    await primary.clean(
       priorityOrBelow: priorityOrBelow,
       staleOnly: staleOnly,
     );
-    return primary.clean(
+    return secondary.clean(
       priorityOrBelow: priorityOrBelow,
       staleOnly: staleOnly,
     );
   }
 
   @override
-  Future<void> delete(String key, {bool staleOnly = false}) {
-    secondary.delete(key, staleOnly: staleOnly);
-    return primary.delete(key, staleOnly: staleOnly);
+  Future<void> delete(String key, {bool staleOnly = false}) async {
+    await primary.delete(key, staleOnly: staleOnly);
+    return secondary.delete(key, staleOnly: staleOnly);
   }
 
   @override
@@ -61,9 +58,9 @@ class BackupCacheStore implements CacheStore {
   }
 
   @override
-  Future<void> set(CacheResponse response) {
-    secondary.set(response);
-    return primary.set(response);
+  Future<void> set(CacheResponse response) async {
+    await primary.set(response);
+    return secondary.set(response);
   }
 
   @override

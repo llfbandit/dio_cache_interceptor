@@ -22,11 +22,6 @@ dependencies:
 
   cupertino_icons: ^0.1.3
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  test: any
-
 # The following section is specific to Flutter.
 flutter:
   uses-material-design: true

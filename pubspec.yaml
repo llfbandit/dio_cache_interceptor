@@ -19,4 +19,4 @@ dev_dependencies:
   moor_generator: ^3.4.1
   build_runner:
   pedantic: ^1.9.0
-  # Tests are done in example project
+  test: ^1.15.7

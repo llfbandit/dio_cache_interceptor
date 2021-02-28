@@ -14,7 +14,7 @@ import 'cache_store.dart';
 class FileCacheStore implements CacheStore {
   final Map<CachePriority, Directory> _directories;
 
-  FileCacheStore(Directory directory)
+  FileCacheStore(String directory)
       : assert(directory != null),
         _directories = _genDirectories(directory) {
     clean(staleOnly: true);
@@ -88,8 +88,6 @@ class FileCacheStore implements CacheStore {
 
   @override
   Future<void> set(CacheResponse response) async {
-    await delete(response.key);
-
     final file = File(
       path.join(
         _directories[response.priority].path,
@@ -147,7 +145,7 @@ class FileCacheStore implements CacheStore {
   }
 
   Future<CacheResponse> _deserializeContent(File file) async {
-    final data = await file.readAsBytes();
+    final data = file.readAsBytesSync();
 
     // Get field sizes
     // 10 fields. int is encoded with 32 bits (4 bytes)
@@ -256,14 +254,14 @@ class FileCacheStore implements CacheStore {
   }
 }
 
-Map<CachePriority, Directory> _genDirectories(Directory directory) {
+Map<CachePriority, Directory> _genDirectories(String directory) {
   return Map.fromEntries(
     Iterable.generate(
       CachePriority.values.length,
       (i) {
         final priority = CachePriority.values[i];
         final subDir = Directory(
-          path.join(directory.path, priority.toShortString()),
+          path.join(directory, priority.toShortString()),
         );
 
         return MapEntry(priority, subDir);
