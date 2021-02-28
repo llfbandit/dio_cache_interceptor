@@ -2,19 +2,19 @@
 class CacheControl {
   /// How long the response can be used from the time it was requested (in seconds).
   /// https://tools.ietf.org/html/rfc7234#section-5.2.2.8
-  final int maxAge;
+  final int? maxAge;
 
   /// 'public' / 'private'.
   /// https://tools.ietf.org/html/rfc7234#section-5.2.2.5
-  final String privacy;
+  final String? privacy;
 
   /// Must first submit a validation request to an origin server.
   /// https://tools.ietf.org/html/rfc7234#section-5.2.2.2
-  final bool noCache;
+  final bool? noCache;
 
   /// Disallow cache, overriding any other directives (Etag, Last-Modified)
   /// https://tools.ietf.org/html/rfc7234#section-5.2.2.3
-  final bool noStore;
+  final bool? noStore;
 
   /// Other attributes not parsed
   final List<String> other;
@@ -24,16 +24,16 @@ class CacheControl {
     this.privacy,
     this.noCache = false,
     this.noStore = false,
-    List<String> otherAttrs,
+    List<String>? otherAttrs,
   }) : other = otherAttrs ?? [];
 
-  factory CacheControl.fromHeader(List<String> headerValues) {
+  static CacheControl? fromHeader(List<String>? headerValues) {
     if (headerValues == null) return null;
 
-    int maxAge;
-    String privacy;
-    bool noCache;
-    bool noStore;
+    int? maxAge;
+    String? privacy;
+    bool? noCache;
+    bool? noStore;
     final other = <String>[];
 
     for (var value in headerValues) {
@@ -76,12 +76,13 @@ class CacheControl {
   /// [responseDate] given is from response absolute time.
   /// [date] given is from Date response header.
   /// [expires] given is from Expires response header.
-  bool isStale(DateTime responseDate, DateTime date, DateTime expires) {
+  bool isStale(DateTime responseDate, DateTime? date, DateTime? expires) {
     if ((noCache ?? false) || other.contains('must-revalidate')) {
       return true;
     }
 
-    if (maxAge == null) {
+    final checkedMaxAge = maxAge;
+    if (checkedMaxAge == null) {
       if (date != null && expires != null) {
         return expires.difference(date).isNegative;
       }
@@ -89,7 +90,7 @@ class CacheControl {
       return false;
     }
 
-    final maxDate = responseDate.add(Duration(seconds: maxAge));
+    final maxDate = responseDate.add(Duration(seconds: checkedMaxAge));
     return maxDate.isBefore(DateTime.now());
   }
 }

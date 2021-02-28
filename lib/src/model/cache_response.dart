@@ -2,7 +2,6 @@ import 'dart:convert' show jsonDecode, utf8;
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
-import 'package:meta/meta.dart';
 
 import '../util/content_serialization.dart';
 import 'cache_priority.dart';
@@ -16,31 +15,31 @@ class CacheResponse {
   static const String fromCache = '@fromCache@';
 
   /// Response Cache-control header
-  final CacheControl cacheControl;
+  final CacheControl? cacheControl;
 
   /// Response body
-  List<int> content;
+  List<int>? content;
 
   /// Response Date header
-  final DateTime date;
+  final DateTime? date;
 
   /// ETag header
-  final String eTag;
+  final String? eTag;
 
   /// Expires header
-  final DateTime expires;
+  final DateTime? expires;
 
   /// Response headers
-  List<int> headers;
+  List<int>? headers;
 
   /// Key used by store
   final String key;
 
   /// Last-modified header
-  final String lastModified;
+  final String? lastModified;
 
   /// Max stale expiry
-  final DateTime maxStale;
+  final DateTime? maxStale;
 
   /// Cache priority
   final CachePriority priority;
@@ -52,34 +51,38 @@ class CacheResponse {
   final String url;
 
   CacheResponse({
-    @required this.cacheControl,
-    @required this.content,
-    @required this.date,
-    @required this.eTag,
-    @required this.expires,
-    @required this.headers,
-    @required this.key,
-    @required this.lastModified,
-    @required this.maxStale,
-    @required this.priority,
-    @required this.responseDate,
-    @required this.url,
+    required this.cacheControl,
+    required this.content,
+    required this.date,
+    required this.eTag,
+    required this.expires,
+    required this.headers,
+    required this.key,
+    required this.lastModified,
+    required this.maxStale,
+    required this.priority,
+    required this.responseDate,
+    required this.url,
   });
 
   /// Returns date in seconds since epoch or null.
-  int getMaxStaleSeconds() {
-    if (maxStale != null) {
-      return maxStale.millisecondsSinceEpoch ~/ 1000;
+  int? getMaxStaleSeconds() {
+    final max = maxStale;
+    if (max != null) {
+      return max.millisecondsSinceEpoch ~/ 1000;
     }
 
     return null;
   }
 
   Response toResponse(RequestOptions options) {
-    final decHeaders = jsonDecode(utf8.decode(headers)) as Map<String, dynamic>;
+    final checkedHeaders = headers;
+    final decHeaders = (checkedHeaders != null)
+        ? jsonDecode(utf8.decode(checkedHeaders)) as Map<String, dynamic>
+        : null;
 
     final h = Headers();
-    decHeaders.forEach((key, value) => h.set(key, value));
+    decHeaders?.forEach((key, value) => h.set(key, value));
 
     return Response(
       data: deserializeContent(options.responseType, content),

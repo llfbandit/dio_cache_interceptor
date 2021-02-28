@@ -25,8 +25,9 @@ class MemCacheStore implements CacheStore {
 
     _cache.entries.forEach((key, resp) {
       var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;
-      if (staleOnly && resp.value.maxStale != null) {
-        shouldRemove &= DateTime.now().toUtc().isAfter(resp.value.maxStale);
+      final checkedMaxStale = resp.value.maxStale;
+      if (staleOnly && checkedMaxStale != null) {
+        shouldRemove &= DateTime.now().toUtc().isAfter(checkedMaxStale);
       }
 
       if (shouldRemove) {
@@ -62,7 +63,7 @@ class MemCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     final resp = _cache[key];
     if (resp == null) return Future.value();
 
@@ -93,8 +94,8 @@ class MemCacheStore implements CacheStore {
 }
 
 class _LruMap {
-  _Link _head;
-  _Link _tail;
+  _Link? _head;
+  _Link? _tail;
 
   final entries = <String, _Link>{};
 
@@ -103,12 +104,11 @@ class _LruMap {
   final int maxEntrySize;
 
   _LruMap(this.maxSize, this.maxEntrySize) {
-    assert(maxEntrySize != null);
     assert(maxEntrySize != maxSize);
     assert(maxEntrySize * 5 <= maxSize);
   }
 
-  CacheResponse operator [](String key) {
+  CacheResponse? operator [](String key) {
     final entry = entries[key];
     if (entry == null) return null;
 
@@ -129,11 +129,11 @@ class _LruMap {
 
     while (_currentSize > maxSize) {
       assert(_tail != null);
-      remove(_tail.key);
+      remove(_tail!.key);
     }
   }
 
-  CacheResponse remove(String key) {
+  CacheResponse? remove(String key) {
     final entry = entries[key];
     if (entry == null) return null;
 
@@ -160,10 +160,10 @@ class _LruMap {
     }
 
     if (link.previous != null) {
-      link.previous.next = link.next;
+      link.previous!.next = link.next;
     }
     if (link.next != null) {
-      link.next.previous = link.previous;
+      link.next!.previous = link.previous;
     }
 
     _head?.next = link;
@@ -182,8 +182,8 @@ class _LruMap {
 }
 
 class _Link implements MapEntry<String, CacheResponse> {
-  _Link next;
-  _Link previous;
+  _Link? next;
+  _Link? previous;
 
   final int size;
 

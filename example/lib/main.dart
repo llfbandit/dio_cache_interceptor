@@ -18,35 +18,28 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String text = '';
-  CacheStore cacheStore;
-  Dio dio;
+  late CacheStore cacheStore;
+  late Dio dio;
 
   @override
   void initState() {
     pp.getApplicationDocumentsDirectory().then((dir) {
       cacheStore = DbCacheStore(databasePath: dir.path, logStatements: true);
+      // cacheStore = FileCacheStore(dir.path);
 
       dio = Dio()
         ..interceptors.add(
           DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
         );
     });
+
+    // or
+
     // cacheStore = MemCacheStore(maxSize: 10485760, maxEntrySize: 1048576);
     // dio = Dio()
     //   ..interceptors.add(
     //     DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
     //   );
-
-    // or
-
-    // pp.getApplicationSupportDirectory().then((dir) {
-    //   cacheStore = FileCacheStore(dir);
-
-    //   dio = Dio()
-    //     ..interceptors.add(
-    //       DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
-    //     );
-    // });
 
     super.initState();
   }
@@ -54,7 +47,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() async {
     dio.close();
-    await cacheStore?.close();
+    await cacheStore.close();
     return super.dispose();
   }
 
@@ -90,7 +83,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 RaisedButton(
                   onPressed: () async => await _cacheStoreNoCall(),
-                  child: Text('Call (Cache store no policy)'),
+                  child: Text('Call (Cache no store policy)'),
                 ),
                 Text(text),
               ],
@@ -127,10 +120,10 @@ class _MyAppState extends State<MyApp> {
 
   Future _deleteEntry() async {
     final key = CacheOptions.defaultCacheKeyBuilder(
-      RequestOptions(path: 'http://www.wikipedia.org'),
+      RequestOptions(path: 'https://www.wikipedia.org'),
     );
     await cacheStore.delete(key);
-    setState(() => text = 'Entry "http://www.wikipedia.org" cleared');
+    setState(() => text = 'Entry "https://www.wikipedia.org" cleared');
   }
 
   Future _cleanStore() async {
@@ -139,10 +132,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<Response> _call({
-    String url = 'http://www.wikipedia.org',
-    CachePolicy policy,
+    String url = 'https://www.wikipedia.org',
+    CachePolicy? policy,
   }) async {
-    Options options;
+    Options? options;
     if (policy != null) {
       options = CacheOptions(store: cacheStore, policy: policy).toOptions();
     }

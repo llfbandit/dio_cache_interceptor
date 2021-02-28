@@ -52,27 +52,27 @@ class CacheOptions {
   /// Other errors, such as socket exceptions (connect, send TO, receive TO,
   /// ...),
   /// will trigger the cache.
-  final List<int> hitCacheOnErrorExcept;
+  final List<int>? hitCacheOnErrorExcept;
 
   /// Builds the unique key used for indexing a request in cache.
   /// Default to [CacheOptions.defaultCacheKeyBuilder]
   final CacheKeyBuilder keyBuilder;
 
   /// Overrides any HTTP directive to delete entry past this duration.
-  final Duration maxStale;
+  final Duration? maxStale;
 
   /// The priority of a cached value.
   /// Ease the clean up if needed.
   final CachePriority priority;
 
   /// Optional store used for caching data.
-  final CacheStore store;
+  final CacheStore? store;
 
   /// Optional method to decrypt cache content
-  final Decrypt decrypt;
+  final Decrypt? decrypt;
 
   /// Optional method to encrypt cache content
-  final Encrypt encrypt;
+  final Encrypt? encrypt;
 
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
@@ -89,13 +89,10 @@ class CacheOptions {
     this.decrypt,
     this.encrypt,
     this.store,
-  })  : assert(policy != null),
-        assert(keyBuilder != null),
-        assert(priority != null),
-        assert((decrypt == null && encrypt == null) ||
+  }) : assert((decrypt == null && encrypt == null) ||
             (decrypt != null && encrypt != null));
 
-  factory CacheOptions.fromExtra(RequestOptions request) {
+  static CacheOptions? fromExtra(RequestOptions request) {
     return request.extra[_extraKey];
   }
 

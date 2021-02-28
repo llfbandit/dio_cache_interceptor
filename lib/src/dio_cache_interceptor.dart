@@ -1,14 +1,13 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/src/util/http_date.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
-import 'package:meta/meta.dart';
+import 'package:dio_cache_interceptor/src/util/http_date.dart';
 
 import './model/cache_response.dart';
 import './store/cache_store.dart';
-import 'util/content_serialization.dart';
 import 'model/cache_options.dart';
+import 'util/content_serialization.dart';
 
 /// Cache interceptor
 class DioCacheInterceptor extends Interceptor {
@@ -25,15 +24,14 @@ class DioCacheInterceptor extends Interceptor {
   final CacheOptions _options;
   final CacheStore _store;
 
-  DioCacheInterceptor({@required CacheOptions options})
-      : assert(options != null),
-        assert(options.store != null),
+  DioCacheInterceptor({required CacheOptions options})
+      : assert(options.store != null),
         _options = options,
-        _store = options.store;
+        _store = options.store!;
 
   @override
   Future<dynamic> onRequest(RequestOptions request) async {
-    if (_shouldSkipRequest(request.method)) {
+    if (_shouldSkipRequest(request)) {
       return super.onRequest(request);
     }
 
@@ -58,7 +56,7 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   Future<dynamic> onResponse(Response response) async {
-    if (_shouldSkipRequest(response.request.method)) {
+    if (_shouldSkipRequest(response.request)) {
       return super.onResponse(response);
     }
 
@@ -89,27 +87,30 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   Future<dynamic> onError(DioError err) async {
-    if (err.type == DioErrorType.CANCEL ||
-        _shouldSkipRequest(err.request.method)) {
+    if (err.type == DioErrorType.CANCEL || _shouldSkipRequest(err.request)) {
       return super.onError(err);
     }
 
     // Retrieve response from cache
-    if (err.response.statusCode == 304) {
-      return _getResponse(err.request);
-    }
-
-    final cacheOpts = _getCacheOptions(err.request);
-
-    // Check if we can return cache on error
-    if (cacheOpts.hitCacheOnErrorExcept != null) {
-      if (err.type == DioErrorType.RESPONSE) {
-        if (cacheOpts.hitCacheOnErrorExcept.contains(err.response.statusCode)) {
-          return super.onError(err);
-        }
+    final response = err.response;
+    if (response != null) {
+      if (response.statusCode == 304) {
+        return _getResponse(err.request);
       }
 
-      return _getResponse(err.request);
+      final cacheOpts = _getCacheOptions(err.request!);
+
+      // Check if we can return cache on error
+      final hitCacheOnErrorExcept = cacheOpts.hitCacheOnErrorExcept;
+      if (hitCacheOnErrorExcept != null) {
+        if (err.type == DioErrorType.RESPONSE) {
+          if (hitCacheOnErrorExcept.contains(response.statusCode)) {
+            return super.onError(err);
+          }
+        }
+
+        return _getResponse(err.request);
+      }
     }
 
     return super.onError(err);
@@ -164,8 +165,8 @@ class DioCacheInterceptor extends Interceptor {
     return options.store ?? _store;
   }
 
-  bool _shouldSkipRequest(String method) {
-    return (method.toUpperCase() != _getMethodName);
+  bool _shouldSkipRequest(RequestOptions? request) {
+    return (request?.method.toUpperCase() != _getMethodName);
   }
 
   Future<CacheResponse> _buildCacheResponse(
@@ -183,20 +184,22 @@ class DioCacheInterceptor extends Interceptor {
       utf8.encode(jsonEncode(response.headers.map)),
     );
 
-    final httpDate = response.headers[_dateHeader]?.first;
+    final dateStr = response.headers[_dateHeader]?.first;
     final date =
-        (httpDate != null) ? HttpDate.parse(httpDate) : DateTime.now().toUtc();
+        (dateStr != null) ? HttpDate.parse(dateStr) : DateTime.now().toUtc();
 
-    final httpExpiresDate = response.headers[_expiresHeader]?.first;
-    var expiresDate;
-    if (httpExpiresDate != null) {
+    final expiresDateStr = response.headers[_expiresHeader]?.first;
+    DateTime? httpExpiresDate;
+    if (expiresDateStr != null) {
       try {
-        expiresDate = HttpDate.parse(httpDate);
+        httpExpiresDate = HttpDate.parse(expiresDateStr);
       } catch (_) {
         // Invalid date format, meaning something already expired
-        expiresDate = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+        httpExpiresDate = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
       }
     }
+
+    final checkedMaxStale = options.maxStale;
 
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(
@@ -205,12 +208,12 @@ class DioCacheInterceptor extends Interceptor {
       content: content,
       date: date,
       eTag: response.headers[_etagHeader]?.first,
-      expires: expiresDate,
+      expires: httpExpiresDate,
       headers: headers,
       key: key,
       lastModified: response.headers[_lastModifiedHeader]?.first,
-      maxStale: options.maxStale != null
-          ? DateTime.now().toUtc().add(options.maxStale)
+      maxStale: checkedMaxStale != null
+          ? DateTime.now().toUtc().add(checkedMaxStale)
           : null,
       priority: options.priority,
       responseDate: DateTime.now().toUtc(),
@@ -218,7 +221,7 @@ class DioCacheInterceptor extends Interceptor {
     );
   }
 
-  Future<CacheResponse> _getCacheResponse(RequestOptions request) async {
+  Future<CacheResponse?> _getCacheResponse(RequestOptions request) async {
     final cacheOpts = _getCacheOptions(request);
     final cacheKey = cacheOpts.keyBuilder(request);
     final result = await _getCacheStore(cacheOpts).get(cacheKey);
@@ -231,21 +234,25 @@ class DioCacheInterceptor extends Interceptor {
     return result;
   }
 
-  Future<Response> _getResponse(RequestOptions request) async {
+  Future<Response?> _getResponse(RequestOptions? request) async {
+    if (request == null) return null;
     final existing = await _getCacheResponse(request);
     return existing?.toResponse(request);
   }
 
-  Future<List<int>> _decryptContent(CacheOptions options, List<int> bytes) {
-    if (bytes != null && options.decrypt != null) {
-      return options.decrypt(bytes);
+  Future<List<int>?> _decryptContent(CacheOptions options, List<int>? bytes) {
+    final checkedDecrypt = options.decrypt;
+    if (bytes != null && checkedDecrypt != null) {
+      return checkedDecrypt(bytes);
     }
+
     return Future.value(bytes);
   }
 
-  Future<List<int>> _encryptContent(CacheOptions options, List<int> bytes) {
-    if (bytes != null && options.encrypt != null) {
-      return options.encrypt(bytes);
+  Future<List<int>?> _encryptContent(CacheOptions options, List<int>? bytes) {
+    final checkedEncrypt = options.encrypt;
+    if (bytes != null && checkedEncrypt != null) {
+      return checkedEncrypt(bytes);
     }
     return Future.value(bytes);
   }

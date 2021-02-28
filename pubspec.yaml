@@ -3,20 +3,19 @@ description: Dio HTTP cache interceptor with multiple stores respecting HTTP dir
 repository: https://github.com/llfbandit/dio_cache_interceptor
 issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 
-version: 2.0.0-beta.2
+version: 2.0.0-beta.3
 
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0-0 <3.0.0'
 
 dependencies:
-  dio: ^3.0.10
-  meta: ^1.2.4
-  moor: ^3.4.0
-  path: ^1.7.0
-  uuid: ^2.2.2
+  dio: ^4.0.0-beta1
+  moor: ^4.1.0
+  path: ^1.8.0
+  uuid: ^3.0.0
 
 dev_dependencies:
-  moor_generator: ^3.4.1
-  build_runner:
-  pedantic: ^1.9.0
+  moor_generator: ^4.1.0
+  build_runner: ^ 1.11.1
+  pedantic: ^1.10.0
   test: ^1.15.7

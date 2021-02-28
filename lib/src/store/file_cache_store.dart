@@ -14,13 +14,11 @@ import 'cache_store.dart';
 class FileCacheStore implements CacheStore {
   final Map<CachePriority, Directory> _directories;
 
-  FileCacheStore(String directory)
-      : assert(directory != null),
-        _directories = _genDirectories(directory) {
+  FileCacheStore(String directory) : _directories = _genDirectories(directory) {
     clean(staleOnly: true);
   }
 
-  File _findFile(String key) {
+  File? _findFile(String key) {
     for (final entry in _directories.entries) {
       final file = File(path.join(entry.value.path, key));
       if (file.existsSync()) {
@@ -37,13 +35,13 @@ class FileCacheStore implements CacheStore {
     bool staleOnly = false,
   }) async {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
-      final directory = _directories[CachePriority.values[i]];
+      final directory = _directories[CachePriority.values[i]]!;
 
       if (!directory.existsSync()) return;
 
       if (staleOnly) {
-        directory.listSync().forEach((file) async {
-          await deleteFile(file, staleOnly: staleOnly);
+        directory.listSync(followLinks: false).forEach((file) async {
+          await deleteFile(file as File, staleOnly: staleOnly);
         });
       }
 
@@ -54,7 +52,7 @@ class FileCacheStore implements CacheStore {
       }
     });
 
-    return Future.wait(futures);
+    await Future.wait(futures);
   }
 
   @override
@@ -68,7 +66,7 @@ class FileCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     final file = _findFile(key);
     if (file == null) return Future.value();
 
@@ -90,7 +88,7 @@ class FileCacheStore implements CacheStore {
   Future<void> set(CacheResponse response) async {
     final file = File(
       path.join(
-        _directories[response.priority].path,
+        _directories[response.priority]!.path,
         response.key,
       ),
     );
@@ -111,7 +109,7 @@ class FileCacheStore implements CacheStore {
   List<int> _serializeContent(CacheResponse response) {
     final etag = utf8.encode(response.eTag ?? '');
     final lastModified = utf8.encode(response.lastModified ?? '');
-    final maxStale = utf8.encode(response.getMaxStaleSeconds() ?? '');
+    final maxStale = utf8.encode('${response.getMaxStaleSeconds() ?? ''}');
     final url = utf8.encode(response.url);
     final cacheControl = utf8.encode(response.cacheControl?.toHeader() ?? '');
     final date = utf8.encode(response.date?.toIso8601String() ?? '');
@@ -180,8 +178,7 @@ class FileCacheStore implements CacheStore {
 
     i += size;
     size = sizes[fieldIndex++];
-    final url =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final url = utf8.decode(data.skip(i).take(size).toList());
 
     i += size;
     size = sizes[fieldIndex++];
@@ -200,8 +197,7 @@ class FileCacheStore implements CacheStore {
 
     i += size;
     size = sizes[fieldIndex++];
-    final responseDate =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final responseDate = utf8.decode(data.skip(i).take(size).toList());
 
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
@@ -213,11 +209,11 @@ class FileCacheStore implements CacheStore {
       key: path.basename(file.path),
       lastModified: lastModified,
       maxStale: maxStale != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.tryParse(maxStale) * 1000,
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(maxStale) * 1000,
               isUtc: true)
           : null,
       priority: _getPriority(file),
-      responseDate: DateTime.tryParse(responseDate),
+      responseDate: DateTime.parse(responseDate),
       url: url,
     );
   }
@@ -235,14 +231,15 @@ class FileCacheStore implements CacheStore {
   }
 
   Future<void> deleteFile(
-    File file, {
+    File? file, {
     bool staleOnly = false,
   }) async {
     if (file != null) {
       if (staleOnly) {
         final resp = await _deserializeContent(file);
-        if (resp.maxStale != null &&
-            DateTime.now().toUtc().isBefore(resp.maxStale)) {
+        final checkedMaxStale = resp.maxStale;
+        if (checkedMaxStale != null &&
+            DateTime.now().toUtc().isBefore(checkedMaxStale)) {
           return Future.value();
         }
       }

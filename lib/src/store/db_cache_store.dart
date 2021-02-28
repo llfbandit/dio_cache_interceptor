@@ -2,7 +2,6 @@ import 'package:dio_cache_interceptor/src/model/cache_priority.dart';
 import 'package:dio_cache_interceptor/src/model/cache_response.dart';
 import 'package:dio_cache_interceptor/src/store/cache_store.dart';
 import 'package:dio_cache_interceptor/src/store/db_cache_store/database.dart';
-import 'package:meta/meta.dart';
 
 /// A store saving responses in a dedicated database
 /// from an optional [directory].
@@ -27,10 +26,10 @@ class DbCacheStore implements CacheStore {
   final bool logStatements;
 
   // Our DB connection
-  DioCacheDatabase _db;
+  DioCacheDatabase? _db;
 
   DbCacheStore({
-    @required this.databasePath,
+    required this.databasePath,
     this.databaseName = tableName,
     this.logStatements = false,
   }) {
@@ -68,7 +67,7 @@ class DbCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse> get(String key) {
+  Future<CacheResponse?> get(String key) {
     final db = _getDatabase();
     if (db == null) return Future.value();
 
@@ -83,7 +82,7 @@ class DbCacheStore implements CacheStore {
     return db.dioCacheDao.set(response);
   }
 
-  DioCacheDatabase _getDatabase() {
+  DioCacheDatabase? _getDatabase() {
     if (_db != null) return _db;
 
     _db = openDb(
@@ -97,6 +96,6 @@ class DbCacheStore implements CacheStore {
 
   @override
   Future<void> close() {
-    return _db?.close();
+    return _db?.close() ?? Future.value();
   }
 }

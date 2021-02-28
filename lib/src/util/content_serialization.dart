@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
-Future<List<int>> serializeContent(ResponseType type, dynamic content) async {
+Future<List<int>> serializeContent(ResponseType type, dynamic? content) async {
   switch (type) {
     case ResponseType.bytes:
       return content;
     case ResponseType.stream:
-      return (await (content as Stream<List<int>>).toList()).expand((x) => x);
+      return (await (content as Stream<List<int>>).toList())
+          .expand((x) => x)
+          .toList(growable: false);
     case ResponseType.plain:
       return utf8.encode(content);
     case ResponseType.json:
@@ -17,16 +19,22 @@ Future<List<int>> serializeContent(ResponseType type, dynamic content) async {
   }
 }
 
-dynamic deserializeContent(ResponseType type, List<int> content) {
+dynamic deserializeContent(ResponseType type, List<int>? content) {
+  final checkedContent = content;
+
   switch (type) {
     case ResponseType.bytes:
       return content;
     case ResponseType.stream:
-      return Stream<List<int>>.fromIterable([content]);
+      return Stream<List<int>>.fromIterable(
+        (checkedContent != null) ? [checkedContent] : [],
+      );
     case ResponseType.plain:
-      return utf8.decode(content);
+      return (checkedContent != null) ? utf8.decode(checkedContent) : null;
     case ResponseType.json:
-      return jsonDecode(utf8.decode(content));
+      return (checkedContent != null)
+          ? jsonDecode(utf8.decode(checkedContent))
+          : null;
     default:
       throw UnsupportedError('Response type not supported : $type.');
   }

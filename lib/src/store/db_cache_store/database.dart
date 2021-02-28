@@ -56,11 +56,11 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   Future<void> deleteKey(String key, {bool staleOnly = false}) async {
     final query = delete(dioCache)
       ..where((t) {
-        var expr = t.key.equals(key);
-        if (staleOnly) {
-          expr = expr & t.maxStale.isSmallerOrEqualValue(DateTime.now());
-        }
-        return expr;
+        final Expression<bool?> expr = t.key.equals(key);
+
+        return staleOnly
+            ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now())
+            : expr;
       });
 
     await query.go();
@@ -76,20 +76,19 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     return count == 1;
   }
 
-  Future<CacheResponse> get(String key) async {
+  Future<CacheResponse?> get(String key) async {
     // Get record
     final query = select(dioCache)
       ..where((t) => t.key.equals(key))
       ..limit(1);
-    final result = await query.getSingle();
+    final result = await query.getSingleOrNull();
     if (result == null) return Future.value();
 
     // Purge entry if stalled
-    if (result.maxStale != null) {
-      if (DateTime.now().isAfter(result.maxStale)) {
-        await deleteKey(key);
-        return Future.value();
-      }
+    final checkedMaxStale = result.maxStale;
+    if (checkedMaxStale != null && DateTime.now().isAfter(checkedMaxStale)) {
+      await deleteKey(key);
+      return Future.value();
     }
 
     return CacheResponse(
@@ -109,14 +108,21 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   }
 
   Future<void> set(CacheResponse response) async {
+    final checkedContent = response.content;
+    final checkedHeaders = response.headers;
+
     await into(dioCache).insert(
       _DioCacheData(
         date: response.date,
         cacheControl: response.cacheControl?.toHeader(),
-        content: response.content,
+        content: (checkedContent != null)
+            ? Uint8List.fromList(checkedContent)
+            : null,
         eTag: response.eTag,
         expires: response.expires,
-        headers: response.headers,
+        headers: (checkedHeaders != null)
+            ? Uint8List.fromList(checkedHeaders)
+            : null,
         key: response.key,
         lastModified: response.lastModified,
         maxStale: response.maxStale,

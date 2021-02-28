@@ -7,7 +7,7 @@ abstract class CacheStore {
   Future<bool> exists(String key);
 
   /// Retrieves cached response from store
-  Future<CacheResponse> get(String key);
+  Future<CacheResponse?> get(String key);
 
   /// Pushes response in store
   Future<void> set(CacheResponse response);

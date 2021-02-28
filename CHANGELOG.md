@@ -1,3 +1,6 @@
+## 2.0.0-beta.3
+- core: Support null safety
+
 ## 2.0.0-beta.2
 - fix: Hide FileCacheStore for web support.
 - core: Remove flutter dependency.
