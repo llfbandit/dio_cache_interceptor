@@ -159,7 +159,7 @@ class DbCacheStore extends CacheStore {
           _columnHeaders: response.headers,
           _columnKey: response.key,
           _columnLastModified: response.lastModified,
-          _columnMaxStale: response.getMaxStaleSeconds(),
+          _columnMaxStale: response.getMaxStaleSeconds()?.toString(),
           _columnPriority: response.priority.index,
           _columnResponseDate: response.responseDate.toIso8601String(),
           _columnUrl: response.url,
