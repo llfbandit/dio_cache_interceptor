@@ -107,4 +107,27 @@ class CacheOptions {
   Options toOptions() {
     return Options(extra: toExtra());
   }
+
+  CacheOptions copyWith({
+    CachePolicy? policy,
+    List<int>? hitCacheOnErrorExcept,
+    CacheKeyBuilder? keyBuilder,
+    Duration? maxStale,
+    CachePriority? priority,
+    CacheStore? store,
+    Decrypt? decrypt,
+    Encrypt? encrypt,
+  }) {
+    return CacheOptions(
+      policy: policy ?? this.policy,
+      hitCacheOnErrorExcept:
+          hitCacheOnErrorExcept ?? this.hitCacheOnErrorExcept,
+      keyBuilder: keyBuilder ?? this.keyBuilder,
+      maxStale: maxStale ?? this.maxStale,
+      priority: priority ?? this.priority,
+      store: store ?? this.store,
+      decrypt: decrypt ?? this.decrypt,
+      encrypt: encrypt ?? this.encrypt,
+    );
+  }
 }
