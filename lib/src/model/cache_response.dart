@@ -67,12 +67,7 @@ class CacheResponse {
 
   /// Returns date in seconds since epoch or null.
   int? getMaxStaleSeconds() {
-    final max = maxStale;
-    if (max != null) {
-      return max.millisecondsSinceEpoch ~/ 1000;
-    }
-
-    return null;
+    return maxStale?.millisecondsSinceEpoch;
   }
 
   Response toResponse(RequestOptions options) {

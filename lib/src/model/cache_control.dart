@@ -61,12 +61,13 @@ class CacheControl {
 
   /// Serialize cache-control values
   String toHeader() {
-    final values = <String>[]
-      ..add(maxAge != null ? 'max-age=$maxAge' : '')
-      ..add(privacy ?? '')
-      ..add((noCache ?? false) ? 'no-cache' : '')
-      ..add((noStore ?? false) ? 'no-store' : '')
-      ..addAll(other);
+    final values = <String>[
+      maxAge != null ? 'max-age=$maxAge' : '',
+      privacy ?? '',
+      (noCache ?? false) ? 'no-cache' : '',
+      (noStore ?? false) ? 'no-store' : '',
+      ...other
+    ];
 
     return values.join(', ');
   }
