@@ -1,5 +1,5 @@
 name: dio_cache_interceptor
-description: Dio HTTP cache interceptor with multiple stores respecting HTTP directives (ETag, Last-Modified, Cache-Control) with options.
+description: Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
 repository: https://github.com/llfbandit/dio_cache_interceptor
 issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 
