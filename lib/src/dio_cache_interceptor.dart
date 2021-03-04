@@ -87,7 +87,7 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   Future<dynamic> onError(DioError err) async {
-    if (err.type == DioErrorType.CANCEL || _shouldSkipRequest(err.request)) {
+    if (err.type == DioErrorType.cancel || _shouldSkipRequest(err.request)) {
       return super.onError(err);
     }
 
@@ -103,7 +103,7 @@ class DioCacheInterceptor extends Interceptor {
       // Check if we can return cache on error
       final hitCacheOnErrorExcept = cacheOpts.hitCacheOnErrorExcept;
       if (hitCacheOnErrorExcept != null) {
-        if (err.type == DioErrorType.RESPONSE) {
+        if (err.type == DioErrorType.response) {
           if (hitCacheOnErrorExcept.contains(response.statusCode)) {
             return super.onError(err);
           }

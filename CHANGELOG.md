@@ -1,3 +1,7 @@
+## 2.0.0-beta.4
+- core: Update dio to 4.0.0-beta4.
+- Add missing `copyWith` method in `CacheOptions` to allow single option change.
+
 ## 2.0.0-beta.3
 - core: Support null safety
 
