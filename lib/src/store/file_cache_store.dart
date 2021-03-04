@@ -209,7 +209,7 @@ class FileCacheStore implements CacheStore {
       key: path.basename(file.path),
       lastModified: lastModified,
       maxStale: maxStale != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.parse(maxStale) * 1000,
+          ? DateTime.fromMillisecondsSinceEpoch(int.parse(maxStale),
               isUtc: true)
           : null,
       priority: _getPriority(file),

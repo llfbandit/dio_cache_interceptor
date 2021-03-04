@@ -42,7 +42,8 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
         (t) {
           var expr = t.priority.isSmallerOrEqualValue(priorityOrBelow.index);
           if (staleOnly) {
-            expr = expr & t.maxStale.isSmallerOrEqualValue(DateTime.now());
+            expr =
+                expr & t.maxStale.isSmallerOrEqualValue(DateTime.now().toUtc());
           }
           return expr;
         },
@@ -59,7 +60,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
         final Expression<bool?> expr = t.key.equals(key);
 
         return staleOnly
-            ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now())
+            ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now().toUtc())
             : expr;
       });
 
@@ -86,7 +87,8 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
 
     // Purge entry if stalled
     final checkedMaxStale = result.maxStale;
-    if (checkedMaxStale != null && DateTime.now().isAfter(checkedMaxStale)) {
+    if (checkedMaxStale != null &&
+        DateTime.now().toUtc().isAfter(checkedMaxStale)) {
       await deleteKey(key);
       return Future.value();
     }
