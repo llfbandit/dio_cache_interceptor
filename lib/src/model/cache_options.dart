@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../model/cache_priority.dart';
@@ -6,12 +7,6 @@ import '../store/cache_store.dart';
 
 /// Key builder to customize your keys.
 typedef CacheKeyBuilder = String Function(RequestOptions request);
-
-/// Encrypt content/headers method.
-typedef Encrypt = Future<List<int>> Function(List<int> bytes);
-
-/// Decrypt content/headers method.
-typedef Decrypt = Future<List<int>> Function(List<int> bytes);
 
 /// Policy to handle request behaviour.
 enum CachePolicy {
@@ -68,11 +63,8 @@ class CacheOptions {
   /// Optional store used for caching data.
   final CacheStore? store;
 
-  /// Optional method to decrypt cache content
-  final Decrypt? decrypt;
-
-  /// Optional method to encrypt cache content
-  final Encrypt? encrypt;
+  /// Optional method to decrypt/encrypt cache content
+  final CacheCipher? cipher;
 
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
@@ -86,11 +78,9 @@ class CacheOptions {
     this.keyBuilder = defaultCacheKeyBuilder,
     this.maxStale,
     this.priority = CachePriority.normal,
-    this.decrypt,
-    this.encrypt,
+    this.cipher,
     this.store,
-  }) : assert((decrypt == null && encrypt == null) ||
-            (decrypt != null && encrypt != null));
+  });
 
   static CacheOptions? fromExtra(RequestOptions request) {
     return request.extra[_extraKey];
@@ -115,8 +105,7 @@ class CacheOptions {
     Duration? maxStale,
     CachePriority? priority,
     CacheStore? store,
-    Decrypt? decrypt,
-    Encrypt? encrypt,
+    CacheCipher? cipher,
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
@@ -126,8 +115,7 @@ class CacheOptions {
       maxStale: maxStale ?? this.maxStale,
       priority: priority ?? this.priority,
       store: store ?? this.store,
-      decrypt: decrypt ?? this.decrypt,
-      encrypt: encrypt ?? this.encrypt,
+      cipher: cipher ?? this.cipher,
     );
   }
 }

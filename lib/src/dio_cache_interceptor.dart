@@ -243,18 +243,18 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   Future<List<int>?> _decryptContent(CacheOptions options, List<int>? bytes) {
-    final checkedDecrypt = options.decrypt;
-    if (bytes != null && checkedDecrypt != null) {
-      return checkedDecrypt(bytes);
+    final checkedCipher = options.cipher;
+    if (bytes != null && checkedCipher != null) {
+      return checkedCipher.decrypt(bytes);
     }
 
     return Future.value(bytes);
   }
 
   Future<List<int>?> _encryptContent(CacheOptions options, List<int>? bytes) {
-    final checkedEncrypt = options.encrypt;
-    if (bytes != null && checkedEncrypt != null) {
-      return checkedEncrypt(bytes);
+    final checkedCipher = options.cipher;
+    if (bytes != null && checkedCipher != null) {
+      return checkedCipher.encrypt(bytes);
     }
     return Future.value(bytes);
   }
