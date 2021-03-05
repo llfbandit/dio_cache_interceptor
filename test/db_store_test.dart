@@ -9,10 +9,10 @@ import 'package:test/test.dart';
 void main() {
   late DbCacheStore store;
 
-  DynamicLibrary _openOnLinux() {
-    final libFile = File('${Directory.current.path}/test/lib/libsqlite3.so');
-    return DynamicLibrary.open(libFile.path);
-  }
+  // DynamicLibrary _openOnLinux() {
+  //   final libFile = File('${Directory.current.path}/test/lib/libsqlite3.so');
+  //   return DynamicLibrary.open(libFile.path);
+  // }
 
   DynamicLibrary _openOnWindows() {
     final libFile = File('${Directory.current.path}/test/lib/sqlite3.dll');
@@ -20,7 +20,7 @@ void main() {
   }
 
   setUp(() async {
-    open.overrideFor(OperatingSystem.linux, _openOnLinux);
+    // open.overrideFor(OperatingSystem.linux, _openOnLinux);
     open.overrideFor(OperatingSystem.windows, _openOnWindows);
     store = DbCacheStore(databasePath: '${Directory.current.path}/test/data');
     await store.clean();
