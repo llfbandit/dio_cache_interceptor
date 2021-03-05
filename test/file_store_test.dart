@@ -9,7 +9,7 @@ void main() {
   late FileCacheStore store;
 
   setUp(() async {
-    store = FileCacheStore('${Directory.current.path}/test/data');
+    store = FileCacheStore('${Directory.current.path}/test/data/file_store');
     await store.clean();
   });
 

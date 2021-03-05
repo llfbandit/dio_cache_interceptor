@@ -15,7 +15,7 @@ void main() {
   setUp(() async {
     _dio = Dio()..httpClientAdapter = MockAdapter();
 
-    store = FileCacheStore('${Directory.current.path}/test/data');
+    store = FileCacheStore('${Directory.current.path}/test/data/interceptor');
     await store.clean();
     options = CacheOptions(store: store);
 
