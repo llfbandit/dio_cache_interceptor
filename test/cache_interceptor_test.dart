@@ -45,6 +45,17 @@ void main() {
     expect(resp304.extra[CacheResponse.fromCache], equals(true));
   });
 
+  test('Fetch cacheStoreNo policy', () async {
+    final resp = await _dio.get(
+      '${MockAdapter.mockBase}/ok',
+      options: Options(
+        extra: options.copyWith(policy: CachePolicy.cacheStoreNo).toExtra(),
+      ),
+    );
+    expect(resp.statusCode == 200, isTrue);
+    expect(resp.extra[CacheResponse.cacheKey], isNull);
+  });
+
   test('Fetch refresh policy', () async {
     final resp = await _dio.get('${MockAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
@@ -77,12 +88,14 @@ void main() {
     expect(resp304.extra[CacheResponse.fromCache], equals(true));
   });
 
-  test('Fetch stream', () async {
-    final resp = await _dio.get('${MockAdapter.mockBase}/ok-stream');
+  test('Fetch post skip request', () async {
+    final resp = await _dio.get('${MockAdapter.mockBase}/post');
     expect(resp.statusCode == 200, isTrue);
+    expect(resp.data['path'], equals('/post'));
+    expect(resp.extra[CacheResponse.cacheKey], isNull);
   });
 
-  test('Fetch hitCacheOnErrorExcept', () async {
+  test('Fetch hitCacheOnErrorExcept 500', () async {
     final resp = await _dio.get('${MockAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
@@ -93,6 +106,19 @@ void main() {
         queryParameters: {'x-err': 500},
         options: Options(
           extra: options.copyWith(hitCacheOnErrorExcept: [500]).toExtra(),
+        ),
+      );
+    } catch (err) {
+      expect((err as DioError).response?.statusCode, equals(500));
+      return;
+    }
+
+    try {
+      await _dio.get(
+        '${MockAdapter.mockBase}/ok',
+        queryParameters: {'x-err': 500},
+        options: Options(
+          extra: options.copyWith(hitCacheOnErrorExcept: null).toExtra(),
         ),
       );
     } catch (err) {

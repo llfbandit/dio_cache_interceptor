@@ -46,6 +46,14 @@ class MockAdapter extends HttpClientAdapter {
             'etag': ['1234'],
           },
         );
+      case '/post':
+        return ResponseBody.fromString(
+          jsonEncode({'path': uri.path}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType]
+          },
+        );
       case '/ok-stream':
         return ResponseBody(
           File('./README.md').openRead().cast<Uint8List>(),
