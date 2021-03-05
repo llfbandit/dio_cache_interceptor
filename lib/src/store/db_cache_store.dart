@@ -26,13 +26,17 @@ class DbCacheStore implements CacheStore {
   final bool logStatements;
 
   // Our DB connection
-  DioCacheDatabase? _db;
+  final DioCacheDatabase _db;
 
   DbCacheStore({
     required this.databasePath,
     this.databaseName = tableName,
     this.logStatements = false,
-  }) {
+  }) : _db = openDb(
+          databasePath: databasePath,
+          databaseName: databaseName,
+          logStatements: logStatements,
+        ) {
     clean(staleOnly: true);
   }
 
@@ -41,10 +45,7 @@ class DbCacheStore implements CacheStore {
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   }) {
-    final db = _getDatabase();
-    if (db == null) return Future.value();
-
-    return db.dioCacheDao.clean(
+    return _db.dioCacheDao.clean(
       priorityOrBelow: priorityOrBelow,
       staleOnly: staleOnly,
     );
@@ -52,26 +53,17 @@ class DbCacheStore implements CacheStore {
 
   @override
   Future<void> delete(String key, {bool staleOnly = false}) {
-    final db = _getDatabase();
-    if (db == null) return Future.value();
-
-    return db.dioCacheDao.deleteKey(key, staleOnly: staleOnly);
+    return _db.dioCacheDao.deleteKey(key, staleOnly: staleOnly);
   }
 
   @override
   Future<bool> exists(String key) {
-    final db = _getDatabase();
-    if (db == null) return Future.value(false);
-
-    return db.dioCacheDao.exists(key);
+    return _db.dioCacheDao.exists(key);
   }
 
   @override
   Future<CacheResponse?> get(String key) async {
-    final db = _getDatabase();
-    if (db == null) return null;
-
-    final resp = await db.dioCacheDao.get(key);
+    final resp = await _db.dioCacheDao.get(key);
     if (resp == null) return null;
 
     // Purge entry if staled
@@ -85,26 +77,11 @@ class DbCacheStore implements CacheStore {
 
   @override
   Future<void> set(CacheResponse response) {
-    final db = _getDatabase();
-    if (db == null) return Future.value();
-
-    return db.dioCacheDao.set(response);
-  }
-
-  DioCacheDatabase? _getDatabase() {
-    if (_db != null) return _db;
-
-    _db = openDb(
-      databasePath: databasePath,
-      databaseName: databaseName,
-      logStatements: logStatements,
-    );
-
-    return _db;
+    return _db.dioCacheDao.set(response);
   }
 
   @override
   Future<void> close() {
-    return _db?.close() ?? Future.value();
+    return _db.close();
   }
 }

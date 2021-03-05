@@ -52,7 +52,7 @@ var response = await dio.get('http://www.foo.com');
 // Request with dedicated options
 response = await dio.get('http://www.foo.com',
   options: Options(
-    extra: CacheOptions(policy: CachePolicy.refresh).toExtra(),
+    extra: options.copyWith(policy: CachePolicy.refresh).toExtra(),
   ),
 );
 ```

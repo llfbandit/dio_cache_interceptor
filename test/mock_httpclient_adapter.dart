@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:dio/dio.dart';
-import 'package:dio/adapter.dart';
 
-class MockAdapter extends HttpClientAdapter {
+import 'package:dio/dio.dart';
+
+class MockHttpClientAdapter extends HttpClientAdapter {
   static const String mockHost = 'mockserver';
   static const String mockBase = 'http://$mockHost';
-  final _adapter = DefaultHttpClientAdapter();
 
   @override
   Future<ResponseBody> fetch(
@@ -29,7 +28,8 @@ class MockAdapter extends HttpClientAdapter {
             },
           );
         }
-        if (options.queryParameters.containsKey('x-err')) {
+
+        if (options.extra.containsKey('x-err')) {
           return ResponseBody.fromString(
             '',
             500,
@@ -38,6 +38,7 @@ class MockAdapter extends HttpClientAdapter {
             },
           );
         }
+
         return ResponseBody.fromString(
           jsonEncode({'path': uri.path}),
           200,
@@ -62,6 +63,7 @@ class MockAdapter extends HttpClientAdapter {
             Headers.contentLengthHeader: [
               File('./README.md').lengthSync().toString()
             ],
+            'etag': ['5678'],
           },
         );
 
@@ -88,12 +90,8 @@ class MockAdapter extends HttpClientAdapter {
       default:
         return ResponseBody.fromString('', 404);
     }
-
-    // return _adapter.fetch(options, requestStream, cancelFuture);
   }
 
   @override
-  void close({bool force = false}) {
-    _adapter.close(force: force);
-  }
+  void close({bool force = false}) {}
 }

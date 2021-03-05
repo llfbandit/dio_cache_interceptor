@@ -5,6 +5,7 @@ export 'db_platform/db_platform.dart';
 
 part 'database.g.dart';
 
+// coverage:ignore-start
 class _DioCache extends Table {
   TextColumn get key => text().customConstraint('PRIMARY KEY')();
   DateTimeColumn get date => dateTime().nullable()();
@@ -19,6 +20,7 @@ class _DioCache extends Table {
   DateTimeColumn get responseDate => dateTime()();
   TextColumn get url => text()();
 }
+// coverage:ignore-end
 
 @UseMoor(tables: [_DioCache], daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
