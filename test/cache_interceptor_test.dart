@@ -7,14 +7,16 @@ import 'mock_adapter.dart';
 void main() {
   late Dio _dio;
   late CacheStore store;
+  late CacheOptions options;
 
   setUp(() async {
     _dio = Dio()..httpClientAdapter = MockAdapter();
 
     store = MemCacheStore();
+    options = CacheOptions(store: store);
 
     _dio.interceptors.add(
-      DioCacheInterceptor(options: CacheOptions(store: store)),
+      DioCacheInterceptor(options: options),
     );
   });
 
@@ -41,5 +43,63 @@ void main() {
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
     expect(resp304.extra[CacheResponse.fromCache], equals(true));
+  });
+
+  test('Fetch refresh policy', () async {
+    final resp = await _dio.get('${MockAdapter.mockBase}/ok');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp200 = await _dio.get(
+      '${MockAdapter.mockBase}/ok',
+      options: Options(
+        extra: options.copyWith(policy: CachePolicy.refresh).toExtra(),
+      ),
+    );
+    expect(resp200.statusCode == 200, isTrue);
+    expect(resp.data['path'], equals('/ok'));
+  });
+
+  test('Fetch cacheFirst policy', () async {
+    final resp = await _dio.get('${MockAdapter.mockBase}/ok');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp304 = await _dio.get(
+      '${MockAdapter.mockBase}/ok',
+      options: Options(
+        extra: options.copyWith(policy: CachePolicy.cacheFirst).toExtra(),
+      ),
+    );
+    expect(resp304.statusCode == 304, isTrue);
+    expect(resp.data['path'], equals('/ok'));
+    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    expect(resp304.extra[CacheResponse.fromCache], equals(true));
+  });
+
+  test('Fetch stream', () async {
+    final resp = await _dio.get('${MockAdapter.mockBase}/ok-stream');
+    expect(resp.statusCode == 200, isTrue);
+  });
+
+  test('Fetch hitCacheOnErrorExcept', () async {
+    final resp = await _dio.get('${MockAdapter.mockBase}/ok');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    try {
+      await _dio.get(
+        '${MockAdapter.mockBase}/ok',
+        queryParameters: {'x-err': 500},
+        options: Options(
+          extra: options.copyWith(hitCacheOnErrorExcept: [500]).toExtra(),
+        ),
+      );
+    } catch (err) {
+      expect((err as DioError).response?.statusCode, equals(500));
+      return;
+    }
+
+    expect(false, isTrue);
   });
 }

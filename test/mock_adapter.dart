@@ -29,6 +29,15 @@ class MockAdapter extends HttpClientAdapter {
             },
           );
         }
+        if (options.queryParameters.containsKey('x-err')) {
+          return ResponseBody.fromString(
+            '',
+            500,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType]
+            },
+          );
+        }
         return ResponseBody.fromString(
           jsonEncode({'path': uri.path}),
           200,
@@ -38,19 +47,27 @@ class MockAdapter extends HttpClientAdapter {
           },
         );
       case '/ok-stream':
-        return Future.delayed(Duration(milliseconds: 300), () {
-          return ResponseBody(
-            File('./README.md').openRead().cast<Uint8List>(),
-            200,
-            headers: {
-              Headers.contentLengthHeader: [
-                File('./README.md').lengthSync().toString()
-              ],
-            },
-          );
-        });
+        return ResponseBody(
+          File('./README.md').openRead().cast<Uint8List>(),
+          200,
+          headers: {
+            Headers.contentLengthHeader: [
+              File('./README.md').lengthSync().toString()
+            ],
+          },
+        );
 
       case '/ok-bytes':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
+          );
+        }
+      case '/expires':
         {
           return ResponseBody.fromBytes(
             utf8.encode(jsonEncode({'path': uri.path})),
