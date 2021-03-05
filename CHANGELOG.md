@@ -1,3 +1,8 @@
+## 2.0.0-beta.5
+- core: Update dio to 4.0.0-beta5.
+- Wrap decrypt/encrypt functions to `CacheCipher`.
+- Add decent test coverage (still WIP).
+
 ## 2.0.0-beta.4
 - core: Update dio to 4.0.0-beta4.
 - Add missing `copyWith` method in `CacheOptions` to allow single option change.
