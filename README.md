@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/llfbandit/dio_cache_interceptor/branch/master/graph/badge.svg?token=QQQIXO7VZI)](https://codecov.io/gh/llfbandit/dio_cache_interceptor)
+
 Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
 
 ## HTTP directives:

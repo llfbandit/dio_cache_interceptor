@@ -67,11 +67,20 @@ class DbCacheStore implements CacheStore {
   }
 
   @override
-  Future<CacheResponse?> get(String key) {
+  Future<CacheResponse?> get(String key) async {
     final db = _getDatabase();
-    if (db == null) return Future.value();
+    if (db == null) return null;
 
-    return db.dioCacheDao.get(key);
+    final resp = await db.dioCacheDao.get(key);
+    if (resp == null) return null;
+
+    // Purge entry if staled
+    if (resp.isStaled()) {
+      await delete(key);
+      return null;
+    }
+
+    return resp;
   }
 
   @override

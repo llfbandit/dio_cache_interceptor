@@ -36,7 +36,6 @@ class FileCacheStore implements CacheStore {
   }) async {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
       final directory = _directories[CachePriority.values[i]]!;
-
       if (!directory.existsSync()) return;
 
       if (staleOnly) {
@@ -68,17 +67,14 @@ class FileCacheStore implements CacheStore {
   @override
   Future<CacheResponse?> get(String key) async {
     final file = _findFile(key);
-    if (file == null) return Future.value();
+    if (file == null) return null;
 
     final resp = await _deserializeContent(file);
 
-    // Purge entry if stalled
-    final maxStale = resp.maxStale;
-    if (maxStale != null) {
-      if (DateTime.now().toUtc().isAfter(maxStale)) {
-        await delete(key);
-        return Future.value();
-      }
+    // Purge entry if staled
+    if (resp.isStaled()) {
+      await delete(key);
+      return null;
     }
 
     return resp;
@@ -237,10 +233,8 @@ class FileCacheStore implements CacheStore {
     if (file != null) {
       if (staleOnly) {
         final resp = await _deserializeContent(file);
-        final checkedMaxStale = resp.maxStale;
-        if (checkedMaxStale != null &&
-            DateTime.now().toUtc().isBefore(checkedMaxStale)) {
-          return Future.value();
+        if (!resp.isStaled()) {
+          return null;
         }
       }
 

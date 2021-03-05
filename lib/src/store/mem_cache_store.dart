@@ -25,10 +25,7 @@ class MemCacheStore implements CacheStore {
 
     _cache.entries.forEach((key, resp) {
       var shouldRemove = resp.value.priority.index <= priorityOrBelow.index;
-      final checkedMaxStale = resp.value.maxStale;
-      if (staleOnly && checkedMaxStale != null) {
-        shouldRemove &= DateTime.now().toUtc().isAfter(checkedMaxStale);
-      }
+      shouldRemove &= (staleOnly && resp.value.isStaled()) || !staleOnly;
 
       if (shouldRemove) {
         keys.add(key);
@@ -44,11 +41,8 @@ class MemCacheStore implements CacheStore {
   Future<void> delete(String key, {bool staleOnly = false}) {
     final resp = _cache.entries[key];
     if (resp == null) return Future.value();
-    final maxStale = resp.value.maxStale;
 
-    if (staleOnly &&
-        maxStale != null &&
-        DateTime.now().toUtc().isBefore(maxStale)) {
+    if (staleOnly && !resp.value.isStaled()) {
       return Future.value();
     }
 
@@ -65,18 +59,15 @@ class MemCacheStore implements CacheStore {
   @override
   Future<CacheResponse?> get(String key) async {
     final resp = _cache[key];
-    if (resp == null) return Future.value();
+    if (resp == null) return null;
 
     // Purge entry if stalled
-    final maxStale = resp.maxStale;
-    if (maxStale != null) {
-      if (DateTime.now().toUtc().isAfter(maxStale)) {
-        await delete(key);
-        return Future.value();
-      }
+    if (resp.isStaled()) {
+      await delete(key);
+      return null;
     }
 
-    return Future.value(resp);
+    return resp;
   }
 
   @override

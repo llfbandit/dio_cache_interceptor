@@ -17,78 +17,54 @@ class MockAdapter extends HttpClientAdapter {
     Future? cancelFuture,
   ) async {
     final uri = options.uri;
-    if (uri.host == mockHost) {
-      switch (uri.path) {
-        case '/test':
+
+    switch (uri.path) {
+      case '/ok':
+        if (options.headers.containsKey('if-none-match')) {
           return ResponseBody.fromString(
-            jsonEncode({
-              'errCode': 0,
-              'data': {'path': uri.path}
-            }),
+            '',
+            304,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType]
+            },
+          );
+        }
+        return ResponseBody.fromString(
+          jsonEncode({'path': uri.path}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+            'etag': ['1234'],
+          },
+        );
+      case '/ok-stream':
+        return Future.delayed(Duration(milliseconds: 300), () {
+          return ResponseBody(
+            File('./README.md').openRead().cast<Uint8List>(),
+            200,
+            headers: {
+              Headers.contentLengthHeader: [
+                File('./README.md').lengthSync().toString()
+              ],
+            },
+          );
+        });
+
+      case '/ok-bytes':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
             200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
             },
           );
-        case '/test-auth':
-          {
-            return Future.delayed(Duration(milliseconds: 300), () {
-              if (options.headers['csrfToken'] == null) {
-                return ResponseBody.fromString(
-                  jsonEncode({
-                    'errCode': -1,
-                    'data': {'path': uri.path}
-                  }),
-                  401,
-                  headers: {
-                    Headers.contentTypeHeader: [Headers.jsonContentType],
-                  },
-                );
-              }
-              return ResponseBody.fromString(
-                jsonEncode({
-                  'errCode': 0,
-                  'data': {'path': uri.path}
-                }),
-                200,
-                headers: {
-                  Headers.contentTypeHeader: [Headers.jsonContentType],
-                },
-              );
-            });
-          }
-        case '/download':
-          return Future.delayed(Duration(milliseconds: 300), () {
-            return ResponseBody(
-              File('./README.md').openRead().cast<Uint8List>(),
-              200,
-              headers: {
-                Headers.contentLengthHeader: [
-                  File('./README.md').lengthSync().toString()
-                ],
-              },
-            );
-          });
-
-        case '/token':
-          {
-            var t = 'ABCDEFGHIJKLMN'.split('')..shuffle();
-            return ResponseBody.fromBytes(
-              utf8.encode(jsonEncode({
-                'errCode': 0,
-                'data': {'token': t.join()}
-              })),
-              200,
-              headers: {
-                Headers.contentTypeHeader: [Headers.jsonContentType],
-              },
-            );
-          }
-        default:
-          return ResponseBody.fromString('', 404);
-      }
+        }
+      default:
+        return ResponseBody.fromString('', 404);
     }
-    return _adapter.fetch(options, requestStream, cancelFuture);
+
+    // return _adapter.fetch(options, requestStream, cancelFuture);
   }
 
   @override

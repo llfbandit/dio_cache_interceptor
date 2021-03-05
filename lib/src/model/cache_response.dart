@@ -87,4 +87,9 @@ class CacheResponse {
       request: options,
     );
   }
+
+  bool isStaled() {
+    final checkedMaxStale = maxStale;
+    return checkedMaxStale != null && checkedMaxStale.isBefore(DateTime.now());
+  }
 }

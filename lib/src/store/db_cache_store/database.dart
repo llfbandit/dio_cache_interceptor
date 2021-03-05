@@ -50,8 +50,6 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       );
 
     await query.go();
-
-    return Future.value();
   }
 
   Future<void> deleteKey(String key, {bool staleOnly = false}) async {
@@ -65,8 +63,6 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       });
 
     await query.go();
-
-    return Future.value();
   }
 
   Future<bool> exists(String key) async {
@@ -84,14 +80,6 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       ..limit(1);
     final result = await query.getSingleOrNull();
     if (result == null) return Future.value();
-
-    // Purge entry if stalled
-    final checkedMaxStale = result.maxStale;
-    if (checkedMaxStale != null &&
-        DateTime.now().toUtc().isAfter(checkedMaxStale)) {
-      await deleteKey(key);
-      return Future.value();
-    }
 
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(result.cacheControl?.split(', ')),

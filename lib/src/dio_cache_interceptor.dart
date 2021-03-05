@@ -80,6 +80,8 @@ class DioCacheInterceptor extends Interceptor {
       );
 
       await _getCacheStore(cacheOptions).set(cacheResp);
+
+      response.extra.putIfAbsent(CacheResponse.cacheKey, () => cacheResp.key);
     }
 
     return super.onResponse(response);
