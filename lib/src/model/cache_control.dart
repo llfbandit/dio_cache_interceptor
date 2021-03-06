@@ -82,16 +82,18 @@ class CacheControl {
       return true;
     }
 
-    final checkedMaxAge = maxAge;
-    if (checkedMaxAge == null) {
-      if (date != null && expires != null) {
-        return expires.difference(date).isNegative;
-      }
+    final checkedDate = date ?? responseDate;
 
-      return false;
+    final checkedMaxAge = maxAge;
+    if (checkedMaxAge != null) {
+      final maxDate = checkedDate.add(Duration(seconds: checkedMaxAge));
+      return maxDate.isBefore(DateTime.now());
     }
 
-    final maxDate = responseDate.add(Duration(seconds: checkedMaxAge));
-    return maxDate.isBefore(DateTime.now());
+    if (expires != null) {
+      return expires.difference(checkedDate).isNegative;
+    }
+
+    return false;
   }
 }

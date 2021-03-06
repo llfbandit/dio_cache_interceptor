@@ -17,7 +17,9 @@ class BackupCacheStore implements CacheStore {
   /// Secondary cache store
   final CacheStore secondary;
 
-  const BackupCacheStore({required this.primary, required this.secondary});
+  BackupCacheStore({required this.primary, required this.secondary}) {
+    clean(staleOnly: true);
+  }
 
   @override
   Future<void> clean({

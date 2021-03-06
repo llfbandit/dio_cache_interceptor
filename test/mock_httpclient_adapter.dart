@@ -44,6 +44,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           200,
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType],
+            'expires': ['Wed, 21 Oct 2045 07:28:00 GMT'],
             'etag': ['1234'],
           },
         );
@@ -74,16 +75,47 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
+              'etag': ['9875'],
             },
           );
         }
-      case '/expires':
+      case '/cache-control':
         {
           return ResponseBody.fromBytes(
             utf8.encode(jsonEncode({'path': uri.path})),
-            200,
+            options.headers.containsKey('if-none-match') ? 304 : 200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
+              'cache-control': ['public', 'max-age=0'],
+              'date': ['Wed, 21 Oct 2000 07:28:00 GMT'],
+              'expires': ['Wed, 21 Oct 2050 07:28:00 GMT'],
+              'etag': ['9875'],
+            },
+          );
+        }
+      case '/cache-control-expired':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
+            options.headers.containsKey('if-none-match') ? 304 : 200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+              'cache-control': ['public'],
+              'expires': ['Wed, 21 Oct 2000 07:28:00 GMT'],
+              'etag': ['9875'],
+            },
+          );
+        }
+      case '/cache-control-no-store':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
+            options.headers.containsKey('if-none-match') ? 304 : 200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+              'cache-control': ['no-store'],
+              'expires': ['Wed, 21 Oct 2050 07:28:00 GMT'],
+              'etag': ['9875'],
             },
           );
         }

@@ -18,17 +18,6 @@ class FileCacheStore implements CacheStore {
     clean(staleOnly: true);
   }
 
-  File? _findFile(String key) {
-    for (final entry in _directories.entries) {
-      final file = File(path.join(entry.value.path, key));
-      if (file.existsSync()) {
-        return file;
-      }
-    }
-
-    return null;
-  }
-
   @override
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
@@ -40,7 +29,7 @@ class FileCacheStore implements CacheStore {
 
       if (staleOnly) {
         directory.listSync(followLinks: false).forEach((file) async {
-          await deleteFile(file as File, staleOnly: staleOnly);
+          await _deleteFile(file as File, staleOnly: staleOnly);
         });
       }
 
@@ -56,7 +45,7 @@ class FileCacheStore implements CacheStore {
 
   @override
   Future<void> delete(String key, {bool staleOnly = false}) async {
-    return deleteFile(_findFile(key), staleOnly: staleOnly);
+    return _deleteFile(_findFile(key), staleOnly: staleOnly);
   }
 
   @override
@@ -88,6 +77,9 @@ class FileCacheStore implements CacheStore {
         response.key,
       ),
     );
+
+    // Delete previous value in case of priority change
+    await delete(response.key);
 
     if (!file.parent.existsSync()) {
       await file.parent.create(recursive: true);
@@ -214,19 +206,7 @@ class FileCacheStore implements CacheStore {
     );
   }
 
-  CachePriority _getPriority(File file) {
-    final priority = path.basename(file.parent.path);
-
-    if (priority == CachePriority.low.toShortString()) {
-      return CachePriority.low;
-    } else if (priority == CachePriority.normal.toShortString()) {
-      return CachePriority.normal;
-    }
-
-    return CachePriority.high;
-  }
-
-  Future<void> deleteFile(
+  Future<void> _deleteFile(
     File? file, {
     bool staleOnly = false,
   }) async {
@@ -243,20 +223,43 @@ class FileCacheStore implements CacheStore {
       } catch (_) {}
     }
   }
-}
 
-Map<CachePriority, Directory> _genDirectories(String directory) {
-  return Map.fromEntries(
-    Iterable.generate(
-      CachePriority.values.length,
-      (i) {
-        final priority = CachePriority.values[i];
-        final subDir = Directory(
-          path.join(directory, priority.toShortString()),
-        );
+  CachePriority _getPriority(File file) {
+    final priority = path.basename(file.parent.path);
 
-        return MapEntry(priority, subDir);
-      },
-    ),
-  );
+    if (priority == CachePriority.low.toShortString()) {
+      return CachePriority.low;
+    } else if (priority == CachePriority.normal.toShortString()) {
+      return CachePriority.normal;
+    }
+
+    return CachePriority.high;
+  }
+
+  File? _findFile(String key) {
+    for (final entry in _directories.entries) {
+      final file = File(path.join(entry.value.path, key));
+      if (file.existsSync()) {
+        return file;
+      }
+    }
+
+    return null;
+  }
+
+  static Map<CachePriority, Directory> _genDirectories(String directory) {
+    return Map.fromEntries(
+      Iterable.generate(
+        CachePriority.values.length,
+        (i) {
+          final priority = CachePriority.values[i];
+          final subDir = Directory(
+            path.join(directory, priority.toShortString()),
+          );
+
+          return MapEntry(priority, subDir);
+        },
+      ),
+    );
+  }
 }

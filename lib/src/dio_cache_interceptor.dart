@@ -122,6 +122,7 @@ class DioCacheInterceptor extends Interceptor {
     if (response.eTag != null) {
       request.headers[_ifNoneMatchHeader] = response.eTag;
     }
+
     if (response.lastModified != null) {
       request.headers[_ifModifiedSinceHeader] = response.lastModified;
     }
@@ -135,7 +136,9 @@ class DioCacheInterceptor extends Interceptor {
       response.headers[_cacheControlHeader],
     );
 
-    result &= !(cacheControl?.noStore ?? false);
+    if (cacheControl != null) {
+      result &= !(cacheControl.noStore ?? false);
+    }
 
     return result;
   }
@@ -146,14 +149,16 @@ class DioCacheInterceptor extends Interceptor {
       return true;
     }
 
-    // Cache first requested, check max age, expires, etc.
+    // cacheFirst => check max age, expires, etc.
     if (options.policy == CachePolicy.cacheFirst) {
-      return !(cacheResp.cacheControl?.isStale(
+      final isStale = cacheResp.cacheControl?.isStale(
             cacheResp.responseDate,
             cacheResp.date,
             cacheResp.expires,
           ) ??
-          false);
+          false;
+
+      return !isStale;
     }
 
     return false;

@@ -37,6 +37,11 @@ void main() {
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
   });
 
+  test('Fetch bytes 200', () async {
+    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok-bytes');
+    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+  });
+
   test('Fetch 304', () async {
     final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
@@ -49,15 +54,13 @@ void main() {
     expect(resp304.statusCode, equals(304));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromCache], equals(true));
+    expect(resp304.extra[CacheResponse.fromCache], isTrue);
   });
 
   test('Fetch cacheStoreNo policy', () async {
     final resp = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options: Options(
-        extra: options.copyWith(policy: CachePolicy.cacheStoreNo).toExtra(),
-      ),
+      options: options.copyWith(policy: CachePolicy.cacheStoreNo).toOptions(),
     );
     expect(resp.statusCode, equals(200));
     expect(resp.extra[CacheResponse.cacheKey], isNull);
@@ -70,9 +73,12 @@ void main() {
 
     final resp200 = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options: Options(
-        extra: options.copyWith(policy: CachePolicy.refresh).toExtra(),
-      ),
+      options: options
+          .copyWith(
+            policy: CachePolicy.refresh,
+            maxStale: Duration(minutes: 10),
+          )
+          .toOptions(),
     );
     expect(resp200.statusCode, equals(200));
     expect(resp.data['path'], equals('/ok'));
@@ -85,18 +91,19 @@ void main() {
 
     final resp304 = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options: Options(
-        extra: options.copyWith(policy: CachePolicy.cacheFirst).toExtra(),
-      ),
+      options: options
+          .copyWith(policy: CachePolicy.cacheFirst)
+          .copyWith() // improve copyWith coverage by keeping all attributes
+          .toOptions(),
     );
     expect(resp304.statusCode, equals(304));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromCache], equals(true));
+    expect(resp304.extra[CacheResponse.fromCache], isTrue);
   });
 
   test('Fetch post skip request', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/post');
+    final resp = await _dio.post('${MockHttpClientAdapter.mockBase}/post');
     expect(resp.statusCode, equals(200));
     expect(resp.data['path'], equals('/post'));
     expect(resp.extra[CacheResponse.cacheKey], isNull);
@@ -160,5 +167,46 @@ void main() {
 
     expect(resp2.statusCode, equals(304));
     expect(resp2.data['path'], equals('/ok'));
+  });
+
+  test('Fetch Cache-Control', () async {
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control',
+    );
+    var cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp304 = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control',
+    );
+    expect(resp304.statusCode, equals(304));
+    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    expect(resp304.extra[CacheResponse.fromCache], isTrue);
+  });
+
+  test('Fetch Cache-Control expired', () async {
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control-expired',
+    );
+    var cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp304 = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control-expired',
+      options: options.copyWith(policy: CachePolicy.cacheFirst).toOptions(),
+    );
+    // we're getting 304 with new request
+    // not by skipping process with cacheFirst policy.
+    expect(resp304.statusCode, equals(304));
+    cacheKey = resp304.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+  });
+
+  test('Fetch Cache-Control no-store', () async {
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control-no-store',
+    );
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(cacheKey, isNull);
   });
 }

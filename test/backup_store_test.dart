@@ -17,27 +17,14 @@ void main() {
     await store.clean();
   });
 
-  tearDown(() async {
-    await store.close();
-  });
+  tearDown(() async => await store.close());
 
-  test('Empty by default', () async {
-    await emptyByDefault(store);
-  });
-
-  test('Add item', () async {
-    await addItem(store);
-  });
-
-  test('Get item', () async {
-    await getItem(store);
-  });
-
-  test('Delete item', () async {
-    await deleteItem(store);
-  });
-
-  test('Clean', () async {
-    await clean(store);
-  });
+  test('Empty by default', () async => await emptyByDefault(store));
+  test('Add item', () async => await addItem(store));
+  test('Get item', () async => await getItem(store));
+  test('Delete item', () async => await deleteItem(store));
+  test('Clean', () async => await clean(store));
+  test('Expires', () async => await expires(store));
+  test('LastModified', () async => await lastModified(store));
+  test('Staled', () async => await staled(store));
 }
