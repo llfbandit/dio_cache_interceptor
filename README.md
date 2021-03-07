@@ -62,7 +62,7 @@ There is no merge behaviour between interceptor and dedicated request options bu
 See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
 
 ### Encryption
-Optionally, you can encrypt content and headers with your own algorithm via `Encrypt` / `Decrypt` methods if your storage is located in public folder.
+Optionally, you can encrypt body and headers with your own algorithm via `CacheCipher`.
 
 ### Cache policy
 ```dart
@@ -99,12 +99,6 @@ enum CachePolicy {
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/llfbandit/dio_cache_interceptor/issues
-
-### Testing
-From example folder:
-```sh
-flutter run test/test_suite.dart
-```
 
 ## License
 
