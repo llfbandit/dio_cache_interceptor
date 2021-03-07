@@ -1,4 +1,5 @@
 ## 2.0.0-beta.6
+- core: Update dio to 4.0.0-beta6.
 - Small code improvement / clean-up.
 - Feat: Add boolean `fromNetwork` to extra in `Response`.
 - Fix: Cache-Control max-age precedence over Expires header.
