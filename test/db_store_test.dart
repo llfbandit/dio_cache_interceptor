@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor/src/store/db_cache_store/database.dart';
 import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
@@ -23,6 +24,25 @@ void main() {
 
   tearDown(() async {
     await store.close();
+  });
+
+  test('DioCacheData toJson', () {
+    // toJson is not used, force using it to virtually boost coverage
+    final now = DateTime.now();
+
+    final cacheData = DioCacheData(
+      cacheKey: 'foo',
+      priority: CachePriority.normal.index,
+      responseDate: now,
+      url: 'https://foo.com',
+    );
+
+    final map = cacheData.toJson();
+
+    expect(map['cacheKey'], equals('foo'));
+    expect(map['priority'], equals(CachePriority.normal.index));
+    expect(map['responseDate'], equals(now.millisecondsSinceEpoch));
+    expect(map['url'], equals('https://foo.com'));
   });
 
   test('Empty by default', () async => await emptyByDefault(store));
