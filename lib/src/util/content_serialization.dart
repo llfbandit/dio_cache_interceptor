@@ -20,21 +20,15 @@ Future<List<int>> serializeContent(ResponseType type, dynamic? content) async {
 }
 
 dynamic deserializeContent(ResponseType type, List<int>? content) {
-  final checkedContent = content;
-
   switch (type) {
     case ResponseType.bytes:
       return content;
     case ResponseType.stream:
-      return Stream<List<int>>.fromIterable(
-        (checkedContent != null) ? [checkedContent] : [],
-      );
+      return Stream<List<int>>.fromIterable((content != null) ? [content] : []);
     case ResponseType.plain:
-      return (checkedContent != null) ? utf8.decode(checkedContent) : null;
+      return (content != null) ? utf8.decode(content) : null;
     case ResponseType.json:
-      return (checkedContent != null)
-          ? jsonDecode(utf8.decode(checkedContent))
-          : null;
+      return (content != null) ? jsonDecode(utf8.decode(content)) : null;
     default:
       throw UnsupportedError('Response type not supported : $type.');
   }

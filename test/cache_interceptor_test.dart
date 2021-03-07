@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:dio_cache_interceptor/src/store/file_cache_store.dart';
 import 'package:test/test.dart';
 
@@ -29,6 +30,46 @@ void main() {
   test('Fetch stream 200', () async {
     final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok-stream');
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+  });
+
+  test('Fetch canceled', () async {
+    try {
+      await _dio.get(
+        '${MockHttpClientAdapter.mockBase}/ok',
+        cancelToken: CancelToken()..cancel(),
+      );
+    } catch (err) {
+      expect(err is DioError, isTrue);
+      expect((err as DioError).type == DioErrorType.cancel, isTrue);
+      return;
+    }
+
+    expect(false, isTrue, reason: 'Should never reach this check');
+  });
+
+  test('Fetch with cipher', () async {
+    final cipherOptions = options.copyWith(
+      cipher: CacheCipher(
+        decrypt: (bytes) =>
+            Future.value(bytes.reversed.toList(growable: false)),
+        encrypt: (bytes) =>
+            Future.value(bytes.reversed.toList(growable: false)),
+      ),
+    );
+
+    var resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok',
+      options: cipherOptions.toOptions(),
+    );
+    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+
+    resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok',
+      options: cipherOptions
+          .copyWith(policy: CachePolicy.cacheStoreForce)
+          .toOptions(),
+    );
+    expect(resp.data['path'], equals('/ok'));
   });
 
   test('Fetch 200', () async {
