@@ -5,24 +5,7 @@ export 'db_platform/db_platform.dart';
 
 part 'database.g.dart';
 
-// coverage:ignore-start
-class _DioCache extends Table {
-  TextColumn get key => text().customConstraint('PRIMARY KEY')();
-  DateTimeColumn get date => dateTime().nullable()();
-  TextColumn get cacheControl => text().nullable()();
-  BlobColumn get content => blob().nullable()();
-  TextColumn get eTag => text().nullable()();
-  DateTimeColumn get expires => dateTime().nullable()();
-  BlobColumn get headers => blob().nullable()();
-  TextColumn get lastModified => text().nullable()();
-  DateTimeColumn get maxStale => dateTime().nullable()();
-  IntColumn get priority => integer()();
-  DateTimeColumn get responseDate => dateTime()();
-  TextColumn get url => text()();
-}
-// coverage:ignore-end
-
-@UseMoor(tables: [_DioCache], daos: [DioCacheDao])
+@UseMoor(include: {'cache_table.moor'}, daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
 
@@ -30,7 +13,7 @@ class DioCacheDatabase extends _$DioCacheDatabase {
   int get schemaVersion => 1;
 }
 
-@UseDao(tables: [_DioCache])
+@UseDao(include: {'cache_table.moor'})
 class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     with _$DioCacheDaoMixin {
   DioCacheDao(DioCacheDatabase db) : super(db);
@@ -57,7 +40,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   Future<void> deleteKey(String key, {bool staleOnly = false}) async {
     final query = delete(dioCache)
       ..where((t) {
-        final Expression<bool?> expr = t.key.equals(key);
+        final Expression<bool?> expr = t.cacheKey.equals(key);
 
         return staleOnly
             ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now().toUtc())
@@ -68,7 +51,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   }
 
   Future<bool> exists(String key) async {
-    final countExp = dioCache.key.count();
+    final countExp = dioCache.cacheKey.count();
     final query = selectOnly(dioCache)..addColumns([countExp]);
     final count = await query.map((row) => row.read(countExp)).getSingle();
 
@@ -78,7 +61,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   Future<CacheResponse?> get(String key) async {
     // Get record
     final query = select(dioCache)
-      ..where((t) => t.key.equals(key))
+      ..where((t) => t.cacheKey.equals(key))
       ..limit(1);
     final result = await query.getSingleOrNull();
     if (result == null) return Future.value();
@@ -104,7 +87,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     final checkedHeaders = response.headers;
 
     await into(dioCache).insert(
-      _DioCacheData(
+      DioCacheData(
         date: response.date,
         cacheControl: response.cacheControl?.toHeader(),
         content: (checkedContent != null)
@@ -115,7 +98,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
         headers: (checkedHeaders != null)
             ? Uint8List.fromList(checkedHeaders)
             : null,
-        key: response.key,
+        cacheKey: response.key,
         lastModified: response.lastModified,
         maxStale: response.maxStale,
         priority: response.priority.index,
@@ -124,7 +107,5 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       ),
       mode: InsertMode.insertOrReplace,
     );
-
-    return Future.value();
   }
 }

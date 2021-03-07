@@ -54,7 +54,7 @@ void main() {
     expect(resp304.statusCode, equals(304));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromCache], isTrue);
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
   });
 
   test('Fetch cacheStoreNo policy', () async {
@@ -99,7 +99,7 @@ void main() {
     expect(resp304.statusCode, equals(304));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromCache], isTrue);
+    expect(resp304.extra[CacheResponse.fromNetwork], isFalse);
   });
 
   test('Fetch post skip request', () async {
@@ -176,12 +176,22 @@ void main() {
     var cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp304 = await _dio.get(
+    // From network
+    var resp304 = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
     expect(resp304.statusCode, equals(304));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromCache], isTrue);
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+
+    // From cache
+    resp304 = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/cache-control',
+      options: options.copyWith(policy: CachePolicy.cacheFirst).toOptions(),
+    );
+    expect(resp304.statusCode, equals(304));
+    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    expect(resp304.extra[CacheResponse.fromNetwork], isFalse);
   });
 
   test('Fetch Cache-Control expired', () async {
@@ -195,11 +205,12 @@ void main() {
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
       options: options.copyWith(policy: CachePolicy.cacheFirst).toOptions(),
     );
-    // we're getting 304 with new request
-    // not by skipping process with cacheFirst policy.
     expect(resp304.statusCode, equals(304));
     cacheKey = resp304.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
+    // we're getting 304 with new request
+    // not by skipping process with cacheFirst policy.
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
   });
 
   test('Fetch Cache-Control no-store', () async {

@@ -11,3 +11,4 @@ targets:
           apply_converters_on_variables: true
           # Less code generated
           skip_verification_code: true
+          override_hash_and_equals_in_result_sets: false

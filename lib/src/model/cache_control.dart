@@ -24,8 +24,8 @@ class CacheControl {
     this.privacy,
     this.noCache = false,
     this.noStore = false,
-    List<String>? otherAttrs,
-  }) : other = otherAttrs ?? [];
+    this.other = const [],
+  });
 
   static CacheControl? fromHeader(List<String>? headerValues) {
     if (headerValues == null) return null;
@@ -55,7 +55,7 @@ class CacheControl {
       privacy: privacy,
       noCache: noCache,
       noStore: noStore,
-      otherAttrs: other,
+      other: other,
     );
   }
 
@@ -85,7 +85,7 @@ class CacheControl {
     final checkedDate = date ?? responseDate;
 
     final checkedMaxAge = maxAge;
-    if (checkedMaxAge != null) {
+    if (checkedMaxAge != null && checkedMaxAge > 0) {
       final maxDate = checkedDate.add(Duration(seconds: checkedMaxAge));
       return maxDate.isBefore(DateTime.now());
     }

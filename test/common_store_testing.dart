@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
 import 'package:dio_cache_interceptor/src/model/cache_priority.dart';
 import 'package:dio_cache_interceptor/src/model/cache_response.dart';
@@ -34,6 +35,7 @@ Future<void> _addFooResponse(
 
 Future<void> emptyByDefault(CacheStore store) async {
   expect(await store.exists('foo'), isFalse);
+  expect(await store.get('foo'), isNull);
 }
 
 Future<void> addItem(CacheStore store) async {
@@ -42,19 +44,32 @@ Future<void> addItem(CacheStore store) async {
 }
 
 Future<void> getItem(CacheStore store) async {
-  await _addFooResponse(store,
-      maxStale: DateTime.now().add(const Duration(days: 1)));
+  final headers = utf8.encode(
+    jsonEncode({
+      Headers.contentTypeHeader: [Headers.jsonContentType]
+    }),
+  );
+  final cacheControl = CacheControl(maxAge: 10, privacy: 'public');
+
+  await _addFooResponse(
+    store,
+    maxStale: DateTime.now().add(const Duration(days: 1)),
+    headers: headers,
+    cacheControl: cacheControl,
+  );
 
   final resp = await store.get('foo');
   expect(resp, isNotNull);
-  expect(resp?.key, 'foo');
-  expect(resp?.url, 'https://foo.com');
-  expect(resp?.eTag, 'an etag');
+  expect(resp?.key, equals('foo'));
+  expect(resp?.url, equals('https://foo.com'));
+  expect(resp?.eTag, equals('an etag'));
   expect(resp?.lastModified, isNull);
   expect(resp?.maxStale, isNotNull);
-  expect(resp?.content, utf8.encode('foo'));
-  expect(resp?.headers, isNull);
+  expect(resp?.content, equals(utf8.encode('foo')));
+  expect(resp?.headers, equals(headers));
   expect(resp?.priority, CachePriority.normal);
+  expect(resp?.cacheControl?.maxAge, equals(cacheControl.maxAge));
+  expect(resp?.cacheControl?.privacy, equals(cacheControl.privacy));
 }
 
 Future<void> deleteItem(CacheStore store) async {

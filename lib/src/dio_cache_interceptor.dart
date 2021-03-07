@@ -44,7 +44,7 @@ class DioCacheInterceptor extends Interceptor {
     final cacheResp = await _getCacheResponse(request);
     if (cacheResp != null) {
       if (_shouldReturnCache(options, cacheResp)) {
-        return cacheResp.toResponse(request);
+        return cacheResp.toResponse(request, fromNetwork: false);
       }
 
       // Update request with cache directives
@@ -66,13 +66,13 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     final cacheOptions = _getCacheOptions(response.request);
-    if (cacheOptions.policy == CachePolicy.cacheStoreNo) {
-      return super.onResponse(response);
-    }
+
+    var canCacheResponse = cacheOptions.policy != CachePolicy.cacheStoreNo;
+    canCacheResponse &= (cacheOptions.policy == CachePolicy.cacheStoreForce ||
+        _hasCacheDirectives(response));
 
     // Cache response into store
-    if (cacheOptions.policy == CachePolicy.cacheStoreForce ||
-        _hasCacheDirectives(response)) {
+    if (canCacheResponse) {
       final cacheResp = await _buildCacheResponse(
         cacheOptions.keyBuilder(response.request),
         cacheOptions,
@@ -82,6 +82,7 @@ class DioCacheInterceptor extends Interceptor {
       await _getCacheStore(cacheOptions).set(cacheResp);
 
       response.extra.putIfAbsent(CacheResponse.cacheKey, () => cacheResp.key);
+      response.extra.putIfAbsent(CacheResponse.fromNetwork, () => true);
     }
 
     return super.onResponse(response);
@@ -97,7 +98,7 @@ class DioCacheInterceptor extends Interceptor {
     final response = err.response;
     if (response != null) {
       if (response.statusCode == 304) {
-        return _getResponse(err.request);
+        return _getResponse(err.request, fromNetwork: true);
       }
 
       final cacheOpts = _getCacheOptions(err.request!);
@@ -111,7 +112,7 @@ class DioCacheInterceptor extends Interceptor {
           }
         }
 
-        return _getResponse(err.request);
+        return _getResponse(err.request, fromNetwork: true);
       }
     }
 
@@ -241,10 +242,13 @@ class DioCacheInterceptor extends Interceptor {
     return result;
   }
 
-  Future<Response?> _getResponse(RequestOptions? request) async {
+  Future<Response?> _getResponse(
+    RequestOptions? request, {
+    required bool fromNetwork,
+  }) async {
     if (request == null) return null;
     final existing = await _getCacheResponse(request);
-    return existing?.toResponse(request);
+    return existing?.toResponse(request, fromNetwork: fromNetwork);
   }
 
   Future<List<int>?> _decryptContent(CacheOptions options, List<int>? bytes) {

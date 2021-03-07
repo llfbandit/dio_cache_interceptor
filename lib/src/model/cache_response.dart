@@ -11,8 +11,8 @@ class CacheResponse {
   /// Cache key available in [Response]
   static const String cacheKey = '@cache_key@';
 
-  /// Available in [Response] if coming from this object.
-  static const String fromCache = '@fromCache@';
+  /// Available in [Response] if coming from network.
+  static const String fromNetwork = '@fromNetwork@';
 
   /// Response Cache-control header
   final CacheControl? cacheControl;
@@ -65,12 +65,7 @@ class CacheResponse {
     required this.url,
   });
 
-  /// Returns date in seconds since epoch or null.
-  int? getMaxStaleSeconds() {
-    return maxStale?.millisecondsSinceEpoch;
-  }
-
-  Response toResponse(RequestOptions options) {
+  Response toResponse(RequestOptions options, {bool fromNetwork = false}) {
     final checkedHeaders = headers;
     final decHeaders = (checkedHeaders != null)
         ? jsonDecode(utf8.decode(checkedHeaders)) as Map<String, dynamic>
@@ -81,7 +76,7 @@ class CacheResponse {
 
     return Response(
       data: deserializeContent(options.responseType, content),
-      extra: {cacheKey: key, fromCache: true},
+      extra: {cacheKey: key, CacheResponse.fromNetwork: fromNetwork},
       headers: h,
       statusCode: 304,
       request: options,
@@ -91,5 +86,10 @@ class CacheResponse {
   bool isStaled() {
     final checkedMaxStale = maxStale;
     return checkedMaxStale != null && checkedMaxStale.isBefore(DateTime.now());
+  }
+
+  /// Returns date in seconds since epoch or null.
+  int? getMaxStaleSeconds() {
+    return maxStale?.millisecondsSinceEpoch;
   }
 }
