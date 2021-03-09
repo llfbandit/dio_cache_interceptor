@@ -1,3 +1,10 @@
+## 2.0.0-beta.7
+- core: Update dio to 4.0.0-beta7.
+- __Breaking__: Remove now useless/confusing `cacheFirst` policy with improved freshness checks.
+- __Breaking__: Rename `requestFirst` to `request`.
+- Small code improvements.
+- Update README.MD
+
 ## 2.0.0-beta.6
 - core: Update dio to 4.0.0-beta6.
 - Small code improvement / clean-up.

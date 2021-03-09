@@ -66,6 +66,16 @@ class CacheResponse {
   });
 
   Response toResponse(RequestOptions options, {bool fromNetwork = false}) {
+    return Response(
+      data: deserializeContent(options.responseType, content),
+      extra: {cacheKey: key, CacheResponse.fromNetwork: fromNetwork},
+      headers: getHeaders(),
+      statusCode: 304,
+      request: options,
+    );
+  }
+
+  Headers getHeaders() {
     final checkedHeaders = headers;
     final decHeaders = (checkedHeaders != null)
         ? jsonDecode(utf8.decode(checkedHeaders)) as Map<String, dynamic>
@@ -74,22 +84,42 @@ class CacheResponse {
     final h = Headers();
     decHeaders?.forEach((key, value) => h.set(key, value));
 
-    return Response(
-      data: deserializeContent(options.responseType, content),
-      extra: {cacheKey: key, CacheResponse.fromNetwork: fromNetwork},
-      headers: h,
-      statusCode: 304,
-      request: options,
-    );
+    return h;
   }
 
+  /// Check if response is staled from [maxStale] option.
   bool isStaled() {
-    final checkedMaxStale = maxStale;
-    return checkedMaxStale != null && checkedMaxStale.isBefore(DateTime.now());
+    return maxStale != null && maxStale!.isBefore(DateTime.now());
   }
 
-  /// Returns date in seconds since epoch or null.
-  int? getMaxStaleSeconds() {
-    return maxStale?.millisecondsSinceEpoch;
+  /// Check if cache-control fields invalidates cache entry
+  /// with [date] header or [responseDate] if missing.
+  ///
+  /// Checking in order against:
+  /// - no-cache,
+  /// - max-age,
+  /// - and expires header values.
+  bool isExpired() {
+    final cControl = cacheControl;
+    final checkedDate = date ?? responseDate;
+
+    if (cControl != null) {
+      if (cControl.noCache ?? false) {
+        return true;
+      }
+
+      final checkedMaxAge = cControl.maxAge;
+      if (checkedMaxAge != null && checkedMaxAge > 0) {
+        final maxDate = checkedDate.add(Duration(seconds: checkedMaxAge));
+        return maxDate.isBefore(DateTime.now());
+      }
+    }
+
+    final checkedExpires = expires;
+    if (checkedExpires != null) {
+      return checkedExpires.difference(checkedDate).isNegative;
+    }
+
+    return true;
   }
 }

@@ -71,29 +71,4 @@ class CacheControl {
 
     return values.join(', ');
   }
-
-  /// Check if cache-control fields invalidates cache entry.
-  ///
-  /// [responseDate] given is from response absolute time.
-  /// [date] given is from Date response header.
-  /// [expires] given is from Expires response header.
-  bool isStale(DateTime responseDate, DateTime? date, DateTime? expires) {
-    if ((noCache ?? false) || other.contains('must-revalidate')) {
-      return true;
-    }
-
-    final checkedDate = date ?? responseDate;
-
-    final checkedMaxAge = maxAge;
-    if (checkedMaxAge != null && checkedMaxAge > 0) {
-      final maxDate = checkedDate.add(Duration(seconds: checkedMaxAge));
-      return maxDate.isBefore(DateTime.now());
-    }
-
-    if (expires != null) {
-      return expires.difference(checkedDate).isNegative;
-    }
-
-    return false;
-  }
 }

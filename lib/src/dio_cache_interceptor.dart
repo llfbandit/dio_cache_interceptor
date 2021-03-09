@@ -66,13 +66,15 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     final cacheOptions = _getCacheOptions(response.request);
+    final policy = cacheOptions.policy;
 
-    var canCacheResponse = cacheOptions.policy != CachePolicy.cacheStoreNo;
-    canCacheResponse &= (cacheOptions.policy == CachePolicy.cacheStoreForce ||
-        _hasCacheDirectives(response));
+    if (policy == CachePolicy.cacheStoreNo) {
+      return super.onResponse(response);
+    }
 
     // Cache response into store
-    if (canCacheResponse) {
+    if (policy == CachePolicy.cacheStoreForce ||
+        _hasCacheDirectives(response)) {
       final cacheResp = await _buildCacheResponse(
         cacheOptions.keyBuilder(response.request),
         cacheOptions,
@@ -150,19 +152,7 @@ class DioCacheInterceptor extends Interceptor {
       return true;
     }
 
-    // cacheFirst => check max age, expires, etc.
-    if (options.policy == CachePolicy.cacheFirst) {
-      final isStale = cacheResp.cacheControl?.isStale(
-            cacheResp.responseDate,
-            cacheResp.date,
-            cacheResp.expires,
-          ) ??
-          false;
-
-      return !isStale;
-    }
-
-    return false;
+    return !cacheResp.isExpired();
   }
 
   CacheOptions _getCacheOptions(RequestOptions request) {

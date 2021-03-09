@@ -125,24 +125,6 @@ void main() {
     expect(resp.data['path'], equals('/ok'));
   });
 
-  test('Fetch cacheFirst policy', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
-
-    final resp304 = await _dio.get(
-      '${MockHttpClientAdapter.mockBase}/ok',
-      options: options
-          .copyWith(policy: CachePolicy.cacheFirst)
-          .copyWith() // improve copyWith coverage by keeping all attributes
-          .toOptions(),
-    );
-    expect(resp304.statusCode, equals(304));
-    expect(resp.data['path'], equals('/ok'));
-    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromNetwork], isFalse);
-  });
-
   test('Fetch post skip request', () async {
     final resp = await _dio.post('${MockHttpClientAdapter.mockBase}/post');
     expect(resp.statusCode, equals(200));
@@ -217,21 +199,12 @@ void main() {
     var cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    // From network
     var resp304 = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
     expect(resp304.statusCode, equals(304));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
-
-    // From cache
-    resp304 = await _dio.get(
-      '${MockHttpClientAdapter.mockBase}/cache-control',
-      options: options.copyWith(policy: CachePolicy.cacheFirst).toOptions(),
-    );
-    expect(resp304.statusCode, equals(304));
-    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    // request is not expired even if max-age is 0
     expect(resp304.extra[CacheResponse.fromNetwork], isFalse);
   });
 
@@ -244,13 +217,10 @@ void main() {
 
     final resp304 = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
-      options: options.copyWith(policy: CachePolicy.cacheFirst).toOptions(),
     );
     expect(resp304.statusCode, equals(304));
     cacheKey = resp304.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
-    // we're getting 304 with new request
-    // not by skipping process with cacheFirst policy.
     expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
   });
 

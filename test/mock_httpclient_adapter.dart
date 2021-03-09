@@ -44,7 +44,6 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           200,
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType],
-            'expires': ['Wed, 21 Oct 2045 07:28:00 GMT'],
             'etag': ['1234'],
             'last-modified': ['Wed, 21 Oct 2045 07:28:00 GMT'],
           },

@@ -33,9 +33,9 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 // Global options
 final options = const CacheOptions(
   store: DbCacheStore(databasePath: 'a_path'), // Required.
-  policy: CachePolicy.requestFirst, // Default. Requests first and caches response.
+  policy: CachePolicy.request, // Default. Checks cache freshness, requests otherwise and caches response.
   hitCacheOnErrorExcept: [401, 403], // Optional. Returns a cached response on error if available but for statuses 401 & 403.
-  priority: CachePriority.normal, // Optional. Default. Allows 3 cache levels and ease cleanup.
+  priority: CachePriority.normal, // Optional. Default. Allows 3 cache sets and ease cleanup.
   maxStale: const Duration(days: 7), // Very optional. Overrides any HTTP directive to delete entry past this duration.
 );
 
@@ -46,18 +46,19 @@ final dio = Dio()
 
 // ...
 
-// Request with default options
+// Requesting with global options => status code(200)
 var response = await dio.get('http://www.foo.com');
+// Requesting with global options => status code(304)
+response = await dio.get('http://www.foo.com');
 
-// Request with dedicated options
+// Requesting with dedicated options => status code(200)
 response = await dio.get('http://www.foo.com',
   options: options.copyWith(policy: CachePolicy.refresh).toOptions(),
 );
 ```
 
 ## Options
-`CacheOptions` are widely available on interceptor and on requests to take precedence.  
-There is no merge behaviour between interceptor and dedicated request options but store property.
+`CacheOptions` is widely available on interceptor and on requests to take precedence.  
 
 See [documentation](https://pub.dev/documentation/dio_cache_interceptor/latest/dio_cache_interceptor/dio_cache_interceptor-library.html) for all properties.
 
@@ -67,20 +68,17 @@ Optionally, you can encrypt body and headers with your own algorithm via `CacheC
 ### Cache policy
 ```dart
 enum CachePolicy {
-  /// Returns the cached value if available.
-  /// Requests otherwise.
-  cacheFirst,
-
   /// Forces to return the cached value if available.
   /// Requests otherwise.
   /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
+  /// This should not be combined with maxStale.
   cacheStoreForce,
 
   /// Requests and skips cache save even if
   /// response has cache directives.
-  /// 
+  ///
   /// Note: previously stored response stays untouched.
   cacheStoreNo,
 
@@ -89,8 +87,9 @@ enum CachePolicy {
   /// response has cache directives.
   refresh,
 
-  /// Requests and caches if response has directives.
-  requestFirst,
+  /// Returns the cached value if available (and un-expired).
+  /// Requests otherwise and caches if response has directives.
+  request,
 }
 ```
 

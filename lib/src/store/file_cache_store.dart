@@ -97,7 +97,9 @@ class FileCacheStore implements CacheStore {
   List<int> _serializeContent(CacheResponse response) {
     final etag = utf8.encode(response.eTag ?? '');
     final lastModified = utf8.encode(response.lastModified ?? '');
-    final maxStale = utf8.encode('${response.getMaxStaleSeconds() ?? ''}');
+    final maxStale = utf8.encode(
+      '${response.maxStale?.millisecondsSinceEpoch ?? ''}',
+    );
     final url = utf8.encode(response.url);
     final cacheControl = utf8.encode(response.cacheControl?.toHeader() ?? '');
     final date = utf8.encode(response.date?.toIso8601String() ?? '');

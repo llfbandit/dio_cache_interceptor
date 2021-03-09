@@ -10,15 +10,12 @@ typedef CacheKeyBuilder = String Function(RequestOptions request);
 
 /// Policy to handle request behaviour.
 enum CachePolicy {
-  /// Returns the cached value if available.
-  /// Requests otherwise.
-  cacheFirst,
-
   /// Forces to return the cached value if available.
   /// Requests otherwise.
   /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
+  /// This should not be combined with maxStale.
   cacheStoreForce,
 
   /// Requests and skips cache save even if
@@ -32,8 +29,9 @@ enum CachePolicy {
   /// response has cache directives.
   refresh,
 
-  /// Requests and caches if response has directives.
-  requestFirst,
+  /// Returns the cached value if available (and un-expired).
+  /// Requests otherwise and caches if response has directives.
+  request,
 }
 
 /// Options to apply to handle request and cache behaviour.
@@ -73,7 +71,7 @@ class CacheOptions {
   static final _uuid = Uuid();
 
   const CacheOptions({
-    this.policy = CachePolicy.requestFirst,
+    this.policy = CachePolicy.request,
     this.hitCacheOnErrorExcept,
     this.keyBuilder = defaultCacheKeyBuilder,
     this.maxStale,

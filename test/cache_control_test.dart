@@ -1,47 +1,66 @@
+import 'dart:convert';
+
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('isStale', () {
-    var cacheControl = CacheControl();
-    expect(cacheControl.isStale(DateTime.now(), null, null), isFalse);
+  CacheResponse _buildResponse({
+    DateTime? date,
+    DateTime? expires,
+    CacheControl? cacheControl,
+  }) {
+    return CacheResponse(
+      cacheControl: cacheControl,
+      content: utf8.encode('foo'),
+      date: date,
+      eTag: 'an etag',
+      expires: expires,
+      headers: null,
+      key: 'foo',
+      lastModified: null,
+      maxStale: null,
+      priority: CachePriority.normal,
+      responseDate: DateTime.now(),
+      url: 'https://foo.com',
+    );
+  }
 
-    cacheControl = CacheControl(maxAge: 10);
-    expect(
-        cacheControl.isStale(
-          DateTime.now(),
-          DateTime.now().subtract(const Duration(seconds: 12)),
-          null,
-        ),
-        isTrue);
+  test('isExpired', () {
+    var resp = _buildResponse(
+      date: null,
+      expires: null,
+      cacheControl: CacheControl(),
+    );
+    expect(resp.isExpired(), isTrue);
+
+    resp = _buildResponse(
+      date: DateTime.now().subtract(const Duration(seconds: 12)),
+      expires: null,
+      cacheControl: CacheControl(maxAge: 10),
+    );
+    expect(resp.isExpired(), isTrue);
 
     // max-age takes precedence over expires
-    cacheControl = CacheControl(maxAge: 10);
-    expect(
-        cacheControl.isStale(
-          DateTime.now(),
-          DateTime.now().subtract(const Duration(seconds: 12)),
-          DateTime.now().add(const Duration(hours: 10)),
-        ),
-        isTrue);
+    resp = _buildResponse(
+      date: DateTime.now().subtract(const Duration(seconds: 12)),
+      expires: DateTime.now().add(const Duration(hours: 10)),
+      cacheControl: CacheControl(maxAge: 10),
+    );
+    expect(resp.isExpired(), isTrue);
 
     // max-age is invalid check with expires
-    cacheControl = CacheControl(maxAge: 0);
-    expect(
-        cacheControl.isStale(
-          DateTime.now(),
-          DateTime.now().subtract(const Duration(seconds: 12)),
-          DateTime.now().add(const Duration(hours: 10)),
-        ),
-        isFalse);
+    resp = _buildResponse(
+      date: DateTime.now().subtract(const Duration(seconds: 12)),
+      expires: DateTime.now().add(const Duration(hours: 10)),
+      cacheControl: CacheControl(maxAge: 0),
+    );
+    expect(resp.isExpired(), isFalse);
 
-    cacheControl = CacheControl();
-    expect(
-        cacheControl.isStale(
-          DateTime.now(),
-          null,
-          DateTime.now().subtract(const Duration(hours: 10)),
-        ),
-        isTrue);
+    resp = _buildResponse(
+      date: null,
+      expires: DateTime.now().subtract(const Duration(hours: 10)),
+      cacheControl: CacheControl(),
+    );
+    expect(resp.isExpired(), isTrue);
   });
 }

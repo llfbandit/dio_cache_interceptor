@@ -61,7 +61,7 @@ class MemCacheStore implements CacheStore {
     final resp = _cache[key];
     if (resp == null) return null;
 
-    // Purge entry if stalled
+    // Purge entry if staled
     if (resp.isStaled()) {
       await delete(key);
       return null;
