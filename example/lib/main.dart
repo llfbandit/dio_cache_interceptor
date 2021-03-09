@@ -70,16 +70,12 @@ class _MyAppState extends State<MyApp> {
                   child: Text('Clear single entry'),
                 ),
                 RaisedButton(
-                  onPressed: () async => await _requestFirstCall(),
-                  child: Text('Call (Request first policy)'),
+                  onPressed: () async => await _requestCall(),
+                  child: Text('Call (Request policy)'),
                 ),
                 RaisedButton(
                   onPressed: () async => await _refreshCall(),
                   child: Text('Call (Refresh policy)'),
-                ),
-                RaisedButton(
-                  onPressed: () async => await _cacheFirstCall(),
-                  child: Text('Call (Cache first policy)'),
                 ),
                 RaisedButton(
                   onPressed: () async => await _cacheStoreNoCall(),
@@ -100,7 +96,7 @@ class _MyAppState extends State<MyApp> {
     setState(() => text = _getResponseContent(resp));
   }
 
-  Future _requestFirstCall() async {
+  Future _requestCall() async {
     final resp = await _call();
     if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
@@ -108,12 +104,6 @@ class _MyAppState extends State<MyApp> {
 
   Future _refreshCall() async {
     final resp = await _call(policy: CachePolicy.refresh);
-    if (resp == null) return;
-    setState(() => text = _getResponseContent(resp));
-  }
-
-  Future _cacheFirstCall() async {
-    final resp = await _call(policy: CachePolicy.cacheFirst);
     if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
