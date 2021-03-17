@@ -56,6 +56,15 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             Headers.contentTypeHeader: [Headers.jsonContentType]
           },
         );
+      case '/cancel':
+        await Future.delayed(const Duration(milliseconds: 400));
+        return ResponseBody.fromString(
+          jsonEncode({'path': uri.path}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType]
+          },
+        );
       case '/ok-stream':
         return ResponseBody(
           File('./README.md').openRead().cast<Uint8List>(),

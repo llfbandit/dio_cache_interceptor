@@ -30,53 +30,61 @@ class DioCacheInterceptor extends Interceptor {
         _store = options.store!;
 
   @override
-  Future<dynamic> onRequest(RequestOptions request) async {
+  void onRequest(
+    RequestOptions request,
+    RequestInterceptorHandler handler,
+  ) async {
     if (_shouldSkipRequest(request)) {
-      return super.onRequest(request);
+      handler.next(request);
+      return;
     }
 
     final options = _getCacheOptions(request);
 
-    if (options.policy == CachePolicy.refresh) {
-      return super.onRequest(request);
-    }
+    if (options.policy != CachePolicy.refresh) {
+      final cacheResp = await _getCacheResponse(request);
+      if (cacheResp != null) {
+        if (_shouldReturnCache(options, cacheResp)) {
+          handler.resolve(cacheResp.toResponse(request, fromNetwork: false));
+          return;
+        }
 
-    final cacheResp = await _getCacheResponse(request);
-    if (cacheResp != null) {
-      if (_shouldReturnCache(options, cacheResp)) {
-        return cacheResp.toResponse(request, fromNetwork: false);
+        // Update request with cache directives
+        _addCacheDirectives(request, cacheResp);
       }
-
-      // Update request with cache directives
-      _addCacheDirectives(request, cacheResp);
     }
 
-    return super.onRequest(request);
+    handler.next(request);
   }
 
   @override
-  Future<dynamic> onResponse(Response response) async {
-    if (_shouldSkipRequest(response.request)) {
-      return super.onResponse(response);
+  void onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
+    if (_shouldSkipRequest(response.requestOptions)) {
+      handler.next(response);
+      return;
     }
 
     // Don't cache response
     if (response.statusCode != 200) {
-      return super.onResponse(response);
+      handler.next(response);
+      return;
     }
 
-    final cacheOptions = _getCacheOptions(response.request);
+    final cacheOptions = _getCacheOptions(response.requestOptions);
     final policy = cacheOptions.policy;
 
     if (policy == CachePolicy.cacheStoreNo) {
-      return super.onResponse(response);
+      handler.next(response);
+      return;
     }
 
     // Cache response into store
-    if (policy == CachePolicy.cacheStoreForce ||
-        _hasCacheDirectives(response)) {
+    if (_hasCacheDirectives(response, policy: policy)) {
       final cacheResp = await _buildCacheResponse(
-        cacheOptions.keyBuilder(response.request),
+        cacheOptions.keyBuilder(response.requestOptions),
         cacheOptions,
         response,
       );
@@ -87,38 +95,52 @@ class DioCacheInterceptor extends Interceptor {
       response.extra.putIfAbsent(CacheResponse.fromNetwork, () => true);
     }
 
-    return super.onResponse(response);
+    handler.next(response);
   }
 
   @override
-  Future<dynamic> onError(DioError err) async {
-    if (err.type == DioErrorType.cancel || _shouldSkipRequest(err.request)) {
-      return super.onError(err);
+  void onError(
+    DioError err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    if (_shouldSkipRequest(err.requestOptions, error: err)) {
+      handler.next(err);
+      return;
     }
+
+    var returnResponse = false;
 
     // Retrieve response from cache
-    final response = err.response;
-    if (response != null) {
-      if (response.statusCode == 304) {
-        return _getResponse(err.request, fromNetwork: true);
-      }
+    final errResponse = err.response;
+    if (errResponse != null) {
+      if (errResponse.statusCode == 304) {
+        returnResponse = true;
+      } else {
+        final cacheOpts = _getCacheOptions(err.requestOptions);
 
-      final cacheOpts = _getCacheOptions(err.request!);
-
-      // Check if we can return cache on error
-      final hitCacheOnErrorExcept = cacheOpts.hitCacheOnErrorExcept;
-      if (hitCacheOnErrorExcept != null) {
-        if (err.type == DioErrorType.response) {
-          if (hitCacheOnErrorExcept.contains(response.statusCode)) {
-            return super.onError(err);
-          }
+        // Check if we can return cache on error
+        final hcoeExcept = cacheOpts.hitCacheOnErrorExcept;
+        if (hcoeExcept == null) {
+          returnResponse = false;
+        } else if (err.type == DioErrorType.response &&
+            hcoeExcept.contains(errResponse.statusCode)) {
+          returnResponse = false;
+        } else {
+          returnResponse = true;
         }
-
-        return _getResponse(err.request, fromNetwork: true);
       }
     }
 
-    return super.onError(err);
+    if (returnResponse) {
+      final response = await _getResponse(
+        err.requestOptions,
+        fromNetwork: true,
+      );
+      handler.resolve(response!);
+      return;
+    } else {
+      handler.next(err);
+    }
   }
 
   void _addCacheDirectives(RequestOptions request, CacheResponse response) {
@@ -131,7 +153,11 @@ class DioCacheInterceptor extends Interceptor {
     }
   }
 
-  bool _hasCacheDirectives(Response response) {
+  bool _hasCacheDirectives(Response response, {CachePolicy? policy}) {
+    if (policy == CachePolicy.cacheStoreForce) {
+      return true;
+    }
+
     var result = response.headers[_etagHeader] != null;
     result |= response.headers[_lastModifiedHeader] != null;
 
@@ -163,8 +189,10 @@ class DioCacheInterceptor extends Interceptor {
     return options.store ?? _store;
   }
 
-  bool _shouldSkipRequest(RequestOptions? request) {
-    return (request?.method.toUpperCase() != _getMethodName);
+  bool _shouldSkipRequest(RequestOptions? request, {DioError? error}) {
+    var result = error?.type == DioErrorType.cancel;
+    result |= (request?.method.toUpperCase() != _getMethodName);
+    return result;
   }
 
   Future<CacheResponse> _buildCacheResponse(
@@ -174,7 +202,10 @@ class DioCacheInterceptor extends Interceptor {
   ) async {
     final content = await _encryptContent(
       options,
-      await serializeContent(response.request.responseType, response.data),
+      await serializeContent(
+        response.requestOptions.responseType,
+        response.data,
+      ),
     );
 
     final headers = await _encryptContent(
@@ -215,7 +246,7 @@ class DioCacheInterceptor extends Interceptor {
           : null,
       priority: options.priority,
       responseDate: DateTime.now().toUtc(),
-      url: response.request.uri.toString(),
+      url: response.requestOptions.uri.toString(),
     );
   }
 

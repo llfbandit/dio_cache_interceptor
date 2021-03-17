@@ -71,7 +71,7 @@ class CacheResponse {
       extra: {cacheKey: key, CacheResponse.fromNetwork: fromNetwork},
       headers: getHeaders(),
       statusCode: 304,
-      request: options,
+      requestOptions: options,
     );
   }
 
