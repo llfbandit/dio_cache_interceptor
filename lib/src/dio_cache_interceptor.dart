@@ -67,8 +67,8 @@ class DioCacheInterceptor extends Interceptor {
       return;
     }
 
-    final cacheOptions = _getCacheOptions(response.requestOptions);
-    final policy = cacheOptions.policy;
+    final options = _getCacheOptions(response.requestOptions);
+    final policy = options.policy;
 
     if (policy == CachePolicy.cacheStoreNo) {
       handler.next(response);
@@ -78,12 +78,12 @@ class DioCacheInterceptor extends Interceptor {
     // Cache response into store
     if (_hasCacheDirectives(response, policy: policy)) {
       final cacheResp = await _buildCacheResponse(
-        cacheOptions.keyBuilder(response.requestOptions),
-        cacheOptions,
+        options.keyBuilder(response.requestOptions),
+        options,
         response,
       );
 
-      await _getCacheStore(cacheOptions).set(cacheResp);
+      await _getCacheStore(options).set(cacheResp);
 
       response.extra.putIfAbsent(CacheResponse.cacheKey, () => cacheResp.key);
       response.extra.putIfAbsent(CacheResponse.fromNetwork, () => true);
@@ -102,16 +102,16 @@ class DioCacheInterceptor extends Interceptor {
       return;
     }
 
+    final errResponse = err.response;
     var returnResponse = false;
 
-    final errResponse = err.response;
     if (errResponse?.statusCode == 304) {
       returnResponse = true;
     } else {
-      final cacheOpts = _getCacheOptions(err.requestOptions);
+      // Check if we can return cache
+      final options = _getCacheOptions(err.requestOptions);
+      final hcoeExcept = options.hitCacheOnErrorExcept;
 
-      // Check if we can return cache on error
-      final hcoeExcept = cacheOpts.hitCacheOnErrorExcept;
       if (hcoeExcept != null) {
         if (errResponse == null) {
           returnResponse = true;
@@ -207,8 +207,14 @@ class DioCacheInterceptor extends Interceptor {
     );
 
     final dateStr = response.headers[dateHeader]?.first;
-    final date =
-        (dateStr != null) ? HttpDate.parse(dateStr) : DateTime.now().toUtc();
+    DateTime? date;
+    if (dateStr != null) {
+      try {
+        date = HttpDate.parse(dateStr);
+      } catch (_) {
+        // Invalid date format => ignored
+      }
+    }
 
     final expiresDateStr = response.headers[expiresHeader]?.first;
     DateTime? httpExpiresDate;
@@ -216,7 +222,7 @@ class DioCacheInterceptor extends Interceptor {
       try {
         httpExpiresDate = HttpDate.parse(expiresDateStr);
       } catch (_) {
-        // Invalid date format, meaning something already expired
+        // Invalid date format => meaning something already expired
         httpExpiresDate = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
       }
     }
@@ -244,13 +250,13 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   Future<CacheResponse?> _getCacheResponse(RequestOptions request) async {
-    final cacheOpts = _getCacheOptions(request);
-    final cacheKey = cacheOpts.keyBuilder(request);
-    final result = await _getCacheStore(cacheOpts).get(cacheKey);
+    final options = _getCacheOptions(request);
+    final cacheKey = options.keyBuilder(request);
+    final result = await _getCacheStore(options).get(cacheKey);
 
     if (result != null) {
-      result.content = await _decryptContent(cacheOpts, result.content);
-      result.headers = await _decryptContent(cacheOpts, result.headers);
+      result.content = await _decryptContent(options, result.content);
+      result.headers = await _decryptContent(options, result.headers);
     }
 
     return result;
@@ -261,23 +267,23 @@ class DioCacheInterceptor extends Interceptor {
     Response? response,
   }) async {
     final existing = await _getCacheResponse(request);
-    final cacheResponse = existing?.toResponse(
-      request,
-      fromNetwork: response != null,
-    );
+    final cacheResponse = existing?.toResponse(request);
 
     if (response != null && cacheResponse != null) {
       // Update cache header values
       cacheResponse.updateCacheHeaders(response);
 
       // Update store
-      final cacheOpts = _getCacheOptions(request);
+      final options = _getCacheOptions(request);
       final updatedCache = await _buildCacheResponse(
-        cacheOpts.keyBuilder(request),
-        cacheOpts,
+        options.keyBuilder(request),
+        options,
         cacheResponse,
       );
-      await _getCacheStore(cacheOpts).set(updatedCache);
+      await _getCacheStore(options).set(updatedCache);
+
+      // return cached value with updated headers
+      return updatedCache.toResponse(request, fromNetwork: true);
     }
 
     return cacheResponse;
