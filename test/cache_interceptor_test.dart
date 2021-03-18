@@ -103,6 +103,7 @@ void main() {
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
     expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.headers['etag'], equals(['5678']));
   });
 
   test('Fetch cacheStoreNo policy', () async {
@@ -197,6 +198,25 @@ void main() {
 
     expect(resp2.statusCode, equals(304));
     expect(resp2.data['path'], equals('/ok'));
+  });
+
+  test('Fetch hitCacheOnErrorExcept socket exception valid', () async {
+    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/exception');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp2 = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/exception',
+      options: Options(
+        extra: options.copyWith(
+          hitCacheOnErrorExcept: [],
+        ).toExtra()
+          ..addAll({'x-err': '500'}),
+      ),
+    );
+
+    expect(resp2.statusCode, equals(304));
+    expect(resp2.data['path'], equals('/exception'));
   });
 
   test('Fetch Cache-Control', () async {

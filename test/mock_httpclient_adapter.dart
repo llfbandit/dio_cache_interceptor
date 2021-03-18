@@ -24,7 +24,8 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             '',
             304,
             headers: {
-              Headers.contentTypeHeader: [Headers.jsonContentType]
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+              'etag': ['5678'],
             },
           );
         }
@@ -63,6 +64,23 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           200,
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType]
+          },
+        );
+      case '/exception':
+        if (options.extra.containsKey('x-err')) {
+          throw DioError(
+            requestOptions: options,
+            type: DioErrorType.connectTimeout,
+          );
+        }
+
+        return ResponseBody.fromString(
+          jsonEncode({'path': uri.path}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+            'etag': ['1234'],
+            'last-modified': ['Wed, 21 Oct 2045 07:28:00 GMT'],
           },
         );
       case '/ok-stream':
