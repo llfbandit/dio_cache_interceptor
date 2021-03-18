@@ -2,24 +2,18 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
+import 'package:dio_cache_interceptor/src/util/contants.dart';
 import 'package:dio_cache_interceptor/src/util/http_date.dart';
 
 import './model/cache_response.dart';
 import './store/cache_store.dart';
 import 'model/cache_options.dart';
 import 'util/content_serialization.dart';
+import 'util/response_extension.dart';
 
 /// Cache interceptor
 class DioCacheInterceptor extends Interceptor {
   static const String _getMethodName = 'GET';
-
-  static const _cacheControlHeader = 'cache-control';
-  static const _dateHeader = 'date';
-  static const _etagHeader = 'etag';
-  static const _expiresHeader = 'expires';
-  static const _ifModifiedSinceHeader = 'if-modified-since';
-  static const _ifNoneMatchHeader = 'if-none-match';
-  static const _lastModifiedHeader = 'last-modified';
 
   final CacheOptions _options;
   final CacheStore _store;
@@ -134,10 +128,9 @@ class DioCacheInterceptor extends Interceptor {
     if (returnResponse) {
       final response = await _getResponse(
         err.requestOptions,
-        fromNetwork: true,
+        response: errResponse,
       );
-      handler.resolve(response!);
-      return;
+      handler.resolve(response);
     } else {
       handler.next(err);
     }
@@ -145,11 +138,11 @@ class DioCacheInterceptor extends Interceptor {
 
   void _addCacheDirectives(RequestOptions request, CacheResponse response) {
     if (response.eTag != null) {
-      request.headers[_ifNoneMatchHeader] = response.eTag;
+      request.headers[ifNoneMatchHeader] = response.eTag;
     }
 
     if (response.lastModified != null) {
-      request.headers[_ifModifiedSinceHeader] = response.lastModified;
+      request.headers[ifModifiedSinceHeader] = response.lastModified;
     }
   }
 
@@ -158,11 +151,11 @@ class DioCacheInterceptor extends Interceptor {
       return true;
     }
 
-    var result = response.headers[_etagHeader] != null;
-    result |= response.headers[_lastModifiedHeader] != null;
+    var result = response.headers[etagHeader] != null;
+    result |= response.headers[lastModifiedHeader] != null;
 
     final cacheControl = CacheControl.fromHeader(
-      response.headers[_cacheControlHeader],
+      response.headers[cacheControlHeader],
     );
 
     if (cacheControl != null) {
@@ -213,11 +206,11 @@ class DioCacheInterceptor extends Interceptor {
       utf8.encode(jsonEncode(response.headers.map)),
     );
 
-    final dateStr = response.headers[_dateHeader]?.first;
+    final dateStr = response.headers[dateHeader]?.first;
     final date =
         (dateStr != null) ? HttpDate.parse(dateStr) : DateTime.now().toUtc();
 
-    final expiresDateStr = response.headers[_expiresHeader]?.first;
+    final expiresDateStr = response.headers[expiresHeader]?.first;
     DateTime? httpExpiresDate;
     if (expiresDateStr != null) {
       try {
@@ -232,15 +225,15 @@ class DioCacheInterceptor extends Interceptor {
 
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(
-        response.headers[_cacheControlHeader],
+        response.headers[cacheControlHeader],
       ),
       content: content,
       date: date,
-      eTag: response.headers[_etagHeader]?.first,
+      eTag: response.headers[etagHeader]?.first,
       expires: httpExpiresDate,
       headers: headers,
       key: key,
-      lastModified: response.headers[_lastModifiedHeader]?.first,
+      lastModified: response.headers[lastModifiedHeader]?.first,
       maxStale: checkedMaxStale != null
           ? DateTime.now().toUtc().add(checkedMaxStale)
           : null,
@@ -263,13 +256,28 @@ class DioCacheInterceptor extends Interceptor {
     return result;
   }
 
-  Future<Response?> _getResponse(
-    RequestOptions? request, {
-    required bool fromNetwork,
+  Future<Response> _getResponse(
+    RequestOptions request, {
+    Response? response,
   }) async {
-    if (request == null) return null;
     final existing = await _getCacheResponse(request);
-    return existing?.toResponse(request, fromNetwork: fromNetwork);
+    final cacheResponse = existing!.toResponse(
+      request,
+      fromNetwork: response != null,
+    );
+
+    if (response != null) {
+      // Update cache header values & update store
+      cacheResponse.updateCacheHeaders(response);
+      final cacheOpts = _getCacheOptions(request);
+      await _buildCacheResponse(
+        cacheOpts.keyBuilder(request),
+        cacheOpts,
+        cacheResponse,
+      );
+    }
+
+    return cacheResponse;
   }
 
   Future<List<int>?> _decryptContent(CacheOptions options, List<int>? bytes) {

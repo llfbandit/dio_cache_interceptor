@@ -1,5 +1,6 @@
 ## 2.0.0-beta.8
 - core: Update dio to 4.0.0-prev1.
+- fix: update cache header values on 304 (keeping in sync freshness of our cache content).
 
 ## 2.0.0-beta.7
 - core: Update dio to 4.0.0-beta7.
