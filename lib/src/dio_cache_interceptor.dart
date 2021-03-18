@@ -104,36 +104,36 @@ class DioCacheInterceptor extends Interceptor {
 
     var returnResponse = false;
 
-    // Retrieve response from cache
     final errResponse = err.response;
-    if (errResponse != null) {
-      if (errResponse.statusCode == 304) {
-        returnResponse = true;
-      } else {
-        final cacheOpts = _getCacheOptions(err.requestOptions);
+    if (errResponse?.statusCode == 304) {
+      returnResponse = true;
+    } else {
+      final cacheOpts = _getCacheOptions(err.requestOptions);
 
-        // Check if we can return cache on error
-        final hcoeExcept = cacheOpts.hitCacheOnErrorExcept;
-        if (hcoeExcept == null) {
-          returnResponse = false;
-        } else if (err.type == DioErrorType.response &&
-            hcoeExcept.contains(errResponse.statusCode)) {
-          returnResponse = false;
-        } else {
+      // Check if we can return cache on error
+      final hcoeExcept = cacheOpts.hitCacheOnErrorExcept;
+      if (hcoeExcept != null) {
+        if (errResponse == null) {
+          returnResponse = true;
+        } else if (!hcoeExcept.contains(errResponse.statusCode)) {
           returnResponse = true;
         }
       }
     }
 
     if (returnResponse) {
+      // Retrieve response from cache
       final response = await _getResponse(
         err.requestOptions,
         response: errResponse,
       );
-      handler.resolve(response);
-    } else {
-      handler.next(err);
+      if (response != null) {
+        handler.resolve(response);
+        return;
+      }
     }
+
+    handler.next(err);
   }
 
   void _addCacheDirectives(RequestOptions request, CacheResponse response) {
@@ -256,17 +256,17 @@ class DioCacheInterceptor extends Interceptor {
     return result;
   }
 
-  Future<Response> _getResponse(
+  Future<Response?> _getResponse(
     RequestOptions request, {
     Response? response,
   }) async {
     final existing = await _getCacheResponse(request);
-    final cacheResponse = existing!.toResponse(
+    final cacheResponse = existing?.toResponse(
       request,
       fromNetwork: response != null,
     );
 
-    if (response != null) {
+    if (response != null && cacheResponse != null) {
       // Update cache header values & update store
       cacheResponse.updateCacheHeaders(response);
       final cacheOpts = _getCacheOptions(request);
