@@ -9,6 +9,7 @@ extension ResponseExtension on Response {
     _updateNonNullHeader(cacheControlHeader, response);
     _updateNonNullHeader(dateHeader, response);
     _updateNonNullHeader(etagHeader, response);
+    _updateNonNullHeader(lastModifiedHeader, response);
     _updateNonNullHeader(expiresHeader, response);
     _updateNonNullHeader(contentLocationHeader, response);
     _updateNonNullHeader(varyHeader, response);
