@@ -1,3 +1,9 @@
+## 2.0.0-rc.2
+- core: Update dio to 4.0.0-prev2.
+- Renamed `cacheStoreForce` to `forceCache`.
+- Renamed `cacheStoreNo` to `noCache`.
+- Make `CacheOptions.store` required but still with optional value.
+
 ## 2.0.0-rc.1
 - core: Update dio to 4.0.0-prev1.
 - fix: update cache header values on 304 (keeping in sync freshness of our cache content).
