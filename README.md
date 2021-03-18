@@ -73,14 +73,11 @@ enum CachePolicy {
   /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
-  /// This should not be combined with maxStale.
-  cacheStoreForce,
+  forceCache,
 
   /// Requests and skips cache save even if
   /// response has cache directives.
-  ///
-  /// Note: previously stored response stays untouched.
-  cacheStoreNo,
+  noCache,
 
   /// Forces to request, even if a valid
   /// cache is available and caches if
@@ -88,6 +85,10 @@ enum CachePolicy {
   refresh,
 
   /// Returns the cached value if available (and un-expired).
+  ///
+  /// Checks against origin server otherwise and updates cache freshness
+  /// with returned headers.
+  ///
   /// Requests otherwise and caches if response has directives.
   request,
 }

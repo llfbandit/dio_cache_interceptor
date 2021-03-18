@@ -15,21 +15,21 @@ enum CachePolicy {
   /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
-  /// This should not be combined with maxStale.
-  cacheStoreForce,
+  forceCache,
 
   /// Requests and skips cache save even if
   /// response has cache directives.
-  ///
-  /// Note: previously stored response stays untouched.
-  cacheStoreNo,
+  noCache,
 
-  /// Forces to request, even if a valid
-  /// cache is available and caches if
-  /// response has cache directives.
+  /// Requests regardless cache availability.
+  /// Caches if response has cache directives.
   refresh,
 
   /// Returns the cached value if available (and un-expired).
+  ///
+  /// Checks against origin server otherwise and updates cache freshness
+  /// with returned headers.
+  ///
   /// Requests otherwise and caches if response has directives.
   request,
 }
@@ -58,7 +58,10 @@ class CacheOptions {
   /// Ease the clean up if needed.
   final CachePriority priority;
 
-  /// Optional store used for caching data.
+  /// Store used for caching data.
+  ///
+  /// Required when setting interceptor.
+  /// Optional when setting new options on dedicated requests.
   final CacheStore? store;
 
   /// Optional method to decrypt/encrypt cache content
@@ -77,7 +80,7 @@ class CacheOptions {
     this.maxStale,
     this.priority = CachePriority.normal,
     this.cipher,
-    this.store,
+    required this.store,
   });
 
   static CacheOptions? fromExtra(RequestOptions request) {

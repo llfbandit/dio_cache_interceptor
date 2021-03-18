@@ -72,9 +72,8 @@ void main() {
 
     resp = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options: cipherOptions
-          .copyWith(policy: CachePolicy.cacheStoreForce)
-          .toOptions(),
+      options:
+          cipherOptions.copyWith(policy: CachePolicy.forceCache).toOptions(),
     );
     expect(resp.data['path'], equals('/ok'));
   });
@@ -109,7 +108,7 @@ void main() {
   test('Fetch cacheStoreNo policy', () async {
     final resp = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options: options.copyWith(policy: CachePolicy.cacheStoreNo).toOptions(),
+      options: options.copyWith(policy: CachePolicy.noCache).toOptions(),
     );
     expect(resp.statusCode, equals(200));
     expect(resp.extra[CacheResponse.cacheKey], isNull);

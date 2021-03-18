@@ -56,13 +56,8 @@ class DioCacheInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    if (_shouldSkipRequest(response.requestOptions)) {
-      handler.next(response);
-      return;
-    }
-
-    // Don't cache response
-    if (response.statusCode != 200) {
+    if (_shouldSkipRequest(response.requestOptions) ||
+        response.statusCode != 200) {
       handler.next(response);
       return;
     }
@@ -70,13 +65,13 @@ class DioCacheInterceptor extends Interceptor {
     final options = _getCacheOptions(response.requestOptions);
     final policy = options.policy;
 
-    if (policy == CachePolicy.cacheStoreNo) {
-      handler.next(response);
-      return;
-    }
-
-    // Cache response into store
-    if (_hasCacheDirectives(response, policy: policy)) {
+    if (policy == CachePolicy.noCache) {
+      // Delete previous potential cached response
+      await _getCacheStore(options).delete(
+        options.keyBuilder(response.requestOptions),
+      );
+    } else if (_hasCacheDirectives(response, policy: policy)) {
+      // Cache response into store
       final cacheResp = await _buildCacheResponse(
         options.keyBuilder(response.requestOptions),
         options,
@@ -147,7 +142,7 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   bool _hasCacheDirectives(Response response, {CachePolicy? policy}) {
-    if (policy == CachePolicy.cacheStoreForce) {
+    if (policy == CachePolicy.forceCache) {
       return true;
     }
 
@@ -167,7 +162,7 @@ class DioCacheInterceptor extends Interceptor {
 
   bool _shouldReturnCache(CacheOptions options, CacheResponse cacheResp) {
     // Forced cache response
-    if (options.policy == CachePolicy.cacheStoreForce) {
+    if (options.policy == CachePolicy.forceCache) {
       return true;
     }
 
