@@ -267,14 +267,17 @@ class DioCacheInterceptor extends Interceptor {
     );
 
     if (response != null && cacheResponse != null) {
-      // Update cache header values & update store
+      // Update cache header values
       cacheResponse.updateCacheHeaders(response);
       final cacheOpts = _getCacheOptions(request);
-      await _buildCacheResponse(
+
+      // Update store
+      final updatedCache = await _buildCacheResponse(
         cacheOpts.keyBuilder(request),
         cacheOpts,
         cacheResponse,
       );
+      await _getCacheStore(cacheOpts).set(updatedCache);
     }
 
     return cacheResponse;
