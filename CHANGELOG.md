@@ -1,7 +1,8 @@
-## 2.0.0-beta.8
+## 2.0.0-rc.1
 - core: Update dio to 4.0.0-prev1.
 - fix: update cache header values on 304 (keeping in sync freshness of our cache content).
 - fix: return cache on socket exception with hitCacheOnErrorExcept.
+- fix: date header parsing exception not catched.
 
 ## 2.0.0-beta.7
 - core: Update dio to 4.0.0-beta7.
