@@ -34,16 +34,9 @@ void main() {
 
   test('Fetch canceled', () async {
     try {
-      final ct = CancelToken();
-      // ignore: unawaited_futures
-      Future.delayed(const Duration(milliseconds: 200)).then(
-        (value) => ct.cancel(),
-      );
-
-      // cancel waits for 400 milli seconds
       await _dio.get(
-        '${MockHttpClientAdapter.mockBase}/cancel',
-        cancelToken: ct,
+        '${MockHttpClientAdapter.mockBase}/ok',
+        cancelToken: CancelToken()..cancel(),
       );
     } catch (err) {
       expect(err is DioError, isTrue);

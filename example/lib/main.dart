@@ -78,7 +78,7 @@ class _MyAppState extends State<MyApp> {
                   child: Text('Call (Refresh policy)'),
                 ),
                 RaisedButton(
-                  onPressed: () async => await _cacheStoreNoCall(),
+                  onPressed: () async => await _noCacheCall(),
                   child: Text('Call (Cache no store policy)'),
                 ),
                 Text(text),
@@ -90,8 +90,8 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future _cacheStoreNoCall() async {
-    final resp = await _call(policy: CachePolicy.cacheStoreNo);
+  Future _noCacheCall() async {
+    final resp = await _call(policy: CachePolicy.noCache);
     if (resp == null) return;
     setState(() => text = _getResponseContent(resp));
   }
@@ -152,7 +152,7 @@ class _MyAppState extends State<MyApp> {
     buffer.writeln('Call returned ${response.statusCode}\n');
 
     buffer.writeln('Request headers:');
-    buffer.writeln('${response.request.headers.toString()}\n');
+    buffer.writeln('${response.requestOptions.headers.toString()}\n');
 
     buffer.writeln('Response headers (cache related):');
     if (date != null) {
