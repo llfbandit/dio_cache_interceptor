@@ -17,7 +17,7 @@ dependencies:
     path: ../
 
   path_provider: ^2.0.0
-  sqlite3_flutter_libs: ^0.4.0+1
+  sqlite3_flutter_libs: ^0.4.1
 
 # The following section is specific to Flutter.
 flutter:
