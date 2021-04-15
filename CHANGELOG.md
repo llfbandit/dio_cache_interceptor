@@ -1,3 +1,6 @@
+## 2.1.0
+feat: Add Hive as cache store.
+
 ## 2.0.0
 - core: Update dio to 4.0.0.
 - Renamed `cacheStoreForce` to `forceCache`.

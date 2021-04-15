@@ -13,6 +13,7 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 - BackupCacheStore: Combined store with primary and secondary.
 - DbCacheStore: Cache with database (Moor).
 - FileCacheStore: Cache with file system (no web support obviously).
+- HiveCacheStore: Cache using Hive package (available on all platforms).
 - MemCacheStore: Volatile cache with LRU strategy.
 
 ### DbCacheStore:

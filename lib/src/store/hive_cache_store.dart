@@ -1,0 +1,275 @@
+import 'package:hive/hive.dart';
+
+import '../../dio_cache_interceptor.dart';
+
+/// A store saving responses using hive.
+///
+class HiveCacheStore implements CacheStore {
+  static const _hiveBoxName = 'dio_cache';
+
+  Box<CacheResponse>? _box;
+
+  /// Initialize cache store by giving Hive a home directory.
+  /// [directory] can be null only on web platform or if you already use Hive
+  /// in your app.
+  HiveCacheStore(String? directory) {
+    if (directory != null) {
+      Hive.init(directory);
+    }
+
+    if (!Hive.isAdapterRegistered(_CacheResponseAdapter._typeId)) {
+      Hive.registerAdapter(_CacheResponseAdapter());
+    }
+    if (!Hive.isAdapterRegistered(_CacheControlAdapter._typeId)) {
+      Hive.registerAdapter(_CacheControlAdapter());
+    }
+    if (!Hive.isAdapterRegistered(_CachePriorityAdapter._typeId)) {
+      Hive.registerAdapter(_CachePriorityAdapter());
+    }
+
+    clean(staleOnly: true);
+  }
+
+  @override
+  Future<void> clean({
+    CachePriority priorityOrBelow = CachePriority.high,
+    bool staleOnly = false,
+  }) async {
+    final box = await _openBox();
+
+    final keys = <String>[];
+
+    for (var i = 0; i < box.values.length; i++) {
+      final resp = box.getAt(i);
+
+      if (resp != null) {
+        var shouldRemove = resp.priority.index <= priorityOrBelow.index;
+        shouldRemove &= (staleOnly && resp.isStaled()) || !staleOnly;
+
+        if (shouldRemove) {
+          keys.add(resp.key);
+        }
+      }
+    }
+
+    return box.deleteAll(keys);
+  }
+
+  @override
+  Future<void> close() {
+    final checkedBox = _box;
+    if (checkedBox != null && checkedBox.isOpen) {
+      _box = null;
+      return checkedBox.close();
+    }
+
+    return Future.value();
+  }
+
+  @override
+  Future<void> delete(String key, {bool staleOnly = false}) async {
+    final box = await _openBox();
+    final resp = box.get(key);
+    if (resp == null) return Future.value();
+
+    if (staleOnly && !resp.isStaled()) {
+      return Future.value();
+    }
+
+    await box.delete(key);
+  }
+
+  @override
+  Future<bool> exists(String key) async {
+    final box = await _openBox();
+    return box.containsKey(key);
+  }
+
+  @override
+  Future<CacheResponse?> get(String key) async {
+    final box = await _openBox();
+    final resp = box.get(key);
+
+    // Purge entry if staled
+    if (resp?.isStaled() ?? false) {
+      await delete(key);
+      return null;
+    }
+
+    return resp;
+  }
+
+  @override
+  Future<void> set(CacheResponse response) async {
+    final box = await _openBox();
+    return box.put(response.key, response);
+  }
+
+  Future<Box<CacheResponse>> _openBox() async {
+    _box ??= await Hive.openBox<CacheResponse>(_hiveBoxName);
+    return Future.value(_box);
+  }
+}
+
+class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
+  static const int _typeId = 93;
+
+  @override
+  final int typeId = _typeId;
+
+  @override
+  CacheResponse read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return CacheResponse(
+      cacheControl: fields[0] as CacheControl?,
+      content: (fields[1] as List?)?.cast<int>(),
+      date: fields[2] as DateTime?,
+      eTag: fields[3] as String?,
+      expires: fields[4] as DateTime?,
+      headers: (fields[5] as List?)?.cast<int>(),
+      key: fields[6] as String,
+      lastModified: fields[7] as String?,
+      maxStale: fields[8] as DateTime?,
+      priority: fields[9] as CachePriority,
+      responseDate: fields[10] as DateTime,
+      url: fields[11] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, CacheResponse obj) {
+    writer
+      ..writeByte(12)
+      ..writeByte(0)
+      ..write(obj.cacheControl)
+      ..writeByte(1)
+      ..write(obj.content)
+      ..writeByte(2)
+      ..write(obj.date)
+      ..writeByte(3)
+      ..write(obj.eTag)
+      ..writeByte(4)
+      ..write(obj.expires)
+      ..writeByte(5)
+      ..write(obj.headers)
+      ..writeByte(6)
+      ..write(obj.key)
+      ..writeByte(7)
+      ..write(obj.lastModified)
+      ..writeByte(8)
+      ..write(obj.maxStale)
+      ..writeByte(9)
+      ..write(obj.priority)
+      ..writeByte(10)
+      ..write(obj.responseDate)
+      ..writeByte(11)
+      ..write(obj.url);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _CacheResponseAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class _CacheControlAdapter extends TypeAdapter<CacheControl> {
+  static const int _typeId = 94;
+
+  @override
+  final int typeId = _typeId;
+
+  @override
+  CacheControl read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return CacheControl(
+      maxAge: fields[0] as int?,
+      privacy: fields[1] as String?,
+      noCache: fields[2] as bool?,
+      noStore: fields[3] as bool?,
+      other: (fields[4] as List).cast<String>(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, CacheControl obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.maxAge)
+      ..writeByte(1)
+      ..write(obj.privacy)
+      ..writeByte(2)
+      ..write(obj.noCache)
+      ..writeByte(3)
+      ..write(obj.noStore)
+      ..writeByte(4)
+      ..write(obj.other);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _CacheControlAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class _CachePriorityAdapter extends TypeAdapter<CachePriority> {
+  static const int _typeId = 95;
+
+  @override
+  final int typeId = _typeId;
+
+  @override
+  CachePriority read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return CachePriority.low;
+      case 1:
+        return CachePriority.normal;
+      case 2:
+        return CachePriority.high;
+      default:
+        return CachePriority.low;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, CachePriority obj) {
+    switch (obj) {
+      case CachePriority.low:
+        writer.writeByte(0);
+        break;
+      case CachePriority.normal:
+        writer.writeByte(1);
+        break;
+      case CachePriority.high:
+        writer.writeByte(2);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _CachePriorityAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
