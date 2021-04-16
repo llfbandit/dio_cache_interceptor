@@ -107,6 +107,31 @@ void main() {
     expect(resp.extra[CacheResponse.cacheKey], isNull);
   });
 
+  test('Fetch force policy', () async {
+    // 1st time fetch
+    var resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
+    );
+    expect(resp.statusCode, equals(200));
+    expect(resp.extra[CacheResponse.fromNetwork], isTrue);
+    // 2nd time cache
+    resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
+    );
+    expect(resp.statusCode, equals(304));
+    expect(resp.extra[CacheResponse.fromNetwork], isFalse);
+    // 3rd time fetch
+    resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options:
+          options.copyWith(policy: CachePolicy.refreshForceCache).toOptions(),
+    );
+    expect(resp.statusCode, equals(200));
+    expect(resp.extra[CacheResponse.fromNetwork], isTrue);
+  });
+
   test('Fetch refresh policy', () async {
     final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];

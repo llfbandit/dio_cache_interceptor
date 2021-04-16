@@ -35,7 +35,8 @@ class DioCacheInterceptor extends Interceptor {
 
     final options = _getCacheOptions(request);
 
-    if (options.policy != CachePolicy.refresh) {
+    if (options.policy != CachePolicy.refresh &&
+        options.policy != CachePolicy.refreshForceCache) {
       final cacheResp = await _getCacheResponse(request);
       if (cacheResp != null) {
         if (_shouldReturnCache(options, cacheResp)) {
@@ -142,7 +143,8 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   bool _hasCacheDirectives(Response response, {CachePolicy? policy}) {
-    if (policy == CachePolicy.forceCache) {
+    if (policy == CachePolicy.forceCache ||
+        policy == CachePolicy.refreshForceCache) {
       return true;
     }
 

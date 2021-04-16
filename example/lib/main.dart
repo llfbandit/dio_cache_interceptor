@@ -79,7 +79,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 RaisedButton(
                   onPressed: () async => await _noCacheCall(),
-                  child: Text('Call (Cache no store policy)'),
+                  child: Text('Call (No cache policy)'),
                 ),
                 Text(text),
               ],

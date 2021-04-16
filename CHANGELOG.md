@@ -1,5 +1,9 @@
+## 2.1.1
+- fix: refreshForceCache policy added.
+Get parity with refresh/request and refreshForceCache/forceCache.
+
 ## 2.1.0
-feat: Add Hive as cache store.
+- feat: Add Hive as cache store.
 
 ## 2.0.0
 - core: Update dio to 4.0.0.

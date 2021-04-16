@@ -13,9 +13,13 @@ enum CachePolicy {
   /// Forces to return the cached value if available.
   /// Requests otherwise.
   /// Caches response regardless directives.
+  forceCache,
+
+  /// Requests regardless cache availability.
+  /// Caches response regardless directives.
   ///
   /// In short, you'll save every successful GET requests.
-  forceCache,
+  refreshForceCache,
 
   /// Requests and skips cache save even if
   /// response has cache directives.

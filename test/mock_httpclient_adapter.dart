@@ -49,6 +49,14 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             'last-modified': ['Wed, 21 Oct 2045 07:28:00 GMT'],
           },
         );
+      case '/ok-nodirective':
+        return ResponseBody.fromString(
+          jsonEncode({'path': uri.path}),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
       case '/post':
         return ResponseBody.fromString(
           jsonEncode({'path': uri.path}),
