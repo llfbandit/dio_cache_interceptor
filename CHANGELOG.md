@@ -1,3 +1,7 @@
+## 2.2.0
+- feat: Cache-Control: max-age as cache trigger added.
+- core: update README.md.
+
 ## 2.1.1
 - fix: refreshForceCache policy added.
 Get parity with refresh/request and refreshForceCache/forceCache.

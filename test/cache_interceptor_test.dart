@@ -275,4 +275,17 @@ void main() {
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(cacheKey, isNull);
   });
+
+  test('Fetch max-age', () async {
+    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/max-age');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    final cacheResp = await store.get(cacheKey);
+    expect(cacheResp, isNotNull);
+
+    // We're before max-age: 1
+    expect(cacheResp!.isExpired(), isFalse);
+    // We're after max-age: 1
+    await Future.delayed(const Duration(seconds: 1));
+    expect(cacheResp.isExpired(), isTrue);
+  });
 }

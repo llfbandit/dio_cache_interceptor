@@ -39,13 +39,13 @@ class DioCacheInterceptor extends Interceptor {
         options.policy != CachePolicy.refreshForceCache) {
       final cacheResp = await _getCacheResponse(request);
       if (cacheResp != null) {
-        if (_shouldReturnCache(options, cacheResp)) {
+        if (_isCacheValid(options, cacheResp)) {
           handler.resolve(cacheResp.toResponse(request, fromNetwork: false));
           return;
         }
 
         // Update request with cache directives
-        _addCacheDirectives(request, cacheResp);
+        _addCacheValidationHeaders(request, cacheResp);
       }
     }
 
@@ -71,7 +71,7 @@ class DioCacheInterceptor extends Interceptor {
       await _getCacheStore(options).delete(
         options.keyBuilder(response.requestOptions),
       );
-    } else if (_hasCacheDirectives(response, policy: policy)) {
+    } else if (_shouldStoreResponse(response, policy: policy)) {
       // Cache response into store
       final cacheResp = await _buildCacheResponse(
         options.keyBuilder(response.requestOptions),
@@ -132,7 +132,10 @@ class DioCacheInterceptor extends Interceptor {
     handler.next(err);
   }
 
-  void _addCacheDirectives(RequestOptions request, CacheResponse response) {
+  void _addCacheValidationHeaders(
+    RequestOptions request,
+    CacheResponse response,
+  ) {
     if (response.eTag != null) {
       request.headers[ifNoneMatchHeader] = response.eTag;
     }
@@ -142,7 +145,7 @@ class DioCacheInterceptor extends Interceptor {
     }
   }
 
-  bool _hasCacheDirectives(Response response, {CachePolicy? policy}) {
+  bool _shouldStoreResponse(Response response, {CachePolicy? policy}) {
     if (policy == CachePolicy.forceCache ||
         policy == CachePolicy.refreshForceCache) {
       return true;
@@ -156,13 +159,15 @@ class DioCacheInterceptor extends Interceptor {
     );
 
     if (cacheControl != null) {
+      final checkedMaxAge = cacheControl.maxAge;
+      result |= checkedMaxAge != null && checkedMaxAge > 0;
       result &= !(cacheControl.noStore ?? false);
     }
 
     return result;
   }
 
-  bool _shouldReturnCache(CacheOptions options, CacheResponse cacheResp) {
+  bool _isCacheValid(CacheOptions options, CacheResponse cacheResp) {
     // Forced cache response
     if (options.policy == CachePolicy.forceCache) {
       return true;

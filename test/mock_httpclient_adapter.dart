@@ -145,6 +145,17 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             },
           );
         }
+      case '/max-age':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+              'cache-control': ['public', 'max-age=1'],
+            },
+          );
+        }
       default:
         return ResponseBody.fromString('', 404);
     }

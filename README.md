@@ -3,11 +3,17 @@
 Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
 
 ## HTTP directives:
-- ETag
-- Last-Modified
-- Cache-Control
-- Date
-- Expires
+|                   |                                |
+|-------------------|--------------------------------|
+| Cache triggers    | ETag                           |
+|                   | Last-Modified                  |
+|                   | max-age (Cache-Control)        |
+| Cache freshness   | Date (request date otherwise)  |
+|                   | Expires                        |
+|                   | max-age (Cache-Control)        |
+| Cache commutators | no-cache (Cache-Control)       |
+|                   | no-store (Cache-Control)       |
+|                   |                                |
 
 ## Stores
 - BackupCacheStore: Combined store with primary and secondary.
