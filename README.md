@@ -13,14 +13,13 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 |                   | max-age (Cache-Control)        |
 | Cache commutators | no-cache (Cache-Control)       |
 |                   | no-store (Cache-Control)       |
-|                   |                                |
 
 ## Stores
-- BackupCacheStore: Combined store with primary and secondary.
-- DbCacheStore: Cache with database (Moor).
-- FileCacheStore: Cache with file system (no web support obviously).
-- HiveCacheStore: Cache using Hive package (available on all platforms).
-- MemCacheStore: Volatile cache with LRU strategy.
+- __BackupCacheStore__: Combined store with primary and secondary.
+- __DbCacheStore__: Cache with database (Moor).
+- __FileCacheStore__: Cache with file system (no web support obviously).
+- __HiveCacheStore__: Cache using Hive package (available on all platforms).
+- __MemCacheStore__: Volatile cache with LRU strategy.
 
 ### DbCacheStore:
 - __Android - iOS support__: Add sqlite3_flutter_libs as dependency in your app (version 0.4.0+1 or later).
