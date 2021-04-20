@@ -8,7 +8,7 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 | Cache triggers    | ETag                           |
 |                   | Last-Modified                  |
 |                   | max-age (Cache-Control)        |
-| Cache freshness   | Date (request date otherwise)  |
+| Cache freshness   | Date (response date otherwise) |
 |                   | Expires                        |
 |                   | max-age (Cache-Control)        |
 | Cache commutators | no-cache (Cache-Control)       |
@@ -23,14 +23,9 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 - MemCacheStore: Volatile cache with LRU strategy.
 
 ### DbCacheStore:
-#### Android - iOS support:
-- Add sqlite3_flutter_libs as dependency in your app (version 0.4.0+1 or later).
-
-#### Desktop support:
-- Follow Moor install [documentation](https://moor.simonbinder.eu/docs/platforms/).
-
-#### Web support:
-- You must include 'sql.js' library. Follow Moor install [documentation](https://moor.simonbinder.eu/web/) for further info.
+- Android - iOS support: Add sqlite3_flutter_libs as dependency in your app (version 0.4.0+1 or later).
+- Desktop support: Follow Moor install [documentation](https://moor.simonbinder.eu/docs/platforms/).
+- Web support: You must include 'sql.js' library. Follow Moor install [documentation](https://moor.simonbinder.eu/web/) for further info.
 
 ## Usage
 
@@ -39,26 +34,30 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 // Global options
 final options = const CacheOptions(
-  store: DbCacheStore(databasePath: 'a_path'), // Required.
-  policy: CachePolicy.request, // Default. Checks cache freshness, requests otherwise and caches response.
-  hitCacheOnErrorExcept: [401, 403], // Optional. Returns a cached response on error if available but for statuses 401 & 403.
-  priority: CachePriority.normal, // Optional. Default. Allows 3 cache sets and ease cleanup.
-  maxStale: const Duration(days: 7), // Very optional. Overrides any HTTP directive to delete entry past this duration.
+  // A default store is required for interceptor.
+  store: DbCacheStore(databasePath: 'a_path'),
+  // Default.
+  policy: CachePolicy.request,
+  // Optional. Returns a cached response on error but for statuses 401 & 403.
+  hitCacheOnErrorExcept: [401, 403],
+  // Optional. Overrides any HTTP directive to delete entry past this duration.
+  maxStale: const Duration(days: 7),
+  // Default. Allows 3 cache sets and ease cleanup.
+  priority: CachePriority.normal,
 );
 
 // Add cache interceptor with global/default options
-final dio = Dio()
-  ..interceptors.add(DioCacheInterceptor(options: options),
-);
+final dio = Dio()..interceptors.add(DioCacheInterceptor(options: options));
 
 // ...
 
-// Requesting with global options => status code(200)
+// Requesting with global options => status(200)
 var response = await dio.get('http://www.foo.com');
-// Requesting with global options => status code(304)
+// Requesting with global options => status(304)
 response = await dio.get('http://www.foo.com');
 
-// Requesting with dedicated options => status code(200)
+// Requesting by modifying policy with refresh option
+// for this single request => status(200)
 response = await dio.get('http://www.foo.com',
   options: options.copyWith(policy: CachePolicy.refresh).toOptions(),
 );
