@@ -1,3 +1,6 @@
+## 2.3.0
+- feat: `allowPostMethod` added to `CacheOptions`.
+
 ## 2.2.0
 - feat: Cache-Control: max-age as cache trigger added.
 - core: update README.md.

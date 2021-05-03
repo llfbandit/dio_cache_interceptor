@@ -157,6 +157,19 @@ void main() {
     expect(resp.extra[CacheResponse.cacheKey], isNull);
   });
 
+  test('Fetch post doesn\'t skip request', () async {
+    final resp = await _dio.post(
+      '${MockHttpClientAdapter.mockBase}/post',
+      options: Options(
+        extra: options.copyWith(allowPostMethod: true).toExtra(),
+      ),
+    );
+
+    expect(resp.statusCode, equals(200));
+    expect(resp.data['path'], equals('/post'));
+    expect(resp.extra[CacheResponse.cacheKey], isNotNull);
+  });
+
   test('Fetch hitCacheOnErrorExcept 500', () async {
     final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];

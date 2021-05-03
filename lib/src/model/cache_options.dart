@@ -71,6 +71,9 @@ class CacheOptions {
   /// Optional method to decrypt/encrypt cache content
   final CacheCipher? cipher;
 
+  /// allow POST method request to be cached.
+  final bool allowPostMethod;
+
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
 
@@ -84,6 +87,7 @@ class CacheOptions {
     this.maxStale,
     this.priority = CachePriority.normal,
     this.cipher,
+    this.allowPostMethod = false,
     required this.store,
   });
 
@@ -111,6 +115,7 @@ class CacheOptions {
     CachePriority? priority,
     CacheStore? store,
     CacheCipher? cipher,
+    bool? allowPostMethod,
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
@@ -121,6 +126,7 @@ class CacheOptions {
       priority: priority ?? this.priority,
       store: store ?? this.store,
       cipher: cipher ?? this.cipher,
+      allowPostMethod: allowPostMethod ?? this.allowPostMethod,
     );
   }
 }

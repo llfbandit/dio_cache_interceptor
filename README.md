@@ -34,7 +34,7 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 // Global options
 final options = const CacheOptions(
   // A default store is required for interceptor.
-  store: DbCacheStore(databasePath: 'a_path'),
+  store: MemCacheStore(),
   // Default.
   policy: CachePolicy.request,
   // Optional. Returns a cached response on error but for statuses 401 & 403.
@@ -43,6 +43,13 @@ final options = const CacheOptions(
   maxStale: const Duration(days: 7),
   // Default. Allows 3 cache sets and ease cleanup.
   priority: CachePriority.normal,
+  // Default. Body and headers encryption with your own algorithm.
+  cipher: null,
+  // Default. Key builder to retrieve requests.
+  keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+  // Default. Allows to cache POST requests.
+  // Overriding [keyBuilder] is strongly recommended.
+  allowPostMethod: false,
 );
 
 // Add cache interceptor with global/default options

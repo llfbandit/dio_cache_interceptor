@@ -62,7 +62,8 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           jsonEncode({'path': uri.path}),
           200,
           headers: {
-            Headers.contentTypeHeader: [Headers.jsonContentType]
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+            'etag': ['1234'],
           },
         );
       case '/exception':

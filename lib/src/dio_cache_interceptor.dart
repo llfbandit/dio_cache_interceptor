@@ -14,6 +14,7 @@ import 'util/response_extension.dart';
 /// Cache interceptor
 class DioCacheInterceptor extends Interceptor {
   static const String _getMethodName = 'GET';
+  static const String _postMethodName = 'POST';
 
   final CacheOptions _options;
   final CacheStore _store;
@@ -28,12 +29,12 @@ class DioCacheInterceptor extends Interceptor {
     RequestOptions request,
     RequestInterceptorHandler handler,
   ) async {
-    if (_shouldSkipRequest(request)) {
+    final options = _getCacheOptions(request);
+
+    if (_shouldSkipRequest(request, options: options)) {
       handler.next(request);
       return;
     }
-
-    final options = _getCacheOptions(request);
 
     if (options.policy != CachePolicy.refresh &&
         options.policy != CachePolicy.refreshForceCache) {
@@ -57,13 +58,14 @@ class DioCacheInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    if (_shouldSkipRequest(response.requestOptions) ||
+    final options = _getCacheOptions(response.requestOptions);
+
+    if (_shouldSkipRequest(response.requestOptions, options: options) ||
         response.statusCode != 200) {
       handler.next(response);
       return;
     }
 
-    final options = _getCacheOptions(response.requestOptions);
     final policy = options.policy;
 
     if (policy == CachePolicy.noCache) {
@@ -93,7 +95,9 @@ class DioCacheInterceptor extends Interceptor {
     DioError err,
     ErrorInterceptorHandler handler,
   ) async {
-    if (_shouldSkipRequest(err.requestOptions, error: err)) {
+    final options = _getCacheOptions(err.requestOptions);
+
+    if (_shouldSkipRequest(err.requestOptions, options: options, error: err)) {
       handler.next(err);
       return;
     }
@@ -105,7 +109,6 @@ class DioCacheInterceptor extends Interceptor {
       returnResponse = true;
     } else {
       // Check if we can return cache
-      final options = _getCacheOptions(err.requestOptions);
       final hcoeExcept = options.hitCacheOnErrorExcept;
 
       if (hcoeExcept != null) {
@@ -184,9 +187,19 @@ class DioCacheInterceptor extends Interceptor {
     return options.store ?? _store;
   }
 
-  bool _shouldSkipRequest(RequestOptions? request, {DioError? error}) {
-    var result = error?.type == DioErrorType.cancel;
-    result |= (request?.method.toUpperCase() != _getMethodName);
+  bool _shouldSkipRequest(
+    RequestOptions? request, {
+    required CacheOptions options,
+    DioError? error,
+  }) {
+    if (error?.type == DioErrorType.cancel) {
+      return true;
+    }
+
+    final rqMethod = request?.method.toUpperCase();
+    var result = (rqMethod != _getMethodName);
+    result &= (!options.allowPostMethod || rqMethod != _postMethodName);
+
     return result;
   }
 
