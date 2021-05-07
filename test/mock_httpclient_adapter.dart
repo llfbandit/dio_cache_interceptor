@@ -153,7 +153,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
-              'cache-control': ['public', 'max-age=1'],
+              'cache-control': ['public, max-age=1'],
             },
           );
         }

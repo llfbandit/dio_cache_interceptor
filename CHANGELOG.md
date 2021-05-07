@@ -1,3 +1,6 @@
+## 2.3.1
+- fix: Cache-Control parsing. Dio does not expand multi valued headers.
+
 ## 2.3.0
 - feat: `allowPostMethod` added to `CacheOptions`.
 

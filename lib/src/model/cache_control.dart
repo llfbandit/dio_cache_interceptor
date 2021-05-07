@@ -37,16 +37,22 @@ class CacheControl {
     final other = <String>[];
 
     for (var value in headerValues) {
-      if (value == 'no-cache') {
-        noCache = true;
-      } else if (value == 'no-store') {
-        noStore = true;
-      } else if (value == 'public' || value == 'private') {
-        privacy = value;
-      } else if (value.startsWith('max-age')) {
-        maxAge = int.tryParse(value.substring(value.indexOf('=') + 1));
-      } else {
-        other.add(value);
+      // Expand values since dio does not do it !
+      for (var expandedValue in value.split(',')) {
+        expandedValue = expandedValue.trim();
+        if (expandedValue == 'no-cache') {
+          noCache = true;
+        } else if (expandedValue == 'no-store') {
+          noStore = true;
+        } else if (expandedValue == 'public' || expandedValue == 'private') {
+          privacy = expandedValue;
+        } else if (expandedValue.startsWith('max-age')) {
+          maxAge = int.tryParse(
+            expandedValue.substring(expandedValue.indexOf('=') + 1),
+          );
+        } else {
+          other.add(expandedValue);
+        }
       }
     }
 
