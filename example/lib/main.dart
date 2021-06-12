@@ -19,6 +19,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String text = '';
   late CacheStore cacheStore;
+  late CacheOptions cacheOptions;
   late Dio dio;
 
   @override
@@ -27,9 +28,14 @@ class _MyAppState extends State<MyApp> {
       cacheStore = DbCacheStore(databasePath: dir.path, logStatements: true);
       // cacheStore = FileCacheStore(dir.path);
 
+      cacheOptions = CacheOptions(
+        store: cacheStore,
+        hitCacheOnErrorExcept: [], // for offline demonstration
+      );
+
       dio = Dio()
         ..interceptors.add(
-          DioCacheInterceptor(options: CacheOptions(store: cacheStore)),
+          DioCacheInterceptor(options: cacheOptions),
         );
     });
 
@@ -126,9 +132,7 @@ class _MyAppState extends State<MyApp> {
     CachePolicy? policy,
   }) async {
     Options? options;
-    if (policy != null) {
-      options = CacheOptions(store: cacheStore, policy: policy).toOptions();
-    }
+    options = cacheOptions.copyWith(policy: policy).toOptions();
 
     try {
       return await dio.get(url, options: options);
