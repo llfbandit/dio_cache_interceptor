@@ -1,0 +1,23 @@
+name: dio_cache_interceptor
+description: Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
+repository: https://github.com/llfbandit/dio_cache_interceptor
+issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
+
+version: 3.0.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  # https://pub.dev/packages/dio
+  dio: ^4.0.0
+  # https://pub.dev/packages/path
+  path: ^1.8.0
+  # https://pub.dev/packages/uuid
+  uuid: ^3.0.1
+
+dev_dependencies:
+  # https://pub.dev/packages/pedantic
+  pedantic: ^1.11.0
+  # https://pub.dev/packages/test
+  test: ^1.16.8

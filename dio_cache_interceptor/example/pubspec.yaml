@@ -1,0 +1,24 @@
+name: dio_cache_interceptor_example
+description: Demonstrates how to use dio cache interceptor lib.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  dio_cache_interceptor:
+    path: ../
+
+  path_provider: ^2.0.0
+  sqlite3_flutter_libs: ^0.5.0
+
+# The following section is specific to Flutter.
+flutter:
+  uses-material-design: true
