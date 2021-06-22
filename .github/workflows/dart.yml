@@ -15,6 +15,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: dio_cache_interceptor
+
     steps:
       - uses: actions/checkout@v2
 
@@ -34,7 +38,6 @@ jobs:
 
       - name: Install dependencies
         run: dart pub get
-        working-directory: dio_cache_interceptor
 
       # verify the use of 'dart format' on each commit.
       - name: Verify formatting
@@ -43,15 +46,12 @@ jobs:
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
         run: dart analyze
-        working-directory: dio_cache_interceptor
 
       - name: Run tests
         run: flutter test --coverage
-        working-directory: dio_cache_interceptor
         
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1.2.1
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
-        working-directory: dio_cache_interceptor
