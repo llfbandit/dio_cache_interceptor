@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:dio_cache_interceptor/src/store/hive_cache_store.dart';
+import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
 import 'package:test/test.dart';
 
 import '../../dio_cache_interceptor/test/common_store_testing.dart';

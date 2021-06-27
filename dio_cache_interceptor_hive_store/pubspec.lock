@@ -91,14 +91,7 @@ packages:
       name: dio_cache_interceptor
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.1"
-  ffi:
-    dependency: transitive
-    description:
-      name: ffi
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.2"
+    version: "3.0.0"
   file:
     dependency: transitive
     description:
@@ -183,13 +176,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  moor:
-    dependency: transitive
-    description:
-      name: moor
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.3.2"
   node_preamble:
     dependency: transitive
     description:
@@ -281,13 +267,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.1"
-  sqlite3:
-    dependency: transitive
-    description:
-      name: sqlite3
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.2"
   stack_trace:
     dependency: transitive
     description:

@@ -1,7 +1,7 @@
 import 'package:dio_cache_interceptor/src/model/cache_priority.dart';
 import 'package:dio_cache_interceptor/src/model/cache_response.dart';
 import 'package:dio_cache_interceptor/src/store/cache_store.dart';
-import 'package:dio_cache_interceptor/src/store/db_cache_store/database.dart';
+import 'package:dio_cache_interceptor_db_store/src/store/database.dart';
 
 /// A store saving responses in a dedicated database
 /// from an optional [directory].

@@ -2,7 +2,8 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor/src/store/db_cache_store/database.dart';
+import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
+import 'package:dio_cache_interceptor_db_store/src/store/database.dart';
 import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
