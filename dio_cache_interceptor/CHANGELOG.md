@@ -1,3 +1,6 @@
+## 3.0.1
+- fix: file_cache_store visibility.
+
 ## 3.0.0
 - core: Moved DB & Hive cache stores to their respective packages.
 - fix: import of file_cache_store.
