@@ -390,78 +390,50 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
   final GeneratedDatabase _db;
   final String? _alias;
   DioCache(this._db, [this._alias]);
-  late final GeneratedTextColumn cacheKey = _constructCacheKey();
-  GeneratedTextColumn _constructCacheKey() {
-    return GeneratedTextColumn('cacheKey', $tableName, false,
-        $customConstraints: 'NOT NULL PRIMARY KEY');
-  }
-
-  late final GeneratedDateTimeColumn date = _constructDate();
-  GeneratedDateTimeColumn _constructDate() {
-    return GeneratedDateTimeColumn('date', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedTextColumn cacheControl = _constructCacheControl();
-  GeneratedTextColumn _constructCacheControl() {
-    return GeneratedTextColumn('cacheControl', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedBlobColumn content = _constructContent();
-  GeneratedBlobColumn _constructContent() {
-    return GeneratedBlobColumn('content', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedTextColumn eTag = _constructETag();
-  GeneratedTextColumn _constructETag() {
-    return GeneratedTextColumn('eTag', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedDateTimeColumn expires = _constructExpires();
-  GeneratedDateTimeColumn _constructExpires() {
-    return GeneratedDateTimeColumn('expires', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedBlobColumn headers = _constructHeaders();
-  GeneratedBlobColumn _constructHeaders() {
-    return GeneratedBlobColumn('headers', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedTextColumn lastModified = _constructLastModified();
-  GeneratedTextColumn _constructLastModified() {
-    return GeneratedTextColumn('lastModified', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedDateTimeColumn maxStale = _constructMaxStale();
-  GeneratedDateTimeColumn _constructMaxStale() {
-    return GeneratedDateTimeColumn('maxStale', $tableName, true,
-        $customConstraints: '');
-  }
-
-  late final GeneratedIntColumn priority = _constructPriority();
-  GeneratedIntColumn _constructPriority() {
-    return GeneratedIntColumn('priority', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
-  late final GeneratedDateTimeColumn responseDate = _constructResponseDate();
-  GeneratedDateTimeColumn _constructResponseDate() {
-    return GeneratedDateTimeColumn('responseDate', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
-  late final GeneratedTextColumn url = _constructUrl();
-  GeneratedTextColumn _constructUrl() {
-    return GeneratedTextColumn('url', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> cacheKey = GeneratedColumn<String?>(
+      'cacheKey', aliasedName, false,
+      typeName: 'TEXT',
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL PRIMARY KEY');
+  late final GeneratedColumn<DateTime?> date = GeneratedColumn<DateTime?>(
+      'date', aliasedName, true,
+      typeName: 'INTEGER', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<String?> cacheControl = GeneratedColumn<String?>(
+      'cacheControl', aliasedName, true,
+      typeName: 'TEXT', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<Uint8List?> content = GeneratedColumn<Uint8List?>(
+      'content', aliasedName, true,
+      typeName: 'BLOB', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<String?> eTag = GeneratedColumn<String?>(
+      'eTag', aliasedName, true,
+      typeName: 'TEXT', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<DateTime?> expires = GeneratedColumn<DateTime?>(
+      'expires', aliasedName, true,
+      typeName: 'INTEGER', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<Uint8List?> headers = GeneratedColumn<Uint8List?>(
+      'headers', aliasedName, true,
+      typeName: 'BLOB', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<String?> lastModified = GeneratedColumn<String?>(
+      'lastModified', aliasedName, true,
+      typeName: 'TEXT', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<DateTime?> maxStale = GeneratedColumn<DateTime?>(
+      'maxStale', aliasedName, true,
+      typeName: 'INTEGER', requiredDuringInsert: false, $customConstraints: '');
+  late final GeneratedColumn<int?> priority = GeneratedColumn<int?>(
+      'priority', aliasedName, false,
+      typeName: 'INTEGER',
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<DateTime?> responseDate =
+      GeneratedColumn<DateTime?>('responseDate', aliasedName, false,
+          typeName: 'INTEGER',
+          requiredDuringInsert: true,
+          $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String?> url = GeneratedColumn<String?>(
+      'url', aliasedName, false,
+      typeName: 'TEXT',
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [
         cacheKey,
@@ -478,11 +450,9 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
         url
       ];
   @override
-  DioCache get asDslTable => this;
+  String get aliasedName => _alias ?? 'DioCache';
   @override
-  String get $tableName => _alias ?? 'DioCache';
-  @override
-  final String actualTableName = 'DioCache';
+  String get actualTableName => 'DioCache';
   @override
   Set<GeneratedColumn> get $primaryKey => {cacheKey};
   @override
