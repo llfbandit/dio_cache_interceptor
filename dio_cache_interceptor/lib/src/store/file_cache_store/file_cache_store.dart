@@ -1,2 +1,2 @@
-export 'file_cache_store_none.dart'
-    if (dart.library.io) 'file_cache_store_io.dart';
+export 'file_cache_store_io.dart'
+    if (dart.library.html) 'file_cache_store_none.dart';
