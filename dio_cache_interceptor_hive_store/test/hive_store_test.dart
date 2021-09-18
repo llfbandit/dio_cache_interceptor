@@ -9,7 +9,8 @@ void main() {
   late HiveCacheStore store;
 
   setUp(() async {
-    store = HiveCacheStore('${Directory.current.path}/test/data/file_store');
+    store = HiveCacheStore(
+        '${Directory.current.path}/test/data/file_store', 'dio_cache');
     await store.clean();
   });
 

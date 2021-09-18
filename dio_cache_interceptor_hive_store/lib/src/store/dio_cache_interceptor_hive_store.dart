@@ -4,14 +4,14 @@ import 'package:hive/hive.dart';
 /// A store saving responses using hive.
 ///
 class HiveCacheStore implements CacheStore {
-  static const _hiveBoxName = 'dio_cache';
+  final String hiveBoxName;
 
   Box<CacheResponse>? _box;
 
   /// Initialize cache store by giving Hive a home directory.
   /// [directory] can be null only on web platform or if you already use Hive
   /// in your app.
-  HiveCacheStore(String? directory) {
+  HiveCacheStore(String? directory, this.hiveBoxName) {
     if (directory != null) {
       Hive.init(directory);
     }
@@ -105,7 +105,7 @@ class HiveCacheStore implements CacheStore {
   }
 
   Future<Box<CacheResponse>> _openBox() async {
-    _box ??= await Hive.openBox<CacheResponse>(_hiveBoxName);
+    _box ??= await Hive.openBox<CacheResponse>(hiveBoxName);
     return Future.value(_box);
   }
 }
