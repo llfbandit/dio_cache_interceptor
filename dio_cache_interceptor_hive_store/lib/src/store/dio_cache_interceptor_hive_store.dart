@@ -11,7 +11,7 @@ class HiveCacheStore implements CacheStore {
   /// Initialize cache store by giving Hive a home directory.
   /// [directory] can be null only on web platform or if you already use Hive
   /// in your app.
-  HiveCacheStore(String? directory, this.hiveBoxName) {
+  HiveCacheStore(String? directory, {this.hiveBoxName = 'dio_cache'}) {
     if (directory != null) {
       Hive.init(directory);
     }
