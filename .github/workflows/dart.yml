@@ -15,26 +15,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container:
+      image:  google/dart:latest
+
     defaults:
       run:
         working-directory: dio_cache_interceptor
 
     steps:
       - uses: actions/checkout@v2
-
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
-      
-      # - name: Install sys dependencies
-      #   run: sudo apt install sqlite3
-
-      # Install Flutter to generate lcov.info file
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: 'stable'
 
       - name: Install dependencies
         run: dart pub get
@@ -48,7 +37,9 @@ jobs:
         run: dart analyze
 
       - name: Run tests
-        run: flutter test --coverage
+        run: |
+          dart pub global activate test_coverage
+          dart pub global run test_coverage --no-badge
         
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1.2.1
