@@ -32,7 +32,9 @@ class MemCacheStore implements CacheStore {
       }
     });
 
-    keys.forEach((key) => _cache.remove(key));
+    for (var key in keys) {
+      _cache.remove(key);
+    }
 
     return Future.value();
   }

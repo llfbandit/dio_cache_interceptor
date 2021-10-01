@@ -216,7 +216,7 @@ class FileCacheStore implements CacheStore {
       if (staleOnly) {
         final resp = await _deserializeContent(file);
         if (!resp.isStaled()) {
-          return null;
+          return;
         }
       }
 

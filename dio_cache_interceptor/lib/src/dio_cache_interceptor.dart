@@ -26,31 +26,31 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   void onRequest(
-    RequestOptions request,
+    RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final options = _getCacheOptions(request);
+    final cacheOptions = _getCacheOptions(options);
 
-    if (_shouldSkipRequest(request, options: options)) {
-      handler.next(request);
+    if (_shouldSkipRequest(options, options: cacheOptions)) {
+      handler.next(options);
       return;
     }
 
-    if (options.policy != CachePolicy.refresh &&
-        options.policy != CachePolicy.refreshForceCache) {
-      final cacheResp = await _getCacheResponse(request);
+    if (cacheOptions.policy != CachePolicy.refresh &&
+        cacheOptions.policy != CachePolicy.refreshForceCache) {
+      final cacheResp = await _getCacheResponse(options);
       if (cacheResp != null) {
-        if (_isCacheValid(options, cacheResp)) {
-          handler.resolve(cacheResp.toResponse(request, fromNetwork: false));
+        if (_isCacheValid(cacheOptions, cacheResp)) {
+          handler.resolve(cacheResp.toResponse(options, fromNetwork: false));
           return;
         }
 
         // Update request with cache directives
-        _addCacheValidationHeaders(request, cacheResp);
+        _addCacheValidationHeaders(options, cacheResp);
       }
     }
 
-    handler.next(request);
+    handler.next(options);
   }
 
   @override
