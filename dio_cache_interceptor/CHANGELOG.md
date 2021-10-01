@@ -1,3 +1,6 @@
+## 3.0.2
+- fix: Ciphered content deserialization error when updating headers.
+
 ## 3.0.1
 - fix: file_cache_store visibility.
 
