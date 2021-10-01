@@ -298,7 +298,7 @@ class DioCacheInterceptor extends Interceptor {
       await _getCacheStore(options).set(updatedCache);
 
       // return cached value with updated headers
-      return updatedCache.toResponse(request, fromNetwork: true);
+      return cacheResponse..extra[CacheResponse.fromNetwork] = true;
     }
 
     return cacheResponse;
