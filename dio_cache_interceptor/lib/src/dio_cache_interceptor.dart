@@ -109,10 +109,14 @@ class DioCacheInterceptor extends Interceptor {
       returnResponse = true;
     } else {
       // Check if we can return cache
-      final hcoeExcept = options.hitCacheOnErrorExcept;
+      final maxStale = options.maxStale;
 
-      if (hcoeExcept != null) {
+      if (maxStale != null) {
+        final hcoeExcept = options.hitCacheOnErrorExcept;
+
         if (errResponse == null) {
+          returnResponse = true;
+        } else if (hcoeExcept == null) {
           returnResponse = true;
         } else if (!hcoeExcept.contains(errResponse.statusCode)) {
           returnResponse = true;
