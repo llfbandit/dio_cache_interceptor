@@ -20,6 +20,7 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 - __DbCacheStore__: Cache with database (Moor) [Get it](https://pub.dev/packages/dio_cache_interceptor_db_store).
 - __FileCacheStore__: Cache with file system (no web support obviously).
 - __HiveCacheStore__: Cache using Hive package (available on all platforms) [Get it](https://pub.dev/packages/dio_cache_interceptor_hive_store).
+- __ObjectBoxCacheStore__: Cache using ObjectBox package (no web support) [Get it](https://pub.dev/packages/dio_cache_interceptor_objectbox_store).
 - __MemCacheStore__: Volatile cache with LRU strategy.
 
 ## Usage

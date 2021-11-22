@@ -1,3 +1,7 @@
+## 3.0.3
+- fix: Cipher file export.
+- feat: Add ObjectBox store (All credits go to [cmengler](https://github.com/cmengler)).
+
 ## 3.0.2
 - fix: Ciphered content deserialization error when updating headers.
 
