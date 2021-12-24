@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:moor/ffi.dart';
+import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 
 import '../database.dart';
@@ -14,6 +14,6 @@ DioCacheDatabase openDb({
   final dbFile = File(p.join(databasePath, '$databaseName.db'));
 
   return DioCacheDatabase(
-    VmDatabase(dbFile, logStatements: logStatements),
+    NativeDatabase(dbFile, logStatements: logStatements),
   );
 }

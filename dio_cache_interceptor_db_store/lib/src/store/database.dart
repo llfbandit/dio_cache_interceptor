@@ -1,11 +1,11 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:moor/moor.dart';
+import 'package:drift/drift.dart';
 
 export 'db_platform/db_platform.dart';
 
 part 'database.g.dart';
 
-@UseMoor(include: {'cache_table.moor'}, daos: [DioCacheDao])
+@DriftDatabase(include: {'cache_table.moor'}, daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
 
@@ -13,7 +13,7 @@ class DioCacheDatabase extends _$DioCacheDatabase {
   int get schemaVersion => 1;
 }
 
-@UseDao(include: {'cache_table.moor'})
+@DriftAccessor(include: {'cache_table.moor'})
 class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     with _$DioCacheDaoMixin {
   DioCacheDao(DioCacheDatabase db) : super(db);
