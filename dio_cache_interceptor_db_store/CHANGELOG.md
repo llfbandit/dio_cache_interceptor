@@ -1,3 +1,7 @@
+## 4.0.0
+- core: Moor to Drift upgrade.
+- core: Updated dependencies.
+
 ## 3.0.2
 - core: update dependencies. `Moor` minimal version is now ^4.4.1.
 - core: regenerate database.g.dart with `Moor` 4.4.1. [#32](https://github.com/llfbandit/dio_cache_interceptor/issues/32)

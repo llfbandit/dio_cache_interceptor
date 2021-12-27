@@ -1,9 +1,9 @@
 # Configuration for moor generator
-# https://moor.simonbinder.eu/docs/advanced-features/builder_options/
+# https://drift.simonbinder.eu/docs/advanced-features/builder_options/
 targets:
   $default:
     builders:
-      moor_generator:
+      drift_dev:
         options:
           # We don't use companion classes to update partially rows
           # Still generated but will be tree-shaked at compile time.

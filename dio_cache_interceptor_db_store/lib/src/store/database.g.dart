@@ -96,35 +96,6 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
     return map;
   }
 
-  DioCacheCompanion toCompanion(bool nullToAbsent) {
-    return DioCacheCompanion(
-      cacheKey: Value(cacheKey),
-      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
-      cacheControl: cacheControl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(cacheControl),
-      content: content == null && nullToAbsent
-          ? const Value.absent()
-          : Value(content),
-      eTag: eTag == null && nullToAbsent ? const Value.absent() : Value(eTag),
-      expires: expires == null && nullToAbsent
-          ? const Value.absent()
-          : Value(expires),
-      headers: headers == null && nullToAbsent
-          ? const Value.absent()
-          : Value(headers),
-      lastModified: lastModified == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastModified),
-      maxStale: maxStale == null && nullToAbsent
-          ? const Value.absent()
-          : Value(maxStale),
-      priority: Value(priority),
-      responseDate: Value(responseDate),
-      url: Value(url),
-    );
-  }
-
   factory DioCacheData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
@@ -398,76 +369,61 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
   final GeneratedDatabase _db;
   final String? _alias;
   DioCache(this._db, [this._alias]);
-  final VerificationMeta _cacheKeyMeta = const VerificationMeta('cacheKey');
   late final GeneratedColumn<String?> cacheKey = GeneratedColumn<String?>(
       'cacheKey', aliasedName, false,
       type: const StringType(),
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL PRIMARY KEY');
-  final VerificationMeta _dateMeta = const VerificationMeta('date');
   late final GeneratedColumn<DateTime?> date = GeneratedColumn<DateTime?>(
       'date', aliasedName, true,
       type: const IntType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _cacheControlMeta =
-      const VerificationMeta('cacheControl');
   late final GeneratedColumn<String?> cacheControl = GeneratedColumn<String?>(
       'cacheControl', aliasedName, true,
       type: const StringType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _contentMeta = const VerificationMeta('content');
   late final GeneratedColumn<Uint8List?> content = GeneratedColumn<Uint8List?>(
       'content', aliasedName, true,
       type: const BlobType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _eTagMeta = const VerificationMeta('eTag');
   late final GeneratedColumn<String?> eTag = GeneratedColumn<String?>(
       'eTag', aliasedName, true,
       type: const StringType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _expiresMeta = const VerificationMeta('expires');
   late final GeneratedColumn<DateTime?> expires = GeneratedColumn<DateTime?>(
       'expires', aliasedName, true,
       type: const IntType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _headersMeta = const VerificationMeta('headers');
   late final GeneratedColumn<Uint8List?> headers = GeneratedColumn<Uint8List?>(
       'headers', aliasedName, true,
       type: const BlobType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _lastModifiedMeta =
-      const VerificationMeta('lastModified');
   late final GeneratedColumn<String?> lastModified = GeneratedColumn<String?>(
       'lastModified', aliasedName, true,
       type: const StringType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _maxStaleMeta = const VerificationMeta('maxStale');
   late final GeneratedColumn<DateTime?> maxStale = GeneratedColumn<DateTime?>(
       'maxStale', aliasedName, true,
       type: const IntType(),
       requiredDuringInsert: false,
       $customConstraints: '');
-  final VerificationMeta _priorityMeta = const VerificationMeta('priority');
   late final GeneratedColumn<int?> priority = GeneratedColumn<int?>(
       'priority', aliasedName, false,
       type: const IntType(),
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
-  final VerificationMeta _responseDateMeta =
-      const VerificationMeta('responseDate');
   late final GeneratedColumn<DateTime?> responseDate =
       GeneratedColumn<DateTime?>('responseDate', aliasedName, false,
           type: const IntType(),
           requiredDuringInsert: true,
           $customConstraints: 'NOT NULL');
-  final VerificationMeta _urlMeta = const VerificationMeta('url');
   late final GeneratedColumn<String?> url = GeneratedColumn<String?>(
       'url', aliasedName, false,
       type: const StringType(),
@@ -492,76 +448,6 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
   String get aliasedName => _alias ?? 'DioCache';
   @override
   String get actualTableName => 'DioCache';
-  @override
-  VerificationContext validateIntegrity(Insertable<DioCacheData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('cacheKey')) {
-      context.handle(_cacheKeyMeta,
-          cacheKey.isAcceptableOrUnknown(data['cacheKey']!, _cacheKeyMeta));
-    } else if (isInserting) {
-      context.missing(_cacheKeyMeta);
-    }
-    if (data.containsKey('date')) {
-      context.handle(
-          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
-    }
-    if (data.containsKey('cacheControl')) {
-      context.handle(
-          _cacheControlMeta,
-          cacheControl.isAcceptableOrUnknown(
-              data['cacheControl']!, _cacheControlMeta));
-    }
-    if (data.containsKey('content')) {
-      context.handle(_contentMeta,
-          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
-    }
-    if (data.containsKey('eTag')) {
-      context.handle(
-          _eTagMeta, eTag.isAcceptableOrUnknown(data['eTag']!, _eTagMeta));
-    }
-    if (data.containsKey('expires')) {
-      context.handle(_expiresMeta,
-          expires.isAcceptableOrUnknown(data['expires']!, _expiresMeta));
-    }
-    if (data.containsKey('headers')) {
-      context.handle(_headersMeta,
-          headers.isAcceptableOrUnknown(data['headers']!, _headersMeta));
-    }
-    if (data.containsKey('lastModified')) {
-      context.handle(
-          _lastModifiedMeta,
-          lastModified.isAcceptableOrUnknown(
-              data['lastModified']!, _lastModifiedMeta));
-    }
-    if (data.containsKey('maxStale')) {
-      context.handle(_maxStaleMeta,
-          maxStale.isAcceptableOrUnknown(data['maxStale']!, _maxStaleMeta));
-    }
-    if (data.containsKey('priority')) {
-      context.handle(_priorityMeta,
-          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
-    } else if (isInserting) {
-      context.missing(_priorityMeta);
-    }
-    if (data.containsKey('responseDate')) {
-      context.handle(
-          _responseDateMeta,
-          responseDate.isAcceptableOrUnknown(
-              data['responseDate']!, _responseDateMeta));
-    } else if (isInserting) {
-      context.missing(_responseDateMeta);
-    }
-    if (data.containsKey('url')) {
-      context.handle(
-          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
-    } else if (isInserting) {
-      context.missing(_urlMeta);
-    }
-    return context;
-  }
-
   @override
   Set<GeneratedColumn> get $primaryKey => {cacheKey};
   @override

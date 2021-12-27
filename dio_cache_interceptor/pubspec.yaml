@@ -11,8 +11,6 @@ environment:
 dependencies:
   # https://pub.dev/packages/dio
   dio: ^4.0.0
-  # https://pub.dev/packages/path
-  path: ^1.8.0
   # https://pub.dev/packages/uuid
   uuid: ^3.0.4
 

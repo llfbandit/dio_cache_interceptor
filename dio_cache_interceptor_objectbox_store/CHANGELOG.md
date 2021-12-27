@@ -1,3 +1,6 @@
-## 0.0.1
+## 0.0.2
+- core: Updated dependencies.
 
-* Initial release
+
+## 0.0.1
+- Initial release
