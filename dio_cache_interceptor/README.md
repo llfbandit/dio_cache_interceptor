@@ -18,7 +18,7 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 ## Stores
 - __BackupCacheStore__: Combined store with primary and secondary.
 - __DbCacheStore__: Cache with database (Moor) [Get it](https://pub.dev/packages/dio_cache_interceptor_db_store).
-- __FileCacheStore__: Cache with file system (no web support obviously).
+- __FileCacheStore__: Cache with file system (Does nothing on web platform).
 - __HiveCacheStore__: Cache using Hive package (available on all platforms) [Get it](https://pub.dev/packages/dio_cache_interceptor_hive_store).
 - __ObjectBoxCacheStore__: Cache using ObjectBox package (no web support) [Get it](https://pub.dev/packages/dio_cache_interceptor_objectbox_store).
 - __MemCacheStore__: Volatile cache with LRU strategy.
@@ -45,7 +45,7 @@ final options = const CacheOptions(
   // Default. Key builder to retrieve requests.
   keyBuilder: CacheOptions.defaultCacheKeyBuilder,
   // Default. Allows to cache POST requests.
-  // Overriding [keyBuilder] is strongly recommended.
+  // Overriding [keyBuilder] is strongly recommended when [true].
   allowPostMethod: false,
 );
 
@@ -55,13 +55,13 @@ final dio = Dio()..interceptors.add(DioCacheInterceptor(options: options));
 // ...
 
 // Requesting with global options => status(200)
-var response = await dio.get('http://www.foo.com');
+var response = await dio.get('https://www.foo.com');
 // Requesting with global options => status(304)
-response = await dio.get('http://www.foo.com');
+response = await dio.get('https://www.foo.com');
 
 // Requesting by modifying policy with refresh option
 // for this single request => status(200)
-response = await dio.get('http://www.foo.com',
+response = await dio.get('https://www.foo.com',
   options: options.copyWith(policy: CachePolicy.refresh).toOptions(),
 );
 ```

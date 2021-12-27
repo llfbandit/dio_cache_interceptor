@@ -1,9 +1,5 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
-import 'package:dio_cache_interceptor/src/store/file_cache_store/file_cache_store.dart';
 import 'package:test/test.dart';
 
 import 'mock_httpclient_adapter.dart';
@@ -16,7 +12,7 @@ void main() {
   setUp(() async {
     _dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
 
-    store = FileCacheStore('${Directory.current.path}/test/data/interceptor');
+    store = MemCacheStore();
     await store.clean();
     options = CacheOptions(store: store);
 

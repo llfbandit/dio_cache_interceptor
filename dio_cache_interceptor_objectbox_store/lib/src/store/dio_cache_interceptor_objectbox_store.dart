@@ -1,5 +1,4 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:dio_cache_interceptor_objectbox_store/objectbox.g.dart';
 
 /// A store saving responses using ObjectBox.

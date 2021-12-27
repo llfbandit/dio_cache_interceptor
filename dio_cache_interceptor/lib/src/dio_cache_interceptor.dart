@@ -36,8 +36,8 @@ class DioCacheInterceptor extends Interceptor {
       return;
     }
 
-    if (cacheOptions.policy != CachePolicy.refresh &&
-        cacheOptions.policy != CachePolicy.refreshForceCache) {
+    if (cacheOptions.policy == CachePolicy.request ||
+        cacheOptions.policy == CachePolicy.forceCache) {
       final cacheResp = await _getCacheResponse(options);
       if (cacheResp != null) {
         if (_isCacheValid(cacheOptions, cacheResp)) {

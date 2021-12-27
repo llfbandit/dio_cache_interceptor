@@ -1,18 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dio_cache_interceptor/src/model/cache_control.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:path/path.dart' as path;
-
-import '../../model/cache_priority.dart';
-import '../../model/cache_response.dart';
-import '../cache_store.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// A store saving responses in a dedicated file from a given root [directory].
 ///
 class FileCacheStore implements CacheStore {
   final Map<CachePriority, Directory> _directories;
+  final Map<String, Lock> _locks = {};
 
   FileCacheStore(String directory) : _directories = _genDirectories(directory) {
     clean(staleOnly: true);
@@ -25,19 +24,16 @@ class FileCacheStore implements CacheStore {
   }) async {
     final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
       final directory = _directories[CachePriority.values[i]]!;
-      if (!directory.existsSync()) return;
+      if (!await directory.exists()) return;
 
-      if (staleOnly) {
-        directory.listSync(followLinks: false).forEach((file) async {
-          await _deleteFile(file as File, staleOnly: staleOnly);
+      directory.listSync(followLinks: false).forEach((fse) async {
+        final file = (fse as File);
+        final key = path.basename(file.path);
+
+        await _synchronized(key, () async {
+          await _deleteFile(file, staleOnly: staleOnly);
         });
-      }
-
-      if (!staleOnly || directory.listSync().isEmpty) {
-        try {
-          await directory.delete(recursive: true);
-        } catch (_) {}
-      }
+      });
     });
 
     await Future.wait(futures);
@@ -45,53 +41,76 @@ class FileCacheStore implements CacheStore {
 
   @override
   Future<void> delete(String key, {bool staleOnly = false}) async {
-    return _deleteFile(_findFile(key), staleOnly: staleOnly);
+    return _synchronized(
+      key,
+      () async => _deleteFile(await _findFile(key), staleOnly: staleOnly),
+    );
   }
 
   @override
-  Future<bool> exists(String key) {
-    return Future.value(_findFile(key) != null);
+  Future<bool> exists(String key) async {
+    return _synchronized(key, () async => await _findFile(key) != null);
   }
 
   @override
   Future<CacheResponse?> get(String key) async {
-    final file = _findFile(key);
-    if (file == null) return null;
+    return _synchronized(key, () async {
+      final file = await _findFile(key);
+      if (file == null) return null;
 
-    final resp = await _deserializeContent(file);
+      final resp = await _deserializeContent(file);
 
-    // Purge entry if staled
-    if (resp.isStaled()) {
-      await delete(key);
-      return null;
-    }
+      // Purge entry if staled
+      if (resp.isStaled()) {
+        await delete(key);
+        return null;
+      }
 
-    return resp;
+      return resp;
+    });
   }
 
   @override
   Future<void> set(CacheResponse response) async {
-    final file = File(
-      path.join(
-        _directories[response.priority]!.path,
-        response.key,
-      ),
-    );
+    return _synchronized(response.key, () async {
+      final file = File(
+        path.join(
+          _directories[response.priority]!.path,
+          response.key,
+        ),
+      );
 
-    // Delete previous value in case of priority change
-    await delete(response.key);
+      // Delete previous value in case of priority change
+      await _deleteFile(await _findFile(response.key), staleOnly: false);
 
-    if (!file.parent.existsSync()) {
-      await file.parent.create(recursive: true);
-    }
+      if (!await file.parent.exists()) {
+        await file.parent.create(recursive: true);
+      }
 
-    final bytes = _serializeContent(response);
-    await file.writeAsBytes(bytes, flush: true);
+      final bytes = _serializeContent(response);
+      await file.writeAsBytes(bytes, mode: FileMode.writeOnly, flush: true);
+    });
   }
 
   @override
   Future<void> close() {
     return Future.value();
+  }
+
+  Future<T> _synchronized<T>(
+    String key,
+    FutureOr<T> Function() computation,
+  ) async {
+    final lock = _locks.putIfAbsent(key, () => Lock(reentrant: true));
+
+    final result = await lock.synchronized(() {
+      final result = computation.call();
+      return result;
+    });
+
+    _locks.remove(lock);
+
+    return result;
   }
 
   List<int> _serializeContent(CacheResponse response) {
@@ -133,7 +152,7 @@ class FileCacheStore implements CacheStore {
   }
 
   Future<CacheResponse> _deserializeContent(File file) async {
-    final data = file.readAsBytesSync();
+    final data = await file.readAsBytes();
 
     // Get field sizes
     // 10 fields. int is encoded with 32 bits (4 bytes)
@@ -238,10 +257,10 @@ class FileCacheStore implements CacheStore {
     return CachePriority.high;
   }
 
-  File? _findFile(String key) {
+  Future<File?> _findFile(String key) async {
     for (final entry in _directories.entries) {
       final file = File(path.join(entry.value.path, key));
-      if (file.existsSync()) {
+      if (await file.exists()) {
         return file;
       }
     }

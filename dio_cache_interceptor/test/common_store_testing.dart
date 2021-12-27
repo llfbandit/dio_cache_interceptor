@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -9,6 +10,7 @@ import 'package:test/test.dart';
 
 Future<void> _addFooResponse(
   CacheStore store, {
+  String key = 'foo',
   CacheControl? cacheControl,
   DateTime? expires,
   String? lastModified,
@@ -22,7 +24,7 @@ Future<void> _addFooResponse(
     eTag: 'an etag',
     expires: expires,
     headers: headers,
-    key: 'foo',
+    key: key,
     lastModified: lastModified,
     maxStale: maxStale,
     priority: CachePriority.normal,
@@ -142,4 +144,40 @@ Future<void> lastModified(CacheStore store) async {
   await _addFooResponse(store, lastModified: lastModified);
   final resp = await store.get('foo');
   expect(resp!.lastModified, equals(lastModified));
+}
+
+Future<void> concurrentAccess(CacheStore store) async {
+  final lastModified = 'Wed, 21 Oct 2015 07:28:00 GMT';
+
+  final completer = Completer();
+  final max = 3000;
+
+  for (var i = 1; i <= max; i++) {
+    final key = i % 3 == 0 ? 'bar' : 'foo';
+    _addFooResponse(store, key: key, lastModified: lastModified).then(
+      (value) {
+        store.get(key).then(
+          (resp) {
+            if (i % 3 == 0) {
+              store.exists(key).then((value) {
+                if (i == max) completer.complete();
+              });
+            } else if (i % 4 == 0) {
+              store.clean().then((value) {
+                if (i == max) completer.complete();
+              });
+            } else if (i % 5 == 0) {
+              store.delete(key).then((value) {
+                if (i == max) completer.complete();
+              });
+            } else {
+              if (i == max) completer.complete();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  await completer.future;
 }

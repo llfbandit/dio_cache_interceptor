@@ -1,6 +1,4 @@
-import 'package:dio_cache_interceptor/src/model/cache_priority.dart';
-import 'package:dio_cache_interceptor/src/model/cache_response.dart';
-import 'package:dio_cache_interceptor/src/store/cache_store.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
 class FileCacheStore implements CacheStore {
   FileCacheStore(String directory);
@@ -10,31 +8,31 @@ class FileCacheStore implements CacheStore {
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   }) {
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<void> close() {
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<void> delete(String key, {bool staleOnly = false}) {
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<bool> exists(String key) {
-    throw UnimplementedError();
+    return Future.value(false);
   }
 
   @override
   Future<CacheResponse?> get(String key) {
-    throw UnimplementedError();
+    return Future.value();
   }
 
   @override
   Future<void> set(CacheResponse response) {
-    throw UnimplementedError();
+    return Future.value();
   }
 }

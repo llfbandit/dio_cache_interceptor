@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:dio_cache_interceptor/src/store/file_cache_store/file_cache_store.dart';
+import 'package:dio_cache_interceptor_file_store/dio_cache_interceptor_file_store.dart';
 import 'package:test/test.dart';
 
-import 'common_store_testing.dart';
+import '../../dio_cache_interceptor/test/common_store_testing.dart';
 
 void main() {
   late FileCacheStore store;
@@ -25,4 +25,9 @@ void main() {
   test('Expires', () async => await expires(store));
   test('LastModified', () async => await lastModified(store));
   test('Staled', () async => await staled(store));
+  test(
+    'Concurrent access',
+    () async => await concurrentAccess(store),
+    timeout: Timeout(Duration(minutes: 2)),
+  );
 }

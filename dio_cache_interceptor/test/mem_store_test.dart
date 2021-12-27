@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor/src/store/mem_cache_store.dart';
 import 'package:test/test.dart';
 
 import 'common_store_testing.dart';
