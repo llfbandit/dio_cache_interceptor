@@ -59,5 +59,4 @@ void main() {
   test('Clean', () async => await clean(store));
   test('Expires', () async => await expires(store));
   test('LastModified', () async => await lastModified(store));
-  test('Staled', () async => await staled(store));
 }

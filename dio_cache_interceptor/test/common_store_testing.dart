@@ -109,17 +109,6 @@ Future<void> clean(CacheStore store) async {
   expect(await store.exists('foo'), isFalse);
 }
 
-Future<void> staled(CacheStore store) async {
-  await _addFooResponse(
-    store,
-    maxStale: DateTime.now().subtract(const Duration(seconds: 1)),
-  );
-  expect(await store.exists('foo'), isTrue);
-
-  final resp = await store.get('foo');
-  expect(resp, isNull);
-}
-
 Future<void> expires(CacheStore store) async {
   final now = DateTime.now();
   await _addFooResponse(store, expires: DateTime.now());

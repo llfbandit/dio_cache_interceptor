@@ -58,15 +58,7 @@ class FileCacheStore implements CacheStore {
       final file = await _findFile(key);
       if (file == null) return null;
 
-      final resp = await _deserializeContent(file);
-
-      // Purge entry if staled
-      if (resp.isStaled()) {
-        await delete(key);
-        return null;
-      }
-
-      return resp;
+      return _deserializeContent(file);
     });
   }
 

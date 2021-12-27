@@ -75,13 +75,8 @@ class ObjectBoxCacheStore implements CacheStore {
     final box = _openBox();
     final resp =
         box.query(CacheResponseBox_.key.equals(key)).build().findFirst();
-    if (resp == null) return null;
 
-    if (resp.toObject().isStaled()) {
-      await delete(key);
-      return null;
-    }
-    return resp.toObject();
+    return resp?.toObject();
   }
 
   @override

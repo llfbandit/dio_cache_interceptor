@@ -23,6 +23,42 @@ void main() {
     _dio.close();
   });
 
+  test('maxStale', () async {
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options
+          .copyWith(
+              policy: CachePolicy.forceCache,
+              maxStale: const Duration(seconds: 1))
+          .toOptions(),
+    );
+    expect(resp.statusCode, equals(200));
+    expect(resp.extra[CacheResponse.cacheKey], isNotNull);
+  });
+
+  test('maxStale removal', () async {
+    var resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options
+          .copyWith(
+            policy: CachePolicy.forceCache,
+            maxStale: const Duration(seconds: 1),
+          )
+          .toOptions(),
+    );
+    final key = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(key), isTrue);
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options.toOptions(),
+    );
+
+    expect(await store.exists(key), isFalse);
+  });
+
   test('Fetch stream 200', () async {
     final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok-stream');
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);

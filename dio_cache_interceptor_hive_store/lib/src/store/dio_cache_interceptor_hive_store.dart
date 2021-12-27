@@ -87,15 +87,7 @@ class HiveCacheStore implements CacheStore {
   @override
   Future<CacheResponse?> get(String key) async {
     final box = await _openBox();
-    final resp = box.get(key);
-
-    // Purge entry if staled
-    if (resp?.isStaled() ?? false) {
-      await delete(key);
-      return null;
-    }
-
-    return resp;
+    return box.get(key);
   }
 
   @override
