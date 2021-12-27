@@ -1,5 +1,6 @@
 ## 3.1.0
-- File cache is now availble as external package.
+- __Breaking__: File cache store is now available as external package and suitable for production.
+- Improved example with added non-cached content & image provider sample.
 
 ## 3.0.3
 - fix: Cipher file export.

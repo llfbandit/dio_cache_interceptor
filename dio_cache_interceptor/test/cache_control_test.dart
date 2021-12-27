@@ -63,4 +63,34 @@ void main() {
     );
     expect(resp.isExpired(), isTrue);
   });
+
+  test('headers', () {
+    final cacheControl1 = CacheControl(
+      maxAge: 2,
+      noCache: true,
+      noStore: true,
+      other: ['unknown'],
+      privacy: 'public',
+    );
+
+    final cacheControl2 = CacheControl.fromHeader([
+      'max-age=2, no-store, no-cache, public, unknown',
+    ]);
+
+    expect(cacheControl1.maxAge, equals(cacheControl2!.maxAge));
+    expect(cacheControl1.noCache, equals(cacheControl2.noCache));
+    expect(cacheControl1.noStore, equals(cacheControl2.noStore));
+    expect(cacheControl1.other, equals(cacheControl2.other));
+    expect(cacheControl1.privacy, equals(cacheControl2.privacy));
+
+    // Redo test with toHeader()
+    final cacheControl3 = CacheControl.fromHeader(
+      cacheControl2.toHeader().split(','),
+    );
+    expect(cacheControl1.maxAge, equals(cacheControl3!.maxAge));
+    expect(cacheControl1.noCache, equals(cacheControl3.noCache));
+    expect(cacheControl1.noStore, equals(cacheControl3.noStore));
+    expect(cacheControl1.other, equals(cacheControl3.other));
+    expect(cacheControl1.privacy, equals(cacheControl3.privacy));
+  });
 }
