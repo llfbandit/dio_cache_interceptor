@@ -5,9 +5,19 @@ export 'db_platform/db_platform.dart';
 
 part 'database.g.dart';
 
+typedef _MigrateFunction = Future<void> Function(
+  Migrator,
+  DioCacheDatabase,
+  int,
+);
+
 @DriftDatabase(include: {'cache_table.moor'}, daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
+
+  final Map<int, _MigrateFunction> _migrationsMap = {
+    1: _migrateToV2,
+  };
 
   @override
   int get schemaVersion => 2;
@@ -26,15 +36,26 @@ class DioCacheDatabase extends _$DioCacheDatabase {
             // This is always true for all versions
             await m.createAll();
 
-            // Add request date to table
-            await m.alterTable(TableMigration(
-              dioCache,
-              newColumns: [dioCache.requestDate],
-            ));
+            for (var i = from; i < to; i++) {
+              await _migrationsMap[i]?.call(m, this, from);
+            }
           },
         );
       },
     );
+  }
+
+  static Future<void> _migrateToV2(
+    Migrator m,
+    DioCacheDatabase db,
+    int from,
+  ) async {
+    if (from == 1) {
+      await m.alterTable(TableMigration(
+        db.dioCache,
+        newColumns: [db.dioCache.requestDate],
+      ));
+    }
   }
 }
 
