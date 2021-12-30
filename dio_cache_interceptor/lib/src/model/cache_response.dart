@@ -1,7 +1,13 @@
-import 'dart:convert' show jsonDecode, utf8;
+import 'dart:convert' show jsonDecode, jsonEncode, utf8;
+import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
+import 'package:dio_cache_interceptor/src/model/cache_options.dart';
+import 'package:dio_cache_interceptor/src/util/contants.dart';
+import 'package:dio_cache_interceptor/src/util/http_date.dart';
 
 import '../util/content_serialization.dart';
 import 'cache_priority.dart';
@@ -14,8 +20,11 @@ class CacheResponse {
   /// Available in [Response] if coming from network.
   static const String fromNetwork = '@fromNetwork@';
 
+  /// Available in [RequestOptions] to know when request has been sent.
+  static const String requestSentDate = '@requestSentDate@';
+
   /// Response Cache-control header
-  final CacheControl? cacheControl;
+  final CacheControl cacheControl;
 
   /// Response body
   List<int>? content;
@@ -44,6 +53,9 @@ class CacheResponse {
   /// Cache priority
   final CachePriority priority;
 
+  /// Absolute date representing date/time when request has been sent
+  final DateTime requestDate;
+
   /// Absolute date representing date/time when response has been received
   final DateTime responseDate;
 
@@ -61,6 +73,7 @@ class CacheResponse {
     required this.lastModified,
     required this.maxStale,
     required this.priority,
+    required this.requestDate,
     required this.responseDate,
     required this.url,
   });
@@ -87,39 +100,160 @@ class CacheResponse {
     return h;
   }
 
-  /// Check if response is staled from [maxStale] option.
+  /// Checks if response is staled from [maxStale] option.
   bool isStaled() {
-    return maxStale != null && maxStale!.isBefore(DateTime.now());
+    return maxStale?.isBefore(DateTime.now()) ?? false;
   }
 
-  /// Check if cache-control fields invalidates cache entry
-  /// with [date] header or [responseDate] if missing.
-  ///
-  /// Checking in order against:
-  /// - no-cache,
-  /// - max-age,
-  /// - and expires header values.
-  bool isExpired() {
-    final cControl = cacheControl;
-    final checkedDate = date ?? responseDate;
+  /// Checks if response is expired.
+  bool isExpired({required CacheControl requestCaching}) {
+    final responseCaching = cacheControl;
 
-    if (cControl != null) {
-      if (cControl.noCache ?? false) {
-        return true;
+    if (!responseCaching.noCache) {
+      final ageMillis = _cacheResponseAge();
+
+      var freshMillis = _computeFreshnessLifetime();
+      final maxAge = requestCaching.maxAge;
+      if (maxAge != -1) {
+        freshMillis = min(freshMillis, maxAge * 1000);
       }
 
-      final checkedMaxAge = cControl.maxAge;
-      if (checkedMaxAge != null && checkedMaxAge > 0) {
-        final maxDate = checkedDate.add(Duration(seconds: checkedMaxAge));
-        return maxDate.isBefore(DateTime.now());
+      var maxStaleMillis = 0;
+      final maxStale = requestCaching.maxStale;
+      if (!responseCaching.mustRevalidate && maxStale != -1) {
+        maxStaleMillis = maxStale * 1000;
       }
+
+      var minFreshMillis = 0;
+      final minFresh = requestCaching.minFresh;
+      if (minFresh != -1) {
+        minFreshMillis = minFresh * 1000;
+      }
+
+      if (ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Returns the current age of the response, in milliseconds.
+  /// Calculating Age.
+  /// https://datatracker.ietf.org/doc/html/rfc7234#section-4.2.3
+  int _cacheResponseAge() {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final servedDate = date;
+    final sentRequestMillis = requestDate.millisecondsSinceEpoch;
+    final receivedResponseMillis = responseDate.millisecondsSinceEpoch;
+
+    final headers = getHeaders();
+    final ageSeconds = int.parse(headers[HttpHeaders.ageHeader]?.first ?? '-1');
+
+    final apparentReceivedAge = (servedDate != null)
+        ? max(0, receivedResponseMillis - servedDate.millisecondsSinceEpoch)
+        : 0;
+
+    final receivedAge = (ageSeconds > -1)
+        ? max(apparentReceivedAge, ageSeconds * 1000)
+        : apparentReceivedAge;
+
+    final responseDuration = receivedResponseMillis - sentRequestMillis;
+    final residentDuration = nowMillis - receivedResponseMillis;
+
+    return receivedAge + responseDuration + residentDuration;
+  }
+
+  /// Returns the number of milliseconds that the response was fresh for.
+  /// Calculating Freshness Lifetime.
+  /// https://datatracker.ietf.org/doc/html/rfc7234#section-4.2.1
+  int _computeFreshnessLifetime() {
+    final maxAge = cacheControl.maxAge;
+    if (maxAge != -1) {
+      return maxAge * 1000;
     }
 
     final checkedExpires = expires;
     if (checkedExpires != null) {
-      return checkedExpires.difference(checkedDate).isNegative;
+      final delta =
+          checkedExpires.difference(date ?? responseDate).inMilliseconds;
+      return (delta > 0) ? delta : 0;
     }
 
-    return true;
+    if (lastModified != null && Uri.parse(url).query.isEmpty) {
+      final sentRequestMillis = requestDate.millisecondsSinceEpoch;
+      // As recommended by the HTTP RFC, the max age of a document
+      // should be defaulted to 10% of the document's age
+      // at the time it was served.
+      // Default expiration dates aren't used for URIs containing a query.
+      final servedMillis = date?.millisecondsSinceEpoch ?? sentRequestMillis;
+      final delta =
+          servedMillis - HttpDate.parse(lastModified!).millisecondsSinceEpoch;
+      return ((delta > 0) ? delta / 10 : 0).round();
+    }
+
+    return 0;
+  }
+
+  static Future<CacheResponse> fromResponse({
+    required String key,
+    required CacheOptions options,
+    required Response response,
+  }) async {
+    final content = await CacheCipher.encryptContent(
+      options,
+      await serializeContent(
+        response.requestOptions.responseType,
+        response.data,
+      ),
+    );
+
+    final headers = await CacheCipher.encryptContent(
+      options,
+      utf8.encode(jsonEncode(response.headers.map)),
+    );
+
+    final dateStr = response.headers[dateHeader]?.first;
+    DateTime? date;
+    if (dateStr != null) {
+      try {
+        date = HttpDate.parse(dateStr);
+      } catch (_) {
+        // Invalid date format => ignored
+      }
+    }
+
+    final expiresDateStr = response.headers[expiresHeader]?.first;
+    DateTime? httpExpiresDate;
+    if (expiresDateStr != null) {
+      try {
+        httpExpiresDate = HttpDate.parse(expiresDateStr);
+      } catch (_) {
+        // Invalid date format => meaning something already expired
+        httpExpiresDate = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+      }
+    }
+
+    final checkedMaxStale = options.maxStale;
+
+    return CacheResponse(
+      cacheControl: CacheControl.fromHeader(
+        response.headers[cacheControlHeader],
+      ),
+      content: content,
+      date: date,
+      eTag: response.headers[etagHeader]?.first,
+      expires: httpExpiresDate,
+      headers: headers,
+      key: key,
+      lastModified: response.headers[lastModifiedHeader]?.first,
+      maxStale: checkedMaxStale != null
+          ? DateTime.now().toUtc().add(checkedMaxStale)
+          : null,
+      priority: options.priority,
+      requestDate: response.requestOptions.extra[CacheResponse.requestSentDate],
+      responseDate: DateTime.now().toUtc(),
+      url: response.requestOptions.uri.toString(),
+    );
   }
 }

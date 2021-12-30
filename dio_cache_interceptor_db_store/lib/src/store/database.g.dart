@@ -18,6 +18,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
   final String? lastModified;
   final DateTime? maxStale;
   final int priority;
+  final DateTime? requestDate;
   final DateTime responseDate;
   final String url;
   DioCacheData(
@@ -31,6 +32,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       this.lastModified,
       this.maxStale,
       required this.priority,
+      this.requestDate,
       required this.responseDate,
       required this.url});
   factory DioCacheData.fromData(Map<String, dynamic> data, {String? prefix}) {
@@ -56,6 +58,8 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
           .mapFromDatabaseResponse(data['${effectivePrefix}maxStale']),
       priority: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}priority'])!,
+      requestDate: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}requestDate']),
       responseDate: const DateTimeType()
           .mapFromDatabaseResponse(data['${effectivePrefix}responseDate'])!,
       url: const StringType()
@@ -91,6 +95,9 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       map['maxStale'] = Variable<DateTime?>(maxStale);
     }
     map['priority'] = Variable<int>(priority);
+    if (!nullToAbsent || requestDate != null) {
+      map['requestDate'] = Variable<DateTime?>(requestDate);
+    }
     map['responseDate'] = Variable<DateTime>(responseDate);
     map['url'] = Variable<String>(url);
     return map;
@@ -110,6 +117,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       lastModified: serializer.fromJson<String?>(json['lastModified']),
       maxStale: serializer.fromJson<DateTime?>(json['maxStale']),
       priority: serializer.fromJson<int>(json['priority']),
+      requestDate: serializer.fromJson<DateTime?>(json['requestDate']),
       responseDate: serializer.fromJson<DateTime>(json['responseDate']),
       url: serializer.fromJson<String>(json['url']),
     );
@@ -128,6 +136,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       'lastModified': serializer.toJson<String?>(lastModified),
       'maxStale': serializer.toJson<DateTime?>(maxStale),
       'priority': serializer.toJson<int>(priority),
+      'requestDate': serializer.toJson<DateTime?>(requestDate),
       'responseDate': serializer.toJson<DateTime>(responseDate),
       'url': serializer.toJson<String>(url),
     };
@@ -144,6 +153,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
           String? lastModified,
           DateTime? maxStale,
           int? priority,
+          DateTime? requestDate,
           DateTime? responseDate,
           String? url}) =>
       DioCacheData(
@@ -157,6 +167,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
         lastModified: lastModified ?? this.lastModified,
         maxStale: maxStale ?? this.maxStale,
         priority: priority ?? this.priority,
+        requestDate: requestDate ?? this.requestDate,
         responseDate: responseDate ?? this.responseDate,
         url: url ?? this.url,
       );
@@ -173,6 +184,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
           ..write('lastModified: $lastModified, ')
           ..write('maxStale: $maxStale, ')
           ..write('priority: $priority, ')
+          ..write('requestDate: $requestDate, ')
           ..write('responseDate: $responseDate, ')
           ..write('url: $url')
           ..write(')'))
@@ -180,8 +192,20 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
   }
 
   @override
-  int get hashCode => Object.hash(cacheKey, date, cacheControl, content, eTag,
-      expires, headers, lastModified, maxStale, priority, responseDate, url);
+  int get hashCode => Object.hash(
+      cacheKey,
+      date,
+      cacheControl,
+      content,
+      eTag,
+      expires,
+      headers,
+      lastModified,
+      maxStale,
+      priority,
+      requestDate,
+      responseDate,
+      url);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -196,6 +220,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
           other.lastModified == this.lastModified &&
           other.maxStale == this.maxStale &&
           other.priority == this.priority &&
+          other.requestDate == this.requestDate &&
           other.responseDate == this.responseDate &&
           other.url == this.url);
 }
@@ -211,6 +236,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
   final Value<String?> lastModified;
   final Value<DateTime?> maxStale;
   final Value<int> priority;
+  final Value<DateTime?> requestDate;
   final Value<DateTime> responseDate;
   final Value<String> url;
   const DioCacheCompanion({
@@ -224,6 +250,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     this.lastModified = const Value.absent(),
     this.maxStale = const Value.absent(),
     this.priority = const Value.absent(),
+    this.requestDate = const Value.absent(),
     this.responseDate = const Value.absent(),
     this.url = const Value.absent(),
   });
@@ -238,6 +265,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     this.lastModified = const Value.absent(),
     this.maxStale = const Value.absent(),
     required int priority,
+    this.requestDate = const Value.absent(),
     required DateTime responseDate,
     required String url,
   })  : cacheKey = Value(cacheKey),
@@ -255,6 +283,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     Expression<String?>? lastModified,
     Expression<DateTime?>? maxStale,
     Expression<int>? priority,
+    Expression<DateTime?>? requestDate,
     Expression<DateTime>? responseDate,
     Expression<String>? url,
   }) {
@@ -269,6 +298,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       if (lastModified != null) 'lastModified': lastModified,
       if (maxStale != null) 'maxStale': maxStale,
       if (priority != null) 'priority': priority,
+      if (requestDate != null) 'requestDate': requestDate,
       if (responseDate != null) 'responseDate': responseDate,
       if (url != null) 'url': url,
     });
@@ -285,6 +315,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       Value<String?>? lastModified,
       Value<DateTime?>? maxStale,
       Value<int>? priority,
+      Value<DateTime?>? requestDate,
       Value<DateTime>? responseDate,
       Value<String>? url}) {
     return DioCacheCompanion(
@@ -298,6 +329,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       lastModified: lastModified ?? this.lastModified,
       maxStale: maxStale ?? this.maxStale,
       priority: priority ?? this.priority,
+      requestDate: requestDate ?? this.requestDate,
       responseDate: responseDate ?? this.responseDate,
       url: url ?? this.url,
     );
@@ -336,6 +368,9 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     if (priority.present) {
       map['priority'] = Variable<int>(priority.value);
     }
+    if (requestDate.present) {
+      map['requestDate'] = Variable<DateTime?>(requestDate.value);
+    }
     if (responseDate.present) {
       map['responseDate'] = Variable<DateTime>(responseDate.value);
     }
@@ -358,6 +393,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
           ..write('lastModified: $lastModified, ')
           ..write('maxStale: $maxStale, ')
           ..write('priority: $priority, ')
+          ..write('requestDate: $requestDate, ')
           ..write('responseDate: $responseDate, ')
           ..write('url: $url')
           ..write(')'))
@@ -419,6 +455,11 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
       type: const IntType(),
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<DateTime?> requestDate =
+      GeneratedColumn<DateTime?>('requestDate', aliasedName, true,
+          type: const IntType(),
+          requiredDuringInsert: false,
+          $customConstraints: '');
   late final GeneratedColumn<DateTime?> responseDate =
       GeneratedColumn<DateTime?>('responseDate', aliasedName, false,
           type: const IntType(),
@@ -441,6 +482,7 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
         lastModified,
         maxStale,
         priority,
+        requestDate,
         responseDate,
         url
       ];

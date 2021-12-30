@@ -23,7 +23,7 @@ void main() {
 
     for (var i = 0; i < 150; ++i) {
       final resp = CacheResponse(
-        cacheControl: null,
+        cacheControl: CacheControl(),
         content: content,
         date: now,
         eTag: 'an etag',
@@ -33,6 +33,7 @@ void main() {
         lastModified: null,
         maxStale: null,
         priority: CachePriority.normal,
+        requestDate: now.subtract(const Duration(milliseconds: 50)),
         responseDate: now,
         url: 'https://foo.com',
       );

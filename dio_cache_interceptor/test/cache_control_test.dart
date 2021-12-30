@@ -9,8 +9,10 @@ void main() {
     DateTime? expires,
     CacheControl? cacheControl,
   }) {
+    final rqRespDate = date ?? DateTime.now();
+
     return CacheResponse(
-      cacheControl: cacheControl,
+      cacheControl: cacheControl ?? CacheControl(),
       content: utf8.encode('foo'),
       date: date,
       eTag: 'an etag',
@@ -20,7 +22,8 @@ void main() {
       lastModified: null,
       maxStale: null,
       priority: CachePriority.normal,
-      responseDate: DateTime.now(),
+      requestDate: rqRespDate.subtract(const Duration(milliseconds: 50)),
+      responseDate: rqRespDate,
       url: 'https://foo.com',
     );
   }
@@ -31,14 +34,14 @@ void main() {
       expires: null,
       cacheControl: CacheControl(),
     );
-    expect(resp.isExpired(), isTrue);
+    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     resp = _buildResponse(
       date: DateTime.now().subtract(const Duration(seconds: 12)),
       expires: null,
       cacheControl: CacheControl(maxAge: 10),
     );
-    expect(resp.isExpired(), isTrue);
+    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     // max-age takes precedence over expires
     resp = _buildResponse(
@@ -46,7 +49,7 @@ void main() {
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 10),
     );
-    expect(resp.isExpired(), isTrue);
+    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     // max-age is invalid check with expires
     resp = _buildResponse(
@@ -54,14 +57,21 @@ void main() {
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 0),
     );
-    expect(resp.isExpired(), isFalse);
+    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     resp = _buildResponse(
       date: null,
       expires: DateTime.now().subtract(const Duration(hours: 10)),
       cacheControl: CacheControl(),
     );
-    expect(resp.isExpired(), isTrue);
+    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+
+    resp = _buildResponse(
+      date: DateTime.now(),
+      expires: DateTime.now().add(const Duration(hours: 10)),
+      cacheControl: CacheControl(),
+    );
+    expect(resp.isExpired(requestCaching: CacheControl()), isFalse);
   });
 
   test('headers', () {
@@ -77,17 +87,15 @@ void main() {
       'max-age=2, no-store, no-cache, public, unknown',
     ]);
 
-    expect(cacheControl1.maxAge, equals(cacheControl2!.maxAge));
+    expect(cacheControl1.maxAge, equals(cacheControl2.maxAge));
     expect(cacheControl1.noCache, equals(cacheControl2.noCache));
     expect(cacheControl1.noStore, equals(cacheControl2.noStore));
     expect(cacheControl1.other, equals(cacheControl2.other));
     expect(cacheControl1.privacy, equals(cacheControl2.privacy));
 
     // Redo test with toHeader()
-    final cacheControl3 = CacheControl.fromHeader(
-      cacheControl2.toHeader().split(','),
-    );
-    expect(cacheControl1.maxAge, equals(cacheControl3!.maxAge));
+    final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
+    expect(cacheControl1.maxAge, equals(cacheControl3.maxAge));
     expect(cacheControl1.noCache, equals(cacheControl3.noCache));
     expect(cacheControl1.noStore, equals(cacheControl3.noStore));
     expect(cacheControl1.other, equals(cacheControl3.other));

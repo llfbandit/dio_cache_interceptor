@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS DioCache (
     lastModified TEXT,
     maxStale DATETIME,
     priority INT NOT NULL,
+    requestDate DATETIME,
     responseDate DATETIME NOT NULL,
     url TEXT NOT NULL
 );

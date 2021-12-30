@@ -34,6 +34,7 @@ void main() {
     final cacheData = DioCacheData(
       cacheKey: 'foo',
       priority: CachePriority.normal.index,
+      requestDate: now,
       responseDate: now,
       url: 'https://foo.com',
     );

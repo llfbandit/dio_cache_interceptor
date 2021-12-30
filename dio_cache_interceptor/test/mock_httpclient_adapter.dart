@@ -21,7 +21,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
       case '/ok':
         if (options.headers.containsKey('if-none-match')) {
           return ResponseBody.fromString(
-            '',
+            '{}',
             304,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -32,7 +32,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
 
         if (options.extra.containsKey('x-err')) {
           return ResponseBody.fromString(
-            '',
+            '{}',
             500,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType]
@@ -153,6 +153,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
+              'last-modified': [HttpDate.format(DateTime.now())],
               'cache-control': ['public, max-age=1'],
             },
           );

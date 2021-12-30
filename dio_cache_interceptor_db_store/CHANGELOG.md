@@ -1,3 +1,7 @@
+## 4.1.0
+- Add request date to stored values.
+- Raise dio_cache_interceptor minimum version.
+
 ## 4.0.0
 - core: Moor to Drift upgrade.
 - core: Updated dependencies.

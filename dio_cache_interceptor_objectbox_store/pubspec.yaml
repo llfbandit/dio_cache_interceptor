@@ -1,17 +1,20 @@
 name: dio_cache_interceptor_objectbox_store
 description: A DB cache store implementation with ObjectBox for dio_cache_interceptor package.
-version: 0.0.2
+version: 1.0.0
 homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/dio_cache_interceptor_objectbox_store
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  dio_cache_interceptor: ^3.1.0
+  dio_cache_interceptor: ^3.2.0
+  # https://pub.dev/packages/objectbox
   objectbox: ^1.2.0
 
 dev_dependencies:
-  build_runner: ^2.1.4
+  # https://pub.dev/packages/build_runner
+  build_runner: ^2.1.7
+  # https://pub.dev/packages/objectbox_generator
   objectbox_generator: any
   # https://pub.dev/packages/lints
   lints: ^1.0.1

@@ -109,12 +109,13 @@ class FileCacheStore implements CacheStore {
     final etag = utf8.encode(response.eTag ?? '');
     final lastModified = utf8.encode(response.lastModified ?? '');
     final maxStale = utf8.encode(
-      '${response.maxStale?.millisecondsSinceEpoch ?? ''}',
+      response.maxStale?.millisecondsSinceEpoch.toString() ?? '',
     );
     final url = utf8.encode(response.url);
-    final cacheControl = utf8.encode(response.cacheControl?.toHeader() ?? '');
+    final cacheControl = utf8.encode(response.cacheControl.toHeader());
     final date = utf8.encode(response.date?.toIso8601String() ?? '');
     final expires = utf8.encode(response.expires?.toIso8601String() ?? '');
+    final requestDate = utf8.encode(response.requestDate.toIso8601String());
     final responseDate = utf8.encode(response.responseDate.toIso8601String());
 
     return [
@@ -129,6 +130,7 @@ class FileCacheStore implements CacheStore {
         date.length,
         expires.length,
         responseDate.length,
+        requestDate.length,
       ]).buffer.asInt8List(),
       ...response.content ?? [],
       ...etag,
@@ -140,6 +142,7 @@ class FileCacheStore implements CacheStore {
       ...date,
       ...expires,
       ...responseDate,
+      ...requestDate,
     ];
   }
 
@@ -148,7 +151,7 @@ class FileCacheStore implements CacheStore {
 
     // Get field sizes
     // 10 fields. int is encoded with 32 bits (4 bytes)
-    var i = 10 * 4;
+    var i = 11 * 4;
     final sizes = Int8List.fromList(
       data.take(i).toList(),
     ).buffer.asInt32List();
@@ -200,6 +203,15 @@ class FileCacheStore implements CacheStore {
     size = sizes[fieldIndex++];
     final responseDate = utf8.decode(data.skip(i).take(size).toList());
 
+    i += size;
+    size = sizes[fieldIndex++];
+    final rawRequestDate =
+        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+    final requestDate = rawRequestDate != null
+        ? DateTime.parse(rawRequestDate)
+        : DateTime.parse(responseDate)
+            .subtract(const Duration(milliseconds: 150));
+
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
       content: content,
@@ -214,6 +226,7 @@ class FileCacheStore implements CacheStore {
               isUtc: true)
           : null,
       priority: _getPriority(file),
+      requestDate: requestDate,
       responseDate: DateTime.parse(responseDate),
       url: url,
     );

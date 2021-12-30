@@ -10,7 +10,32 @@ class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (to < from) {
+          throw Exception("Can't downgrade database");
+        }
+
+        await transaction(
+          () async {
+            // Create all missing elements
+            // This is always true for all versions
+            await m.createAll();
+
+            // Add request date to table
+            await m.alterTable(TableMigration(
+              dioCache,
+              newColumns: [dioCache.requestDate],
+            ));
+          },
+        );
+      },
+    );
+  }
 }
 
 @DriftAccessor(include: {'cache_table.moor'})
@@ -77,6 +102,8 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       lastModified: result.lastModified,
       maxStale: result.maxStale,
       priority: CachePriority.values[result.priority],
+      requestDate: result.requestDate ??
+          result.responseDate.subtract(const Duration(milliseconds: 150)),
       responseDate: result.responseDate,
       url: result.url,
     );
@@ -89,7 +116,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     await into(dioCache).insert(
       DioCacheData(
         date: response.date,
-        cacheControl: response.cacheControl?.toHeader(),
+        cacheControl: response.cacheControl.toHeader(),
         content: (checkedContent != null)
             ? Uint8List.fromList(checkedContent)
             : null,
@@ -102,6 +129,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
         lastModified: response.lastModified,
         maxStale: response.maxStale,
         priority: response.priority.index,
+        requestDate: response.requestDate,
         responseDate: response.responseDate,
         url: response.url,
       ),

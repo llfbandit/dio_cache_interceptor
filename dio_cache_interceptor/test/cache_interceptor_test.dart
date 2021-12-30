@@ -293,8 +293,7 @@ void main() {
     );
     expect(resp304.statusCode, equals(304));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    // request is not expired even if max-age is 0
-    expect(resp304.extra[CacheResponse.fromNetwork], isFalse);
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
   });
 
   test('Fetch Cache-Control expired', () async {
@@ -328,9 +327,9 @@ void main() {
     expect(cacheResp, isNotNull);
 
     // We're before max-age: 1
-    expect(cacheResp!.isExpired(), isFalse);
+    expect(cacheResp!.isExpired(requestCaching: CacheControl()), isFalse);
     // We're after max-age: 1
     await Future.delayed(const Duration(seconds: 1));
-    expect(cacheResp.isExpired(), isTrue);
+    expect(cacheResp.isExpired(requestCaching: CacheControl()), isTrue);
   });
 }

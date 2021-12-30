@@ -4,14 +4,21 @@ import 'package:hive/hive.dart';
 /// A store saving responses using hive.
 ///
 class HiveCacheStore implements CacheStore {
+  // Cache box name
   final String hiveBoxName;
+  // Optional cipher to use directly with Hive
+  final HiveCipher? encryptionCipher;
 
   Box<CacheResponse>? _box;
 
   /// Initialize cache store by giving Hive a home directory.
   /// [directory] can be null only on web platform or if you already use Hive
   /// in your app.
-  HiveCacheStore(String? directory, {this.hiveBoxName = 'dio_cache'}) {
+  HiveCacheStore(
+    String? directory, {
+    this.hiveBoxName = 'dio_cache',
+    this.encryptionCipher,
+  }) {
     if (directory != null) {
       Hive.init(directory);
     }
@@ -97,7 +104,11 @@ class HiveCacheStore implements CacheStore {
   }
 
   Future<Box<CacheResponse>> _openBox() async {
-    _box ??= await Hive.openBox<CacheResponse>(hiveBoxName);
+    _box ??= await Hive.openBox<CacheResponse>(
+      hiveBoxName,
+      encryptionCipher: encryptionCipher,
+    );
+
     return Future.value(_box);
   }
 }
@@ -115,7 +126,7 @@ class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CacheResponse(
-      cacheControl: fields[0] as CacheControl?,
+      cacheControl: fields[0] as CacheControl? ?? CacheControl(),
       content: (fields[1] as List?)?.cast<int>(),
       date: fields[2] as DateTime?,
       eTag: fields[3] as String?,
@@ -127,13 +138,17 @@ class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
       priority: fields[9] as CachePriority,
       responseDate: fields[10] as DateTime,
       url: fields[11] as String,
+      requestDate: fields[12] != null
+          ? fields[12] as DateTime
+          : (fields[10] as DateTime)
+              .subtract(const Duration(milliseconds: 150)),
     );
   }
 
   @override
   void write(BinaryWriter writer, CacheResponse obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.cacheControl)
       ..writeByte(1)
@@ -157,7 +172,9 @@ class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
       ..writeByte(10)
       ..write(obj.responseDate)
       ..writeByte(11)
-      ..write(obj.url);
+      ..write(obj.url)
+      ..writeByte(12)
+      ..write(obj.requestDate);
   }
 
   @override
@@ -184,18 +201,21 @@ class _CacheControlAdapter extends TypeAdapter<CacheControl> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CacheControl(
-      maxAge: fields[0] as int?,
+      maxAge: fields[0] as int? ?? -1,
       privacy: fields[1] as String?,
-      noCache: fields[2] as bool?,
-      noStore: fields[3] as bool?,
+      noCache: fields[2] as bool? ?? false,
+      noStore: fields[3] as bool? ?? false,
       other: (fields[4] as List).cast<String>(),
+      maxStale: fields[5] as int? ?? -1,
+      minFresh: fields[6] as int? ?? -1,
+      mustRevalidate: fields[7] as bool? ?? false,
     );
   }
 
   @override
   void write(BinaryWriter writer, CacheControl obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.maxAge)
       ..writeByte(1)
@@ -205,7 +225,13 @@ class _CacheControlAdapter extends TypeAdapter<CacheControl> {
       ..writeByte(3)
       ..write(obj.noStore)
       ..writeByte(4)
-      ..write(obj.other);
+      ..write(obj.other)
+      ..writeByte(5)
+      ..write(obj.maxStale)
+      ..writeByte(6)
+      ..write(obj.minFresh)
+      ..writeByte(7)
+      ..write(obj.mustRevalidate);
   }
 
   @override
@@ -230,12 +256,11 @@ class _CachePriorityAdapter extends TypeAdapter<CachePriority> {
     switch (reader.readByte()) {
       case 0:
         return CachePriority.low;
-      case 1:
-        return CachePriority.normal;
       case 2:
         return CachePriority.high;
+      case 1:
       default:
-        return CachePriority.low;
+        return CachePriority.normal;
     }
   }
 

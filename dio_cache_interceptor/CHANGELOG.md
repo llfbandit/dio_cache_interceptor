@@ -1,3 +1,18 @@
+## 3.2.0
+>Warning, this version is considered compatible with previous versions about stored data.  
+>However, cache store entries have now a new field for request
+>date persistence which is setup arbitrarily for backward compatibility (150ms before response receive time).  
+>Depending of your usage, cache beheviour could be a bit inaccurate while entries are not updated with new strategy algorithm.  
+>If this is critical for your app, consider to clean up your store by calling `store.clean();` for example on your next app upgrade.
+
+- feat: More status codes (203, 301) are available for caching reponses.
+- feat: Status codes (302 are 307) are available for caching reponses under strict conditions.
+- feat: Lots of improvements in computation of response expiry. Package is now much more compliant with `rfc7234`.
+- feat: `age`, `max-stale`, `min-fresh`, `must-revalidate` headers/values are now parsed.
+- fix: stale state is now handled in interceptor instead of cache stores.
+- fix: `no-cache` header is now correctly handled.
+- core: General code cleanup to handle above features.
+
 ## 3.1.0
 - __Breaking__: File cache store is now available as external package and suitable for production.
 - Improved example with added non-cached content & image provider sample.

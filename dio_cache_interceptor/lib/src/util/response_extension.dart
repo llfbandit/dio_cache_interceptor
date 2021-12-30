@@ -5,7 +5,8 @@ extension ResponseExtension on Response {
   /// Update cache headers on 304
   ///
   /// https://tools.ietf.org/html/rfc7232#section-4.1
-  void updateCacheHeaders(Response<dynamic> response) {
+  void updateCacheHeaders(Response<dynamic>? response) {
+    if (response == null) return;
     _updateNonNullHeader(cacheControlHeader, response);
     _updateNonNullHeader(dateHeader, response);
     _updateNonNullHeader(etagHeader, response);

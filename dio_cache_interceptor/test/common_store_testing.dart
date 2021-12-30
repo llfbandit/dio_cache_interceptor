@@ -18,7 +18,7 @@ Future<void> _addFooResponse(
   DateTime? maxStale,
 }) {
   final resp = CacheResponse(
-    cacheControl: cacheControl,
+    cacheControl: cacheControl ?? CacheControl(),
     content: utf8.encode('foo'),
     date: DateTime.now(),
     eTag: 'an etag',
@@ -28,6 +28,7 @@ Future<void> _addFooResponse(
     lastModified: lastModified,
     maxStale: maxStale,
     priority: CachePriority.normal,
+    requestDate: DateTime.now().subtract(const Duration(milliseconds: 50)),
     responseDate: DateTime.now(),
     url: 'https://foo.com',
   );
@@ -70,8 +71,8 @@ Future<void> getItem(CacheStore store) async {
   expect(resp?.content, equals(utf8.encode('foo')));
   expect(resp?.headers, equals(headers));
   expect(resp?.priority, CachePriority.normal);
-  expect(resp?.cacheControl?.maxAge, equals(cacheControl.maxAge));
-  expect(resp?.cacheControl?.privacy, equals(cacheControl.privacy));
+  expect(resp?.cacheControl.maxAge, equals(cacheControl.maxAge));
+  expect(resp?.cacheControl.privacy, equals(cacheControl.privacy));
 }
 
 Future<void> deleteItem(CacheStore store) async {

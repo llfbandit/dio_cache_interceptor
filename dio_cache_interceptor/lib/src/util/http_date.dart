@@ -1,4 +1,44 @@
 class HttpDate {
+  /// Format a date according to
+  /// [RFC-1123](http://tools.ietf.org/html/rfc1123 "RFC-1123"),
+  /// e.g. `Thu, 1 Jan 1970 00:00:00 GMT`.
+  static String format(DateTime date) {
+    const wkday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const month = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+
+    final d = date.toUtc();
+    final sb = StringBuffer()
+      ..write(wkday[d.weekday - 1])
+      ..write(', ')
+      ..write(d.day <= 9 ? '0' : '')
+      ..write(d.day.toString())
+      ..write(' ')
+      ..write(month[d.month - 1])
+      ..write(' ')
+      ..write(d.year.toString())
+      ..write(d.hour <= 9 ? ' 0' : ' ')
+      ..write(d.hour.toString())
+      ..write(d.minute <= 9 ? ':0' : ':')
+      ..write(d.minute.toString())
+      ..write(d.second <= 9 ? ':0' : ':')
+      ..write(d.second.toString())
+      ..write(' GMT');
+    return sb.toString();
+  }
+
   /// Parse a date string in either of the formats
   /// [RFC-1123](http://tools.ietf.org/html/rfc1123 "RFC-1123"),
   /// [RFC-850](http://tools.ietf.org/html/rfc850 "RFC-850") or

@@ -5,6 +5,28 @@
 import 'package:dio_cache_interceptor/src/util/http_date.dart';
 import 'package:test/test.dart';
 
+void testFormatParseHttpDate() {
+  test(
+    int year,
+    int month,
+    int day,
+    int hours,
+    int minutes,
+    int seconds,
+    String expectedFormatted,
+  ) {
+    final date = DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+    final formatted = HttpDate.format(date);
+    expect(expectedFormatted, equals(formatted));
+    expect(date, equals(HttpDate.parse(formatted)));
+  }
+
+  test(1999, DateTime.june, 11, 18, 46, 53, "Fri, 11 Jun 1999 18:46:53 GMT");
+  test(1970, DateTime.january, 1, 0, 0, 0, "Thu, 01 Jan 1970 00:00:00 GMT");
+  test(1970, DateTime.january, 1, 9, 9, 9, "Thu, 01 Jan 1970 09:09:09 GMT");
+  test(2012, DateTime.march, 5, 23, 59, 59, "Mon, 05 Mar 2012 23:59:59 GMT");
+}
+
 void testParseHttpDate() {
   DateTime date;
   date = DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0);
@@ -58,6 +80,7 @@ void testParseHttpDateFailures() {
 }
 
 void main() {
+  test('formatParseHttpDate', testFormatParseHttpDate);
   test('parseHttpDate', testParseHttpDate);
   test('parseHttpDateFailures', testParseHttpDateFailures);
 }
