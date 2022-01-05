@@ -332,4 +332,12 @@ void main() {
     await Future.delayed(const Duration(seconds: 1));
     expect(cacheResp.isExpired(requestCaching: CacheControl()), isTrue);
   });
+
+  test('Skip downloads', () async {
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/download',
+    );
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(cacheKey, isNull);
+  });
 }

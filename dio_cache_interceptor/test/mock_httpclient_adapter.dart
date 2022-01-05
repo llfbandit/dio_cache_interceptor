@@ -158,6 +158,18 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             },
           );
         }
+      case '/download':
+        {
+          return ResponseBody.fromBytes(
+            utf8.encode(jsonEncode({'path': uri.path})),
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+              'Content-Disposition': ['attachment; filename="filename.jpg"'],
+              'last-modified': [HttpDate.format(DateTime.now())],
+            },
+          );
+        }
       default:
         return ResponseBody.fromString('', 404);
     }

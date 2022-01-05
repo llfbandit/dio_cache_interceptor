@@ -11,6 +11,7 @@
 - feat: `age`, `max-stale`, `min-fresh`, `must-revalidate` headers/values are now parsed.
 - fix: stale state is now handled in interceptor instead of cache stores.
 - fix: `no-cache` header is now correctly handled.
+- fix: `content-disposition: attachment; ...` is no more eligible to be cached.
 - core: General code cleanup to handle above features.
 
 ## 3.1.0

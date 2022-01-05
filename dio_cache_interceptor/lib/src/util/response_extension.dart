@@ -20,4 +20,21 @@ extension ResponseExtension on Response {
     final values = response.headers[headerKey];
     if (values != null) headers.map[headerKey] = values;
   }
+
+  /// Checks if disposition of the response is attachment.
+  bool isAttachment() {
+    final disposition = headers['content-disposition'];
+
+    if (disposition != null) {
+      for (final value in disposition) {
+        for (final expandedValue in value.split(';')) {
+          if (expandedValue.trim().toLowerCase().contains('attachment')) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
 }
