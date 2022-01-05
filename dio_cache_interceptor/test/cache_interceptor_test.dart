@@ -37,6 +37,7 @@ void main() {
   });
 
   test('maxStale removal', () async {
+    // Request for the 1st time
     var resp = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options
@@ -46,11 +47,28 @@ void main() {
           )
           .toOptions(),
     );
-    final key = resp.extra[CacheResponse.cacheKey];
+    var key = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(key), isTrue);
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Request a 2nd time to postpone stale date
+    // We wait for 2 second so the cache is now staled but we recover it
+    resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      options: options
+          .copyWith(
+            policy: CachePolicy.forceCache,
+            maxStale: const Duration(seconds: 1),
+          )
+          .toOptions(),
+    );
     expect(await store.exists(key), isTrue);
 
     await Future.delayed(const Duration(seconds: 1));
 
+    // Request for the last time without maxStale directive to ensure
+    // the cache entry is now deleted
     resp = await _dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options.toOptions(),

@@ -5,10 +5,11 @@
 >Depending of your usage, cache beheviour could be a bit inaccurate while entries are not updated with new strategy algorithm.  
 >If this is critical for your app, consider to clean up your store by calling `store.clean();` for example on your next app upgrade.
 
-- feat: More status codes (203, 301) are available for caching reponses.
-- feat: Status codes (302 are 307) are available for caching reponses under strict conditions.
+- feat: More status codes (203, 301) are available for caching responses.
+- feat: Status codes (302 are 307) are available for caching responses under strict conditions.
 - feat: Lots of improvements in computation of response expiry. Package is now much more compliant with `rfc7234`.
 - feat: `age`, `max-stale`, `min-fresh`, `must-revalidate` headers/values are now parsed.
+- feat: When `maxStale` is given to the request, interceptor will now add/update it from the current date for a previously cached response. This lets you get more control to postpone the deletion if needed.
 - fix: stale state is now handled in interceptor instead of cache stores.
 - fix: `no-cache` header is now correctly handled.
 - fix: `content-disposition: attachment; ...` is no more eligible to be cached.

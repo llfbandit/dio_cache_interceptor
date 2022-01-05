@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+
 import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:dio_cache_interceptor/src/model/cache_control.dart';
 import 'package:dio_cache_interceptor/src/model/cache_options.dart';
@@ -254,6 +255,24 @@ class CacheResponse {
       requestDate: response.requestOptions.extra[CacheResponse.requestSentDate],
       responseDate: DateTime.now().toUtc(),
       url: response.requestOptions.uri.toString(),
+    );
+  }
+
+  CacheResponse copyWith({DateTime? maxStale}) {
+    return CacheResponse(
+      cacheControl: cacheControl,
+      content: content,
+      date: date,
+      eTag: eTag,
+      expires: expires,
+      headers: headers,
+      key: key,
+      lastModified: lastModified,
+      maxStale: maxStale ?? this.maxStale,
+      priority: priority,
+      requestDate: requestDate,
+      responseDate: responseDate,
+      url: url,
     );
   }
 }

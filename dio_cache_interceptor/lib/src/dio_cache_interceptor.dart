@@ -49,11 +49,14 @@ class DioCacheInterceptor extends Interceptor {
       cacheOptions: cacheOptions,
     ).compute();
 
-    if (strategy.cacheResponse != null) {
+    var cacheResponse = strategy.cacheResponse;
+    if (cacheResponse != null) {
       // Cache hit
-      handler.resolve(
-        strategy.cacheResponse!.toResponse(options, fromNetwork: false),
-      );
+
+      // Update cached response if needed
+      cacheResponse = await _updateCacheResponse(cacheResponse, cacheOptions);
+
+      handler.resolve(cacheResponse.toResponse(options, fromNetwork: false));
       return;
     }
 
@@ -166,7 +169,7 @@ class DioCacheInterceptor extends Interceptor {
 
     if (response != null) {
       // Purge entry if staled
-      if (response.isStaled()) {
+      if (options.maxStale == null && response.isStaled()) {
         await cacheStore.delete(cacheKey);
         return null;
       }
@@ -228,5 +231,25 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     return false;
+  }
+
+  /// Updates cached response if input has maxStale
+  /// This allows to push off deletion of the entry.
+  Future<CacheResponse> _updateCacheResponse(
+    CacheResponse cacheResponse,
+    CacheOptions cacheOptions,
+  ) async {
+    // Add or update maxStale
+    final maxStaleUpdate = cacheOptions.maxStale;
+    if (maxStaleUpdate != null) {
+      cacheResponse = cacheResponse.copyWith(
+        maxStale: DateTime.now().toUtc().add(maxStaleUpdate),
+      );
+
+      // Store response to cache store
+      await _getCacheStore(cacheOptions).set(cacheResponse);
+    }
+
+    return cacheResponse;
   }
 }

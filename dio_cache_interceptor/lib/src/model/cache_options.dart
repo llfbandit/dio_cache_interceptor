@@ -53,6 +53,11 @@ class CacheOptions {
   final CacheKeyBuilder keyBuilder;
 
   /// Overrides any HTTP directive to delete entry past this duration.
+  ///
+  /// Giving this value to a later request will update the previously
+  /// cached response with this directive.
+  ///
+  /// This allows to postpone the deletion.
   final Duration? maxStale;
 
   /// The priority of a cached value.
