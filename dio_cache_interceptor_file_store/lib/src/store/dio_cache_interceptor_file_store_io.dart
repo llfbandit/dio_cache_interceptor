@@ -55,10 +55,7 @@ class FileCacheStore implements CacheStore {
   @override
   Future<CacheResponse?> get(String key) async {
     return _synchronized(key, () async {
-      final file = await _findFile(key);
-      if (file == null) return null;
-
-      return _deserializeContent(file);
+      return _deserializeContent(await _findFile(key));
     });
   }
 
@@ -146,108 +143,115 @@ class FileCacheStore implements CacheStore {
     ];
   }
 
-  Future<CacheResponse> _deserializeContent(File file) async {
+  Future<CacheResponse?> _deserializeContent(File? file) async {
+    if (file == null) return null;
+
     final data = await file.readAsBytes();
 
-    // Get field sizes
-    // 10 fields. int is encoded with 32 bits (4 bytes)
-    var i = 11 * 4;
-    final sizes = Int8List.fromList(
-      data.take(i).toList(),
-    ).buffer.asInt32List();
+    try {
+      // Get field sizes
+      // 11 fields. int is encoded with 32 bits from Int8List
+      var i = 11 * 4;
+      final sizes = Int8List.fromList(
+        data.take(i).toList(),
+      ).buffer.asInt32List();
 
-    var fieldIndex = 0;
+      var fieldIndex = 0;
 
-    var size = sizes[fieldIndex++];
-    final content = size != 0 ? data.skip(i).take(size).toList() : null;
+      var size = sizes[fieldIndex++];
+      final content = size != 0 ? data.skip(i).take(size).toList() : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final etag =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final etag =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final headers = size != 0 ? data.skip(i).take(size).toList() : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final headers = size != 0 ? data.skip(i).take(size).toList() : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final lastModified =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final lastModified =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final maxStale =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final maxStale =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final url = utf8.decode(data.skip(i).take(size).toList());
+      i += size;
+      size = sizes[fieldIndex++];
+      final url = utf8.decode(data.skip(i).take(size).toList());
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final cacheControl =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final cacheControl =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final date =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final date =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final expires =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      i += size;
+      size = sizes[fieldIndex++];
+      final expires =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final responseDate = utf8.decode(data.skip(i).take(size).toList());
+      i += size;
+      size = sizes[fieldIndex++];
+      final responseDate = utf8.decode(data.skip(i).take(size).toList());
 
-    i += size;
-    size = sizes[fieldIndex++];
-    final rawRequestDate =
-        size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
-    final requestDate = rawRequestDate != null
-        ? DateTime.parse(rawRequestDate)
-        : DateTime.parse(responseDate)
-            .subtract(const Duration(milliseconds: 150));
+      i += size;
+      size = sizes[fieldIndex++];
+      final rawRequestDate =
+          size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
+      final requestDate = rawRequestDate != null
+          ? DateTime.parse(rawRequestDate)
+          : DateTime.parse(responseDate)
+              .subtract(const Duration(milliseconds: 150));
 
-    return CacheResponse(
-      cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
-      content: content,
-      date: date != null ? DateTime.tryParse(date) : null,
-      eTag: etag,
-      expires: expires != null ? DateTime.tryParse(expires) : null,
-      headers: headers,
-      key: path.basename(file.path),
-      lastModified: lastModified,
-      maxStale: maxStale != null
-          ? DateTime.fromMillisecondsSinceEpoch(int.parse(maxStale),
-              isUtc: true)
-          : null,
-      priority: _getPriority(file),
-      requestDate: requestDate,
-      responseDate: DateTime.parse(responseDate),
-      url: url,
-    );
+      return CacheResponse(
+        cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
+        content: content,
+        date: date != null ? DateTime.tryParse(date) : null,
+        eTag: etag,
+        expires: expires != null ? DateTime.tryParse(expires) : null,
+        headers: headers,
+        key: path.basename(file.path),
+        lastModified: lastModified,
+        maxStale: maxStale != null
+            ? DateTime.fromMillisecondsSinceEpoch(int.parse(maxStale),
+                isUtc: true)
+            : null,
+        priority: _getPriority(file),
+        requestDate: requestDate,
+        responseDate: DateTime.parse(responseDate),
+        url: url,
+      );
+    } catch (e) {
+      // File is corrupted. Throw it away, we can't recover it.
+      try {
+        await file.delete();
+      } catch (_) {}
+    }
   }
 
   Future<void> _deleteFile(
     File? file, {
     bool staleOnly = false,
   }) async {
-    if (file != null) {
-      if (staleOnly) {
-        final resp = await _deserializeContent(file);
-        if (!resp.isStaled()) {
-          return;
-        }
+    if (staleOnly) {
+      final resp = await _deserializeContent(file);
+      if (resp == null || !resp.isStaled()) {
+        return;
       }
-
-      try {
-        await file.delete();
-      } catch (_) {}
     }
+
+    try {
+      await file?.delete();
+    } catch (_) {}
   }
 
   CachePriority _getPriority(File file) {
