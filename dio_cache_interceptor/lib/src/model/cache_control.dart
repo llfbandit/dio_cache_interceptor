@@ -100,13 +100,15 @@ class CacheControl {
     final other = <String>[];
 
     for (var value in headerValues) {
-      final scanner = StringScanner(value);
-      _parseHeaderValue(scanner, parameters, other);
-
-      while (scanner.scan(',')) {
+      if (value.isNotEmpty) {
+        final scanner = StringScanner(value);
         _parseHeaderValue(scanner, parameters, other);
+
+        while (scanner.scan(',')) {
+          _parseHeaderValue(scanner, parameters, other);
+        }
+        scanner.expectDone();
       }
-      scanner.expectDone();
     }
 
     return CacheControl(

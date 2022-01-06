@@ -17,13 +17,16 @@ void main() {
     return DynamicLibrary.open(libFile.path);
   }
 
-  setUp(() async {
+  setUpAll(() {
     open.overrideFor(OperatingSystem.windows, _openOnWindows);
     store = DbCacheStore(databasePath: '${Directory.current.path}/test/data');
+  });
+
+  setUp(() async {
     await store.clean();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await store.close();
   });
 

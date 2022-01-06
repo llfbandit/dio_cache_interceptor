@@ -175,7 +175,7 @@ packages:
       path: "../dio_cache_interceptor"
       relative: true
     source: path
-    version: "3.1.0"
+    version: "3.2.0"
   drift:
     dependency: "direct main"
     description:

@@ -8,12 +8,15 @@ import '../../dio_cache_interceptor/test/common_store_testing.dart';
 void main() {
   late FileCacheStore store;
 
-  setUp(() async {
+  setUpAll(() {
     store = FileCacheStore('${Directory.current.path}/test/data/file_store');
+  });
+
+  setUp(() async {
     await store.clean();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await store.close();
   });
 

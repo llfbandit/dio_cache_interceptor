@@ -6,15 +6,17 @@ import 'package:test/test.dart';
 import '../../dio_cache_interceptor/test/common_store_testing.dart';
 
 void main() {
-  final HiveCacheStore store = HiveCacheStore(
-    '${Directory.current.path}/test/data/file_store',
-  );
+  late HiveCacheStore store;
+
+  setUpAll(() async {
+    store = HiveCacheStore('${Directory.current.path}/test/data/file_store');
+  });
 
   setUp(() async {
     await store.clean();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await store.close();
   });
 

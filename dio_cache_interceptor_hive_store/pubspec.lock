@@ -91,7 +91,7 @@ packages:
       path: "../dio_cache_interceptor"
       relative: true
     source: path
-    version: "3.1.0"
+    version: "3.2.0"
   file:
     dependency: transitive
     description:
@@ -119,7 +119,7 @@ packages:
       name: hive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   http_multi_server:
     dependency: transitive
     description:

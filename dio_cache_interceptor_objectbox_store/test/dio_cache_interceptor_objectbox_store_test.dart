@@ -8,12 +8,15 @@ import '../../dio_cache_interceptor/test/common_store_testing.dart';
 void main() {
   late ObjectBoxCacheStore store;
 
-  setUp(() async {
+  setUpAll(() {
     store = ObjectBoxCacheStore(storePath: Directory.current.path);
+  });
+
+  setUp(() async {
     await store.clean();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await store.close();
   });
 
