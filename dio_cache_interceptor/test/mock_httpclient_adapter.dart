@@ -26,6 +26,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
               'etag': ['5678'],
+              'age': ['10'],
             },
           );
         }
@@ -88,9 +89,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           File('./README.md').openRead().cast<Uint8List>(),
           200,
           headers: {
-            Headers.contentLengthHeader: [
-              File('./README.md').lengthSync().toString()
-            ],
+            Headers.contentLengthHeader: [File('./README.md').lengthSync().toString()],
             'etag': ['5678'],
           },
         );

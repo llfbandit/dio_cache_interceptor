@@ -258,7 +258,7 @@ class CacheResponse {
     );
   }
 
-  CacheResponse copyWith({DateTime? maxStale}) {
+  CacheResponse copyWith({required DateTime newMaxStale}) {
     return CacheResponse(
       cacheControl: cacheControl,
       content: content,
@@ -268,7 +268,7 @@ class CacheResponse {
       headers: headers,
       key: key,
       lastModified: lastModified,
-      maxStale: maxStale ?? this.maxStale,
+      maxStale: newMaxStale,
       priority: priority,
       requestDate: requestDate,
       responseDate: responseDate,

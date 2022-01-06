@@ -1,3 +1,19 @@
+import 'package:dio_cache_interceptor/src/util/contants.dart';
+import 'package:string_scanner/string_scanner.dart';
+
+final _knownAttributes = RegExp(
+  r'max-age|max-stale|min-fresh|must-revalidate|public|private|no-cache|no-store',
+);
+
+const _maxAgeHeader = 'max-age';
+const _maxStaleHeader = 'max-stale';
+const _minFreshHeader = 'min-fresh';
+const _mustRevalidateHeader = 'must-revalidate';
+const _privateHeader = 'private';
+const _publicHeader = 'public';
+const _noCacheHeader = 'no-cache';
+const _noStoreHeader = 'no-store';
+
 /// Cache-Control header subset representation
 class CacheControl {
   /// How long the response can be used from the time it was requested (in seconds).
@@ -48,75 +64,76 @@ class CacheControl {
     this.other = const [],
   });
 
-  static CacheControl fromHeader(List<String>? headerValues) {
-    headerValues ??= [];
+  /// Builds Cache Control from header values
+  factory CacheControl.fromHeader(List<String>? headerValues) {
+    // Parses single header value
+    void _parseHeaderValue(
+      StringScanner scanner,
+      Map<String, String> parameters,
+      List<String> other,
+    ) {
+      scanner.scan(whitespace);
+      scanner.expect(token);
 
-    int? maxAge;
-    int? maxStale;
-    int? minFresh;
-    bool? mustRevalidate;
-    String? privacy;
-    bool? noCache;
-    bool? noStore;
-    final other = <String>[];
+      final attribute = scanner.lastMatch![0]!;
 
-    for (var value in headerValues) {
-      // Expand values since dio does not do it !
-      for (var expandedValue in value.split(',')) {
-        expandedValue = expandedValue.trim();
-        if (expandedValue == 'no-cache') {
-          noCache = true;
-        } else if (expandedValue == 'no-store') {
-          noStore = true;
-        } else if (expandedValue == 'public' || expandedValue == 'private') {
-          privacy = expandedValue;
-        } else if (expandedValue == 'must-revalidate') {
-          mustRevalidate = true;
-        } else if (expandedValue.startsWith('max-age')) {
-          maxAge = int.tryParse(
-            expandedValue.substring(expandedValue.indexOf('=') + 1),
-          );
-        } else if (expandedValue.startsWith('max-stale')) {
-          maxStale = int.tryParse(
-            expandedValue.substring(expandedValue.indexOf('=') + 1),
-          );
-        } else if (expandedValue.startsWith('min-fresh')) {
-          minFresh = int.tryParse(
-            expandedValue.substring(expandedValue.indexOf('=') + 1),
-          );
+      if (_knownAttributes.hasMatch(attribute)) {
+        if (scanner.scan('=')) {
+          scanner.expect(token);
+          parameters[attribute] = scanner.lastMatch![0]!;
         } else {
-          other.add(expandedValue);
+          parameters[attribute] = attribute;
+        }
+      } else {
+        if (scanner.scan('=')) {
+          scanner.expect(token);
+          other.add('$attribute=${scanner.lastMatch![0]!}');
+        } else {
+          other.add(attribute);
         }
       }
     }
 
+    headerValues ??= [];
+
+    final parameters = <String, String>{};
+    final other = <String>[];
+
+    for (var value in headerValues) {
+      final scanner = StringScanner(value);
+      _parseHeaderValue(scanner, parameters, other);
+
+      while (scanner.scan(',')) {
+        _parseHeaderValue(scanner, parameters, other);
+      }
+      scanner.expectDone();
+    }
+
     return CacheControl(
-      maxAge: maxAge ?? -1,
-      maxStale: maxStale ?? -1,
-      minFresh: minFresh ?? -1,
-      mustRevalidate: mustRevalidate ?? false,
-      privacy: privacy,
-      noCache: noCache ?? false,
-      noStore: noStore ?? false,
+      maxAge: int.tryParse(parameters[_maxAgeHeader] ?? '') ?? -1,
+      maxStale: int.tryParse(parameters[_maxStaleHeader] ?? '') ?? -1,
+      minFresh: int.tryParse(parameters[_minFreshHeader] ?? '') ?? -1,
+      mustRevalidate: parameters.containsKey(_mustRevalidateHeader),
+      privacy: parameters[_publicHeader] ?? parameters[_privateHeader],
+      noCache: parameters.containsKey(_noCacheHeader),
+      noStore: parameters.containsKey(_noStoreHeader),
       other: other,
     );
   }
 
   /// Serialize cache-control values
   String toHeader() {
-    final strBuff = StringBuffer();
-    if (maxAge != -1) strBuff.write('max-age=$maxAge, ');
-    if (maxStale != -1) strBuff.write('max-stale=$maxStale, ');
-    if (minFresh != -1) strBuff.write('min-fresh=$minFresh, ');
-    if (mustRevalidate) strBuff.write('must-revalidate, ');
-    if (privacy != null) strBuff.write('$privacy, ');
-    if (noCache) strBuff.write('no-cache, ');
-    if (noStore) strBuff.write('no-store, ');
-    if (other.isNotEmpty) strBuff.write(other.join(', '));
+    final header = <String>[];
 
-    final str = strBuff.toString();
-    if (str.isNotEmpty) str.substring(0, str.length - 2);
+    if (maxAge != -1) header.add('$_maxAgeHeader=$maxAge');
+    if (maxStale != -1) header.add('$_maxStaleHeader=$maxStale');
+    if (minFresh != -1) header.add('$_minFreshHeader=$minFresh');
+    if (mustRevalidate) header.add(_mustRevalidateHeader);
+    if (privacy != null) header.add(privacy!);
+    if (noCache) header.add(_noCacheHeader);
+    if (noStore) header.add(_noStoreHeader);
+    if (other.isNotEmpty) header.addAll(other);
 
-    return str;
+    return header.join(', ');
   }
 }
