@@ -89,7 +89,9 @@ class MockHttpClientAdapter extends HttpClientAdapter {
           File('./README.md').openRead().cast<Uint8List>(),
           200,
           headers: {
-            Headers.contentLengthHeader: [File('./README.md').lengthSync().toString()],
+            Headers.contentLengthHeader: [
+              File('./README.md').lengthSync().toString()
+            ],
             'etag': ['5678'],
           },
         );
