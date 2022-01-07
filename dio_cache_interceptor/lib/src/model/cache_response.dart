@@ -1,5 +1,4 @@
 import 'dart:convert' show jsonDecode, jsonEncode, utf8;
-import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -149,7 +148,7 @@ class CacheResponse {
     final receivedResponseMillis = responseDate.millisecondsSinceEpoch;
 
     final headers = getHeaders();
-    final ageSeconds = int.parse(headers[HttpHeaders.ageHeader]?.first ?? '-1');
+    final ageSeconds = int.parse(headers[ageHeader]?.first ?? '-1');
 
     final apparentReceivedAge = (servedDate != null)
         ? max(0, receivedResponseMillis - servedDate.millisecondsSinceEpoch)

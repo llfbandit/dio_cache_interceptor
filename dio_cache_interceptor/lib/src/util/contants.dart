@@ -1,4 +1,5 @@
 const cacheControlHeader = 'cache-control';
+const ageHeader = 'age';
 const dateHeader = 'date';
 const etagHeader = 'etag';
 const expiresHeader = 'expires';

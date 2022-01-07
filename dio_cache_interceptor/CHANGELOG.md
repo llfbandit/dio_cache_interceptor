@@ -1,3 +1,6 @@
+## 3.2.1
+- fix: io import in CacheResponse preventing usage with web platform.
+
 ## 3.2.0
 >Warning, this version is considered compatible with previous versions about stored data.  
 >However, cache store entries have now a new field for request
