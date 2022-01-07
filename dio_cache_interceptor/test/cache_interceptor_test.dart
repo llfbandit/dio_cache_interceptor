@@ -78,8 +78,14 @@ void main() {
   });
 
   test('Fetch stream 200', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok-stream');
-    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+    final resp = await _dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok-stream',
+      options: Options(responseType: ResponseType.stream),
+    );
+    expect(
+      await store.exists(resp.extra[CacheResponse.cacheKey] ?? ''),
+      isFalse,
+    );
   });
 
   test('Fetch canceled', () async {

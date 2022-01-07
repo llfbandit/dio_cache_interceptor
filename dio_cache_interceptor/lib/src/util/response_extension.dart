@@ -21,8 +21,12 @@ extension ResponseExtension on Response {
     if (values != null) headers.map[headerKey] = values;
   }
 
-  /// Checks if disposition of the response is attachment.
+  /// Checks if disposition of the response is attachment
+  /// or response type is stream since content-disposition can be missing
+  /// when simply calling dio.download method.
   bool isAttachment() {
+    if (requestOptions.responseType == ResponseType.stream) return true;
+
     final disposition = headers['content-disposition'];
 
     if (disposition != null) {

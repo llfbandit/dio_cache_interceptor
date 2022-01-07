@@ -17,23 +17,15 @@ void main() {
     expect(deserializedContent, equals(content));
   });
 
-  test('Serialize stream', () async {
+  test('Unsupported stream', () async {
     Stream<List<int>> content() async* {
       yield 'test'.codeUnits;
     }
 
-    final serializedContent = await serializeContent(
-      ResponseType.stream,
-      content(),
-    );
-    final deserializedContent = await deserializeContent(
-      ResponseType.stream,
-      serializedContent,
-    );
-    expect(
-      await (deserializedContent as Stream<List<int>>).first,
-      equals(await content().first),
-    );
+    expect(() async => await serializeContent(ResponseType.stream, content()),
+        throwsUnsupportedError);
+    expect(() async => await deserializeContent(ResponseType.stream, <int>[]),
+        throwsUnsupportedError);
   });
 
   test('Serialize plain', () async {

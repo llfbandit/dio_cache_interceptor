@@ -1,3 +1,6 @@
+## 3.2.2
+- fix: stream response type is no more eligible to cache (wasn't working anyway). This is additional fix to `content-disposition: attachment; ...` since headers may not be set.
+
 ## 3.2.1
 - fix: io import in CacheResponse preventing usage with web platform.
 
