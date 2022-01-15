@@ -98,6 +98,7 @@ class CacheResponseBox {
     this.headers,
     this.lastModified,
     this.maxStale,
+    this.requestDate,
     required this.priority,
     required this.responseDate,
     required this.url,
@@ -129,6 +130,9 @@ class CacheResponseBox {
   @Property(type: PropertyType.date)
   DateTime responseDate;
 
+  @Property(type: PropertyType.date)
+  DateTime? requestDate;
+
   String url;
 
   int priority;
@@ -150,7 +154,7 @@ class CacheResponseBox {
 
   CacheResponse toObject() {
     return CacheResponse(
-      cacheControl: cacheControl.target?.toObject(),
+      cacheControl: cacheControl.target?.toObject() ?? CacheControl(),
       content: content,
       date: date,
       eTag: eTag,
@@ -162,6 +166,7 @@ class CacheResponseBox {
       priority: cachePriority,
       responseDate: responseDate,
       url: url,
+      requestDate: requestDate ?? responseDate.subtract(const Duration(milliseconds: 150)),
     );
   }
 
@@ -177,18 +182,17 @@ class CacheResponseBox {
       maxStale: response.maxStale,
       responseDate: response.responseDate,
       url: response.url,
+      requestDate: response.requestDate,
       priority: response.priority.index,
     );
 
-    if (response.cacheControl != null) {
-      result.cacheControl.target = CacheControlBox(
-        maxAge: response.cacheControl!.maxAge,
-        privacy: response.cacheControl!.privacy,
-        noCache: response.cacheControl!.noCache,
-        noStore: response.cacheControl!.noStore,
-        other: response.cacheControl!.other,
-      );
-    }
+    result.cacheControl.target = CacheControlBox(
+      maxAge: response.cacheControl.maxAge,
+      privacy: response.cacheControl.privacy,
+      noCache: response.cacheControl.noCache,
+      noStore: response.cacheControl.noStore,
+      other: response.cacheControl.other,
+    );
 
     return result;
   }
@@ -212,14 +216,20 @@ class CacheControlBox {
   bool? noCache;
   bool? noStore;
   List<String>? other;
+  int? maxStale;
+  int? minFresh;
+  bool? mustRevalidate;
 
   CacheControl toObject() {
     return CacheControl(
-      maxAge: maxAge,
+      maxAge: maxAge ?? -1,
       privacy: privacy,
-      noCache: noCache,
-      noStore: noStore,
+      noCache: noCache ?? false,
+      noStore: noStore ?? false,
       other: other ?? [],
+      maxStale: maxStale ?? -1,
+      minFresh: minFresh ?? -1,
+      mustRevalidate: mustRevalidate ?? false,
     );
   }
 }

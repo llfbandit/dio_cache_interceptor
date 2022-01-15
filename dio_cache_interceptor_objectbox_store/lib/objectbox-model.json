@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:1354879783786486451",
-      "lastPropertyId": "6:3554148799202003267",
+      "lastPropertyId": "9:505940360714405327",
       "name": "CacheControlBox",
       "properties": [
         {
@@ -38,13 +38,28 @@
           "id": "6:3554148799202003267",
           "name": "other",
           "type": 30
+        },
+        {
+          "id": "7:2848688459092693593",
+          "name": "maxStale",
+          "type": 6
+        },
+        {
+          "id": "8:447070182478456922",
+          "name": "minFresh",
+          "type": 6
+        },
+        {
+          "id": "9:505940360714405327",
+          "name": "mustRevalidate",
+          "type": 1
         }
       ],
       "relations": []
     },
     {
       "id": "2:3591291115973887432",
-      "lastPropertyId": "13:4287785650979561948",
+      "lastPropertyId": "14:5861570520231245914",
       "name": "CacheResponseBox",
       "properties": [
         {
@@ -115,6 +130,11 @@
           "flags": 520,
           "indexId": "1:8984911200634127343",
           "relationTarget": "CacheControlBox"
+        },
+        {
+          "id": "14:5861570520231245914",
+          "name": "requestDate",
+          "type": 10
         }
       ],
       "relations": []
