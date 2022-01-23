@@ -166,7 +166,10 @@ class CacheResponseBox {
       priority: cachePriority,
       responseDate: responseDate,
       url: url,
-      requestDate: requestDate ?? responseDate.subtract(const Duration(milliseconds: 150)),
+      requestDate: requestDate ??
+          responseDate.subtract(
+            const Duration(milliseconds: 150),
+          ),
     );
   }
 
