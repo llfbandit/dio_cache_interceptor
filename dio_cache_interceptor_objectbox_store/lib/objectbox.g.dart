@@ -16,7 +16,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(1, 1354879783786486451),
       name: 'CacheControlBox',
-      lastPropertyId: const IdUid(6, 3554148799202003267),
+      lastPropertyId: const IdUid(9, 505940360714405327),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -48,6 +48,21 @@ final _entities = <ModelEntity>[
             id: const IdUid(6, 3554148799202003267),
             name: 'other',
             type: 30,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(7, 2848688459092693593),
+            name: 'maxStale',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(8, 447070182478456922),
+            name: 'minFresh',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(9, 505940360714405327),
+            name: 'mustRevalidate',
+            type: 1,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -55,7 +70,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(2, 3591291115973887432),
       name: 'CacheResponseBox',
-      lastPropertyId: const IdUid(13, 4287785650979561948),
+      lastPropertyId: const IdUid(14, 5861570520231245914),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -124,7 +139,12 @@ final _entities = <ModelEntity>[
             type: 11,
             flags: 520,
             indexId: const IdUid(1, 8984911200634127343),
-            relationTarget: 'CacheControlBox')
+            relationTarget: 'CacheControlBox'),
+        ModelProperty(
+            id: const IdUid(14, 5861570520231245914),
+            name: 'requestDate',
+            type: 10,
+            flags: 0)
       ],
       relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
@@ -178,13 +198,16 @@ ModelDefinition getObjectBoxModel() {
               ? null
               : fbb.writeList(
                   object.other!.map(fbb.writeString).toList(growable: false));
-          fbb.startTable(7);
+          fbb.startTable(10);
           fbb.addInt64(0, object.id ?? 0);
           fbb.addInt64(1, object.maxAge);
           fbb.addOffset(2, privacyOffset);
           fbb.addBool(3, object.noCache);
           fbb.addBool(4, object.noStore);
           fbb.addOffset(5, otherOffset);
+          fbb.addInt64(6, object.maxStale);
+          fbb.addInt64(7, object.minFresh);
+          fbb.addBool(8, object.mustRevalidate);
           fbb.finish(fbb.endTable());
           return object.id ?? 0;
         },
@@ -204,7 +227,13 @@ ModelDefinition getObjectBoxModel() {
               noStore: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 12),
               other: const fb.ListReader<String>(fb.StringReader(), lazy: false)
-                  .vTableGetNullable(buffer, rootOffset, 14));
+                  .vTableGetNullable(buffer, rootOffset, 14))
+            ..maxStale =
+                const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 16)
+            ..minFresh =
+                const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 18)
+            ..mustRevalidate =
+                const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 20);
 
           return object;
         }),
@@ -230,7 +259,7 @@ ModelDefinition getObjectBoxModel() {
               ? null
               : fbb.writeString(object.lastModified!);
           final urlOffset = fbb.writeString(object.url);
-          fbb.startTable(14);
+          fbb.startTable(15);
           fbb.addInt64(0, object.id ?? 0);
           fbb.addOffset(1, keyOffset);
           fbb.addOffset(2, contentOffset);
@@ -244,6 +273,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addOffset(10, urlOffset);
           fbb.addInt64(11, object.priority);
           fbb.addInt64(12, object.cacheControl.targetId);
+          fbb.addInt64(13, object.requestDate?.millisecondsSinceEpoch);
           fbb.finish(fbb.endTable());
           return object.id ?? 0;
         },
@@ -256,6 +286,8 @@ ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
           final maxStaleValue =
               const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 20);
+          final requestDateValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 30);
           final object = CacheResponseBox(
               key: const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
               content: const fb.ListReader<int>(fb.Int8Reader(), lazy: false)
@@ -275,12 +307,14 @@ ModelDefinition getObjectBoxModel() {
               maxStale: maxStaleValue == null
                   ? null
                   : DateTime.fromMillisecondsSinceEpoch(maxStaleValue),
+              requestDate: requestDateValue == null
+                  ? null
+                  : DateTime.fromMillisecondsSinceEpoch(requestDateValue),
               priority:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
-              responseDate: DateTime.fromMillisecondsSinceEpoch(
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0)),
-              url:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''))
+              responseDate:
+                  DateTime.fromMillisecondsSinceEpoch(const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0)),
+              url: const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''))
             ..id = const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 4);
           object.cacheControl.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 28, 0);
@@ -317,6 +351,18 @@ class CacheControlBox_ {
   /// see [CacheControlBox.other]
   static final other =
       QueryStringVectorProperty<CacheControlBox>(_entities[0].properties[5]);
+
+  /// see [CacheControlBox.maxStale]
+  static final maxStale =
+      QueryIntegerProperty<CacheControlBox>(_entities[0].properties[6]);
+
+  /// see [CacheControlBox.minFresh]
+  static final minFresh =
+      QueryIntegerProperty<CacheControlBox>(_entities[0].properties[7]);
+
+  /// see [CacheControlBox.mustRevalidate]
+  static final mustRevalidate =
+      QueryBooleanProperty<CacheControlBox>(_entities[0].properties[8]);
 }
 
 /// [CacheResponseBox] entity fields to define ObjectBox queries.
@@ -373,4 +419,8 @@ class CacheResponseBox_ {
   static final cacheControl =
       QueryRelationToOne<CacheResponseBox, CacheControlBox>(
           _entities[1].properties[12]);
+
+  /// see [CacheResponseBox.requestDate]
+  static final requestDate =
+      QueryIntegerProperty<CacheResponseBox>(_entities[1].properties[13]);
 }
