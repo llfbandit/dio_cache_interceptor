@@ -5,7 +5,8 @@ import '../../dio_cache_interceptor.dart';
 class MemCacheStore implements CacheStore {
   final _LruMap _cache;
 
-  /// [maxSize]: Total allowed size in bytes (7MB by default)
+  /// [maxSize]: Total allowed size in bytes (7MB by default).
+  ///
   /// [maxEntrySize]: Allowed size per entry in bytes (500KB by default).
   ///
   /// To prevent making this store useless, be sure to
@@ -14,7 +15,7 @@ class MemCacheStore implements CacheStore {
   MemCacheStore({
     int maxSize = 7340032,
     int maxEntrySize = 512000,
-  }) : _cache = _LruMap(maxSize, maxEntrySize);
+  }) : _cache = _LruMap(maxSize: maxSize, maxEntrySize: maxEntrySize);
 
   @override
   Future<void> clean({
@@ -88,7 +89,7 @@ class _LruMap {
   final int maxSize;
   final int maxEntrySize;
 
-  _LruMap(this.maxSize, this.maxEntrySize) {
+  _LruMap({required this.maxSize, required this.maxEntrySize}) {
     assert(maxEntrySize != maxSize);
     assert(maxEntrySize * 5 <= maxSize);
   }
@@ -170,7 +171,7 @@ class _LruMap {
     var size = resp.content?.length ?? 0;
     size += resp.headers?.length ?? 0;
 
-    return size * 8;
+    return size;
   }
 }
 
