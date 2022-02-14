@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:uuid/uuid.dart';
 
-import '../model/cache_priority.dart';
 import '../store/cache_store.dart';
+import 'cache_cipher.dart';
+import 'cache_priority.dart';
+import 'nullable.dart';
 
 /// Key builder to customize your keys.
 typedef CacheKeyBuilder = String Function(RequestOptions request);
@@ -111,23 +112,24 @@ class CacheOptions {
 
   CacheOptions copyWith({
     CachePolicy? policy,
-    List<int>? hitCacheOnErrorExcept,
+    Nullable<List<int>>? hitCacheOnErrorExcept,
     CacheKeyBuilder? keyBuilder,
-    Duration? maxStale,
+    Nullable<Duration>? maxStale,
     CachePriority? priority,
     CacheStore? store,
-    CacheCipher? cipher,
+    Nullable<CacheCipher>? cipher,
     bool? allowPostMethod,
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
-      hitCacheOnErrorExcept:
-          hitCacheOnErrorExcept ?? this.hitCacheOnErrorExcept,
+      hitCacheOnErrorExcept: hitCacheOnErrorExcept != null
+          ? hitCacheOnErrorExcept.value
+          : this.hitCacheOnErrorExcept,
       keyBuilder: keyBuilder ?? this.keyBuilder,
-      maxStale: maxStale ?? this.maxStale,
+      maxStale: maxStale != null ? maxStale.value : this.maxStale,
       priority: priority ?? this.priority,
       store: store ?? this.store,
-      cipher: cipher ?? this.cipher,
+      cipher: cipher != null ? cipher.value : this.cipher,
       allowPostMethod: allowPostMethod ?? this.allowPostMethod,
     );
   }

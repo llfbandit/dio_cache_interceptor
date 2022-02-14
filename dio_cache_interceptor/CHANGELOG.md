@@ -1,3 +1,7 @@
+## 3.2.3
+- __Breaking__ feat: `CacheOptions.copyWith` now requires `Nullable` for some parameters to allow `null` values.
+- fix: When `maxStale` set on global options, it was necessary to re-create the dedicated `CacheOptions` for the request to avoid postponing. You can now use the changed copyWith to do that.
+
 ## 3.2.2
 - fix: stream response type is no more eligible to cache (wasn't working anyway). This is additional fix to `content-disposition: attachment; ...` since headers may not be set.
 
