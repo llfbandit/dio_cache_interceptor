@@ -73,6 +73,7 @@ class MemCacheStore implements CacheStore {
 
   @override
   Future<void> close() {
+    _cache.clear();
     return Future.value();
   }
 }
@@ -115,6 +116,14 @@ class _LruMap {
       assert(_tail != null);
       remove(_tail!.key);
     }
+  }
+
+  void clear() {
+    entries.clear();
+
+    _head = null;
+    _tail = null;
+    _currentSize = 0;
   }
 
   CacheResponse? remove(String key) {
