@@ -38,11 +38,14 @@ jobs:
 
       - name: Run tests
         run: |
-          dart pub global activate test_coverage
-          dart pub global run test_coverage --no-badge
+          dart pub global activate coverage
+          dart run test --coverage="coverage"
+
+      - name: Convert coverage to LCOV
+        run: dart run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
         
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.2.1
+        uses: codecov/codecov-action@v2
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          file: dio_cache_interceptor/coverage/lcov.info
+          files: dio_cache_interceptor/coverage/lcov.info
