@@ -1,7 +1,7 @@
 name: dio_cache_interceptor_db_store
 description: A DB cache store implementation with Moor for dio_cache_interceptor package.
 homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/dio_cache_interceptor_db_store
-version: 4.1.0
+version: 4.1.1
 environment:
   sdk: ">=2.12.0 <3.0.0"
 

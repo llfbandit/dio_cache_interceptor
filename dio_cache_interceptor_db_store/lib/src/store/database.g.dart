@@ -402,9 +402,10 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
 }
 
 class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  DioCache(this._db, [this._alias]);
+  DioCache(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<String?> cacheKey = GeneratedColumn<String?>(
       'cacheKey', aliasedName, false,
       type: const StringType(),
@@ -500,7 +501,7 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
 
   @override
   DioCache createAlias(String alias) {
-    return DioCache(_db, alias);
+    return DioCache(attachedDatabase, alias);
   }
 
   @override

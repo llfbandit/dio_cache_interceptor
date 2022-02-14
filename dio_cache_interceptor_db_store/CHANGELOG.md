@@ -1,3 +1,6 @@
+## 4.1.1
+- core: Drift database re-generation to get rid of `Missing concrete implementation of 'getter ResultSetImplementation.attachedDatabase'.` message on pub.dev.
+
 ## 4.1.0
 - Add request date to stored values.
 - Raise dio_cache_interceptor minimum version.
