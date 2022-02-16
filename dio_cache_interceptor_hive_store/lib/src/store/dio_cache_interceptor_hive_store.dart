@@ -9,7 +9,7 @@ class HiveCacheStore implements CacheStore {
   // Optional cipher to use directly with Hive
   final HiveCipher? encryptionCipher;
 
-  Box<CacheResponse>? _box;
+  LazyBox<CacheResponse>? _box;
 
   /// Initialize cache store by giving Hive a home directory.
   /// [directory] can be null only on web platform or if you already use Hive
@@ -45,8 +45,8 @@ class HiveCacheStore implements CacheStore {
 
     final keys = <String>[];
 
-    for (var i = 0; i < box.values.length; i++) {
-      final resp = box.getAt(i);
+    for (var i = 0; i < box.keys.length; i++) {
+      final resp = await box.getAt(i);
 
       if (resp != null) {
         var shouldRemove = resp.priority.index <= priorityOrBelow.index;
@@ -75,7 +75,7 @@ class HiveCacheStore implements CacheStore {
   @override
   Future<void> delete(String key, {bool staleOnly = false}) async {
     final box = await _openBox();
-    final resp = box.get(key);
+    final resp = await box.get(key);
     if (resp == null) return Future.value();
 
     if (staleOnly && !resp.isStaled()) {
@@ -103,8 +103,8 @@ class HiveCacheStore implements CacheStore {
     return box.put(response.key, response);
   }
 
-  Future<Box<CacheResponse>> _openBox() async {
-    _box ??= await Hive.openBox<CacheResponse>(
+  Future<LazyBox<CacheResponse>> _openBox() async {
+    _box ??= await Hive.openLazyBox<CacheResponse>(
       hiveBoxName,
       encryptionCipher: encryptionCipher,
     );

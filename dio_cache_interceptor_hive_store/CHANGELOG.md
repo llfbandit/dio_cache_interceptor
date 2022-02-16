@@ -1,3 +1,6 @@
+## 3.1.1
+- fix: Now using lazy box to avoid all values loaded into RAM.
+
 ## 3.1.0
 - Add request date to stored values.
 - Add encryptionCipher property for direct usage with Hive.
