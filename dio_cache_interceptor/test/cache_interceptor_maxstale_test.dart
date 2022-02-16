@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor/src/model/nullable.dart';
 import 'package:test/test.dart';
 
 import 'mock_httpclient_adapter.dart';
