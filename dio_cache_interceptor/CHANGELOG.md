@@ -1,3 +1,6 @@
+## 3.2.4
+- fix: Missing `Nullable` export.
+
 ## 3.2.3
 - __Breaking__ feat: `CacheOptions.copyWith` now requires `Nullable` for some parameters to allow `null` values.
 - fix: Since version 3.2.0, when `maxStale` was set on global options, it was necessary to re-create the dedicated `CacheOptions` for the request to avoid postponing. You can now use the changed copyWith to do that.
