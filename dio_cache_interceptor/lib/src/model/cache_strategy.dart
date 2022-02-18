@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor/src/util/contants.dart';
 import 'package:dio_cache_interceptor/src/util/http_date.dart';
+import 'package:dio_cache_interceptor/src/util/request_extension.dart';
 import 'package:dio_cache_interceptor/src/util/response_extension.dart';
 
 class CacheStrategy {
@@ -42,7 +43,7 @@ class CacheStrategyFactory {
   /// Returns a strategy to use assuming the request can use the network.
   Future<CacheStrategy> compute() async {
     final requestCaching = CacheControl.fromHeader(
-      request.headers[cacheControlHeader],
+      request.headerValuesAsList(cacheControlHeader),
     );
 
     // Check if we need to return early

@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor/src/util/contants.dart';
+import 'package:dio_cache_interceptor/src/util/request_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -149,5 +152,45 @@ void main() {
     // Redo test with toHeader()
     final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
     _compareCacheControls(cacheControl1, cacheControl3);
+  });
+
+  test('request cache control from String', () {
+    final cacheControlReference = CacheControl.fromHeader([
+      'max-age=1',
+      'no-store',
+      'no-cache',
+      'public',
+      'max-stale=2',
+      'min-fresh=3',
+      'must-revalidate',
+    ].reversed.toList());
+
+    // Correctly formatted
+    var rq = RequestOptions(
+      path: 'https://foo.com',
+      headers: {
+        cacheControlHeader:
+            'max-age=1, no-store, no-cache, public, max-stale=2, min-fresh=3, must-revalidate'
+      },
+    );
+
+    _compareCacheControls(
+      cacheControlReference,
+      CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
+    );
+
+    // Without spaces
+    rq = RequestOptions(
+      path: 'https://foo.com',
+      headers: {
+        cacheControlHeader:
+            'max-age=1,no-store,no-cache,public,max-stale=2,min-fresh=3,must-revalidate'
+      },
+    );
+
+    _compareCacheControls(
+      cacheControlReference,
+      CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
+    );
   });
 }

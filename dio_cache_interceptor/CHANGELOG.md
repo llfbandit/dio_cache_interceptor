@@ -1,3 +1,6 @@
+## 3.2.5
+- fix: Cache control parsing on request. Dio request headers are not of type `Headers`.
+
 ## 3.2.4
 - fix: Missing `Nullable` export.
 
