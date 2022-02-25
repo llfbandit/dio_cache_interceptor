@@ -56,7 +56,10 @@ class DioCacheInterceptor extends Interceptor {
       // Update cached response if needed
       cacheResponse = await _updateCacheResponse(cacheResponse, cacheOptions);
 
-      handler.resolve(cacheResponse.toResponse(options, fromNetwork: false));
+      handler.resolve(
+        cacheResponse.toResponse(options, fromNetwork: false),
+        true,
+      );
       return;
     }
 
@@ -72,7 +75,11 @@ class DioCacheInterceptor extends Interceptor {
   ) async {
     final cacheOptions = _getCacheOptions(response.requestOptions);
 
-    if (_shouldSkip(response.requestOptions, options: cacheOptions)) {
+    if (_shouldSkip(
+      response.requestOptions,
+      response: response,
+      options: cacheOptions,
+    )) {
       handler.next(response);
       return;
     }
@@ -147,9 +154,14 @@ class DioCacheInterceptor extends Interceptor {
   bool _shouldSkip(
     RequestOptions? request, {
     required CacheOptions options,
+    Response? response,
     DioError? error,
   }) {
     if (error?.type == DioErrorType.cancel) {
+      return true;
+    }
+
+    if (response?.extra[CacheResponse.cacheKey] != null) {
       return true;
     }
 
