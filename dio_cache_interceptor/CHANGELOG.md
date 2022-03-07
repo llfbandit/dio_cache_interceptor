@@ -1,3 +1,6 @@
+## 3.2.7
+- feat: (Re-)introduce `copyWith` on `CacheResponse`.
+
 ## 3.2.6
 - feat: Don't skip subsequent `onResponse` interceptors if any.
 

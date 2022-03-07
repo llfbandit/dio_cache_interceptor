@@ -257,7 +257,7 @@ class DioCacheInterceptor extends Interceptor {
     final maxStaleUpdate = cacheOptions.maxStale;
     if (maxStaleUpdate != null) {
       cacheResponse = cacheResponse.copyWith(
-        newMaxStale: DateTime.now().toUtc().add(maxStaleUpdate),
+        maxStale: DateTime.now().toUtc().add(maxStaleUpdate),
       );
 
       // Store response to cache store

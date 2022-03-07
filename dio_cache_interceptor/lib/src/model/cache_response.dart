@@ -257,21 +257,35 @@ class CacheResponse {
     );
   }
 
-  CacheResponse copyWith({required DateTime newMaxStale}) {
+  CacheResponse copyWith({
+    CacheControl? cacheControl,
+    List<int>? content,
+    DateTime? date,
+    String? eTag,
+    DateTime? expires,
+    List<int>? headers,
+    String? key,
+    String? lastModified,
+    DateTime? maxStale,
+    CachePriority? priority,
+    DateTime? requestDate,
+    DateTime? responseDate,
+    String? url,
+  }) {
     return CacheResponse(
-      cacheControl: cacheControl,
-      content: content,
-      date: date,
-      eTag: eTag,
-      expires: expires,
-      headers: headers,
-      key: key,
-      lastModified: lastModified,
-      maxStale: newMaxStale,
-      priority: priority,
-      requestDate: requestDate,
-      responseDate: responseDate,
-      url: url,
+      cacheControl: cacheControl ?? this.cacheControl,
+      content: content ?? this.content,
+      date: date ?? this.date,
+      eTag: eTag ?? this.eTag,
+      expires: expires ?? this.expires,
+      headers: headers ?? this.headers,
+      key: key ?? this.key,
+      lastModified: lastModified ?? this.lastModified,
+      maxStale: maxStale ?? this.maxStale,
+      priority: priority ?? this.priority,
+      requestDate: requestDate ?? this.requestDate,
+      responseDate: responseDate ?? this.responseDate,
+      url: url ?? this.url,
     );
   }
 }
