@@ -9,7 +9,7 @@ environment:
 dependencies:
   dio_cache_interceptor: ^3.2.0
   # https://pub.dev/packages/objectbox
-  objectbox: ^1.2.0
+  objectbox: ^1.4.1
 
 dev_dependencies:
   # https://pub.dev/packages/build_runner
