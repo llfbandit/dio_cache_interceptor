@@ -1,3 +1,6 @@
+## 1.0.1
+- Update ObjectBox package.
+
 ## 1.0.0
 - Add request date to stored values.
 - Raise dio_cache_interceptor minimum version.
