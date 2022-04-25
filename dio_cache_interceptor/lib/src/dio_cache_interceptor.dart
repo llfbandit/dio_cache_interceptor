@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/src/model/cache_cipher.dart';
 import 'package:dio_cache_interceptor/src/model/cache_strategy.dart';
 
 import './model/cache_response.dart';
@@ -177,7 +176,7 @@ class DioCacheInterceptor extends Interceptor {
     final options = _getCacheOptions(request);
     final cacheKey = options.keyBuilder(request);
     final cacheStore = _getCacheStore(options);
-    final response = await _getCacheStore(options).get(cacheKey);
+    final response = await cacheStore.get(cacheKey);
 
     if (response != null) {
       // Purge entry if staled
@@ -188,17 +187,10 @@ class DioCacheInterceptor extends Interceptor {
         return null;
       }
 
-      response.content = await CacheCipher.decryptContent(
-        options,
-        response.content,
-      );
-      response.headers = await CacheCipher.decryptContent(
-        options,
-        response.headers,
-      );
+      return response.readContent(options);
     }
 
-    return response;
+    return null;
   }
 
   /// Writes cached response to cache store if strategy allows it.
@@ -216,7 +208,9 @@ class DioCacheInterceptor extends Interceptor {
     final cacheResp = strategy.cacheResponse;
     if (cacheResp != null) {
       // Store response to cache store
-      await _getCacheStore(cacheOptions).set(cacheResp);
+      await _getCacheStore(cacheOptions).set(
+        await cacheResp.writeContent(cacheOptions, response: response),
+      );
 
       // Update extra fields with cache info
       response.extra[CacheResponse.cacheKey] = cacheResp.key;
@@ -261,7 +255,9 @@ class DioCacheInterceptor extends Interceptor {
       );
 
       // Store response to cache store
-      await _getCacheStore(cacheOptions).set(cacheResponse);
+      await _getCacheStore(cacheOptions).set(
+        await cacheResponse.writeContent(cacheOptions),
+      );
     }
 
     return cacheResponse;

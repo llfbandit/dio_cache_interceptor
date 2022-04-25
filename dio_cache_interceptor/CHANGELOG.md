@@ -1,5 +1,8 @@
 ## 3.2.7
+- fix: read/write when cipher is used.
+- core: Avoids some roundtrips resulting in improved performance.
 - feat: (Re-)introduce `copyWith` on `CacheResponse`.
+- core: Remove Android example deprecations.
 
 ## 3.2.6
 - feat: Don't skip subsequent `onResponse` interceptors if any.

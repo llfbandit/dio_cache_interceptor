@@ -200,19 +200,6 @@ class CacheResponse {
     required CacheOptions options,
     required Response response,
   }) async {
-    final content = await CacheCipher.encryptContent(
-      options,
-      await serializeContent(
-        response.requestOptions.responseType,
-        response.data,
-      ),
-    );
-
-    final headers = await CacheCipher.encryptContent(
-      options,
-      utf8.encode(jsonEncode(response.headers.map)),
-    );
-
     final dateStr = response.headers[dateHeader]?.first;
     DateTime? date;
     if (dateStr != null) {
@@ -240,11 +227,11 @@ class CacheResponse {
       cacheControl: CacheControl.fromHeader(
         response.headers[cacheControlHeader],
       ),
-      content: content,
+      content: null,
       date: date,
       eTag: response.headers[etagHeader]?.first,
       expires: httpExpiresDate,
-      headers: headers,
+      headers: null,
       key: key,
       lastModified: response.headers[lastModifiedHeader]?.first,
       maxStale: checkedMaxStale != null
@@ -254,6 +241,39 @@ class CacheResponse {
       requestDate: response.requestOptions.extra[CacheResponse.requestSentDate],
       responseDate: DateTime.now().toUtc(),
       url: response.requestOptions.uri.toString(),
+    );
+  }
+
+  Future<CacheResponse> readContent(CacheOptions options) async {
+    return copyWith(
+      content: await CacheCipher.decryptContent(options, content),
+      headers: await CacheCipher.decryptContent(options, headers),
+    );
+  }
+
+  Future<CacheResponse> writeContent(
+    CacheOptions options, {
+    Response? response,
+  }) async {
+    if (response != null) {
+      return copyWith(
+        content: await CacheCipher.encryptContent(
+          options,
+          await serializeContent(
+            response.requestOptions.responseType,
+            response.data,
+          ),
+        ),
+        headers: await CacheCipher.encryptContent(
+          options,
+          utf8.encode(jsonEncode(response.headers.map)),
+        ),
+      );
+    }
+
+    return copyWith(
+      content: await CacheCipher.encryptContent(options, content),
+      headers: await CacheCipher.encryptContent(options, headers),
     );
   }
 
