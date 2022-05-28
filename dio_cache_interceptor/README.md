@@ -79,6 +79,9 @@ response = await dio.get('https://www.foo.com',
 );
 ```
 
+## Handling cache with client only
+Follow those [intructions](https://github.com/llfbandit/dio_cache_interceptor/wiki/Handling-cache-with-client-only) if needed.
+
 ## Options
 `CacheOptions` is widely available on interceptor and on requests to take precedence.  
 
