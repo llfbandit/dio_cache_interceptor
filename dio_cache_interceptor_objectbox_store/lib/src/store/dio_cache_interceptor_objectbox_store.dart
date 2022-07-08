@@ -3,7 +3,7 @@ import 'package:dio_cache_interceptor_objectbox_store/objectbox.g.dart';
 
 /// A store saving responses using ObjectBox.
 ///
-class ObjectBoxCacheStore implements CacheStore {
+class ObjectBoxCacheStore extends CacheStore {
   /// ObjectBox store file path
   final String storePath;
 
@@ -32,10 +32,11 @@ class ObjectBoxCacheStore implements CacheStore {
   }) async {
     final box = _openBox();
 
-    final results = box
+    final query = box
         .query(CacheResponseBox_.priority.lessOrEqual(priorityOrBelow.index))
-        .build()
-        .find();
+        .build();
+    final results = query.find();
+    query.close();
 
     for (final result in results) {
       if ((staleOnly && result.toObject().isStaled()) || !staleOnly) {
@@ -52,8 +53,10 @@ class ObjectBoxCacheStore implements CacheStore {
   @override
   Future<void> delete(String key, {bool staleOnly = false}) async {
     final box = _openBox();
-    final resp =
-        box.query(CacheResponseBox_.key.equals(key)).build().findFirst();
+    final query = box.query(CacheResponseBox_.key.equals(key)).build();
+    final resp = query.findFirst();
+    query.close();
+
     if (resp == null) return Future.value();
 
     if (staleOnly && !resp.toObject().isStaled()) {
@@ -64,19 +67,55 @@ class ObjectBoxCacheStore implements CacheStore {
   }
 
   @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final box = _openBox();
+
+    _getFromPath(
+      pathPattern,
+      queryParams: queryParams,
+      onResponseMatch: (r) => box.remove(r.id!),
+    );
+  }
+
+  @override
   Future<bool> exists(String key) async {
     final box = _openBox();
-    return box.query(CacheResponseBox_.key.equals(key)).build().findFirst() !=
-        null;
+
+    final query = box.query(CacheResponseBox_.key.equals(key)).build();
+    final result = query.findFirst() != null;
+    query.close();
+
+    return result;
   }
 
   @override
   Future<CacheResponse?> get(String key) async {
     final box = _openBox();
-    final resp =
-        box.query(CacheResponseBox_.key.equals(key)).build().findFirst();
+
+    final query = box.query(CacheResponseBox_.key.equals(key)).build();
+    final resp = query.findFirst();
+    query.close();
 
     return resp?.toObject();
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = <CacheResponse>[];
+
+    _getFromPath(
+      pathPattern,
+      queryParams: queryParams,
+      onResponseMatch: (r) => responses.add(r.toObject()),
+    );
+
+    return responses;
   }
 
   @override
@@ -84,6 +123,35 @@ class ObjectBoxCacheStore implements CacheStore {
     final box = _openBox();
     await delete(response.key);
     box.put(CacheResponseBox.fromObject(response));
+  }
+
+  void _getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+    required void Function(CacheResponseBox) onResponseMatch,
+  }) {
+    var results = <CacheResponseBox>[];
+    const limit = 10;
+    int offset = 0;
+
+    final box = _openBox();
+
+    do {
+      final query = box.query().build()
+        ..limit = limit
+        ..offset = offset;
+
+      results = query.find();
+      query.close();
+
+      for (final result in results) {
+        if (pathExists(result.url, pathPattern, queryParams: queryParams)) {
+          onResponseMatch.call(result);
+        }
+      }
+
+      offset += limit;
+    } while (results.isNotEmpty);
   }
 }
 

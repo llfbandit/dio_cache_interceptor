@@ -1,17 +1,21 @@
 name: dio_cache_interceptor_db_store
 description: A DB cache store implementation with Moor for dio_cache_interceptor package.
 homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/dio_cache_interceptor_db_store
-version: 4.1.1
+version: 4.2.0
 environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  dio_cache_interceptor: ^3.2.0
+  dio_cache_interceptor: ^3.3.0
 
   # https://pub.dev/packages/drift
   drift: ^1.1.0
   # https://pub.dev/packages/path
   path: ^1.8.0
+
+# dependency_overrides:
+#   dio_cache_interceptor:
+#     path: ../dio_cache_interceptor
 
 dev_dependencies:
   # https://pub.dev/packages/drift_dev

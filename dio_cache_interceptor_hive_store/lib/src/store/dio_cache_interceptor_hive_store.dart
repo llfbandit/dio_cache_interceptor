@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 
 /// A store saving responses using hive.
 ///
-class HiveCacheStore implements CacheStore {
+class HiveCacheStore extends CacheStore {
   // Cache box name
   final String hiveBoxName;
   // Optional cipher to use directly with Hive
@@ -86,6 +86,20 @@ class HiveCacheStore implements CacheStore {
   }
 
   @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = await getFromPath(pathPattern, queryParams: queryParams);
+
+    final box = await _openBox();
+
+    for (final response in responses) {
+      await box.delete(response.key);
+    }
+  }
+
+  @override
   Future<bool> exists(String key) async {
     final box = await _openBox();
     return box.containsKey(key);
@@ -95,6 +109,28 @@ class HiveCacheStore implements CacheStore {
   Future<CacheResponse?> get(String key) async {
     final box = await _openBox();
     return box.get(key);
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = <CacheResponse>[];
+
+    final box = await _openBox();
+
+    for (var i = 0; i < box.keys.length; i++) {
+      final resp = await box.getAt(i);
+
+      if (resp != null) {
+        if (pathExists(resp.url, pathPattern, queryParams: queryParams)) {
+          responses.add(resp);
+        }
+      }
+    }
+
+    return responses;
   }
 
   @override

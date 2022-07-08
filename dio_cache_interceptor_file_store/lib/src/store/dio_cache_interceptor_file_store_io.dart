@@ -9,7 +9,7 @@ import 'package:synchronized/synchronized.dart';
 
 /// A store saving responses in a dedicated file from a given root [directory].
 ///
-class FileCacheStore implements CacheStore {
+class FileCacheStore extends CacheStore {
   final Map<CachePriority, Directory> _directories;
   final Map<String, Lock> _locks = {};
 
@@ -48,6 +48,21 @@ class FileCacheStore implements CacheStore {
   }
 
   @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = await getFromPath(
+      pathPattern,
+      queryParams: queryParams,
+    );
+
+    for (final response in responses) {
+      await delete(response.key);
+    }
+  }
+
+  @override
   Future<bool> exists(String key) async {
     return _synchronized(key, () async => await _findFile(key) != null);
   }
@@ -57,6 +72,37 @@ class FileCacheStore implements CacheStore {
     return _synchronized(key, () async {
       return _deserializeContent(await _findFile(key));
     });
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = <CacheResponse>[];
+
+    final futures = Iterable.generate(CachePriority.high.index + 1, (i) async {
+      final directory = _directories[CachePriority.values[i]]!;
+      if (!await directory.exists()) return;
+
+      directory.listSync(followLinks: false).forEach((fse) async {
+        final file = (fse as File);
+        final key = path.basename(file.path);
+
+        await _synchronized(key, () async {
+          final resp = await _deserializeContent(file);
+          if (resp != null) {
+            if (pathExists(resp.url, pathPattern, queryParams: queryParams)) {
+              responses.add(resp);
+            }
+          }
+        });
+      });
+    });
+
+    await Future.wait(futures);
+
+    return responses;
   }
 
   @override
@@ -236,6 +282,8 @@ class FileCacheStore implements CacheStore {
         await file.delete();
       } catch (_) {}
     }
+
+    return Future.value();
   }
 
   Future<void> _deleteFile(

@@ -1,3 +1,7 @@
+## 3.2.0
+- feat: Add `Store.getFromPath` method.
+- feat: Add `Store.deleteFromPath` method.
+
 ## 3.1.1
 - fix: Now using lazy box to avoid all values loaded into RAM.
 

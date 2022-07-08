@@ -10,7 +10,7 @@ import 'cache_store.dart';
 ///
 /// Mostly useful when you want MemCacheStore before another.
 ///
-class BackupCacheStore implements CacheStore {
+class BackupCacheStore extends CacheStore {
   /// Primary cache store
   final CacheStore primary;
 
@@ -43,6 +43,15 @@ class BackupCacheStore implements CacheStore {
   }
 
   @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    await primary.deleteFromPath(pathPattern, queryParams: queryParams);
+    return secondary.deleteFromPath(pathPattern, queryParams: queryParams);
+  }
+
+  @override
   Future<bool> exists(String key) async {
     return await primary.exists(key) || await secondary.exists(key);
   }
@@ -53,6 +62,21 @@ class BackupCacheStore implements CacheStore {
     if (resp != null) return resp;
 
     return secondary.get(key);
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = <CacheResponse>[];
+
+    responses.addAll(
+        await primary.getFromPath(pathPattern, queryParams: queryParams));
+    responses.addAll(
+        await secondary.getFromPath(pathPattern, queryParams: queryParams));
+
+    return responses.toSet().toList(growable: false);
   }
 
   @override

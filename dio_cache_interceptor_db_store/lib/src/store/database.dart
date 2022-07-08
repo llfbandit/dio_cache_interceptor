@@ -112,22 +112,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     final result = await query.getSingleOrNull();
     if (result == null) return Future.value();
 
-    return CacheResponse(
-      cacheControl: CacheControl.fromHeader(result.cacheControl?.split(', ')),
-      content: result.content,
-      date: result.date,
-      eTag: result.eTag,
-      expires: result.expires,
-      headers: result.headers,
-      key: key,
-      lastModified: result.lastModified,
-      maxStale: result.maxStale,
-      priority: CachePriority.values[result.priority],
-      requestDate: result.requestDate ??
-          result.responseDate.subtract(const Duration(milliseconds: 150)),
-      responseDate: result.responseDate,
-      url: result.url,
-    );
+    return mapDataToResponse(result);
   }
 
   Future<void> set(CacheResponse response) async {
@@ -155,6 +140,25 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
         url: response.url,
       ),
       mode: InsertMode.insertOrReplace,
+    );
+  }
+
+  CacheResponse mapDataToResponse(DioCacheData data) {
+    return CacheResponse(
+      cacheControl: CacheControl.fromHeader(data.cacheControl?.split(', ')),
+      content: data.content,
+      date: data.date,
+      eTag: data.eTag,
+      expires: data.expires,
+      headers: data.headers,
+      key: data.cacheKey,
+      lastModified: data.lastModified,
+      maxStale: data.maxStale,
+      priority: CachePriority.values[data.priority],
+      requestDate: data.requestDate ??
+          data.responseDate.subtract(const Duration(milliseconds: 150)),
+      responseDate: data.responseDate,
+      url: data.url,
     );
   }
 }

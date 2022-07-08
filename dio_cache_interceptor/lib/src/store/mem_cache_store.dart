@@ -2,7 +2,7 @@ import '../../dio_cache_interceptor.dart';
 
 /// A store saving responses in a dedicated memory LRU map.
 ///
-class MemCacheStore implements CacheStore {
+class MemCacheStore extends CacheStore {
   final _LruMap _cache;
 
   /// [maxSize]: Total allowed size in bytes (7MB by default).
@@ -55,6 +55,21 @@ class MemCacheStore implements CacheStore {
   }
 
   @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = await getFromPath(
+      pathPattern,
+      queryParams: queryParams,
+    );
+
+    for (final response in responses) {
+      _cache.remove(response.key);
+    }
+  }
+
+  @override
   Future<bool> exists(String key) {
     return Future.value(_cache.entries.containsKey(key));
   }
@@ -62,6 +77,23 @@ class MemCacheStore implements CacheStore {
   @override
   Future<CacheResponse?> get(String key) async {
     return _cache[key];
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) async {
+    final responses = <CacheResponse>[];
+
+    for (final entry in _cache.entries.entries) {
+      final resp = entry.value.value;
+      if (pathExists(resp.url, pathPattern, queryParams: queryParams)) {
+        responses.add(resp);
+      }
+    }
+
+    return responses;
   }
 
   @override

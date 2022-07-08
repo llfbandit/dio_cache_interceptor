@@ -1,3 +1,9 @@
+## 3.3.0
+- feat: Add `Store.getFromPath` method.
+- feat: Add `Store.deleteFromPath` method.  
+Those two methods allow advanced manipulation of entries in store.  
+Ensure to be restrictive when using it.
+
 ## 3.2.7
 - fix: read/write when cipher is used.
 - core: Avoids some roundtrips resulting in improved performance.

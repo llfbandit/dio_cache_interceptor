@@ -1,6 +1,6 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 
-class FileCacheStore implements CacheStore {
+class FileCacheStore extends CacheStore {
   FileCacheStore(String directory);
 
   @override
@@ -34,5 +34,21 @@ class FileCacheStore implements CacheStore {
   @override
   Future<void> set(CacheResponse response) {
     return Future.value();
+  }
+
+  @override
+  Future<void> deleteFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) {
+    return Future.value();
+  }
+
+  @override
+  Future<List<CacheResponse>> getFromPath(
+    RegExp pathPattern, {
+    Map<String, String?>? queryParams,
+  }) {
+    return Future.value([]);
   }
 }

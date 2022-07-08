@@ -1,3 +1,7 @@
+## 1.2.0
+- feat: Add `Store.getFromPath` method.
+- feat: Add `Store.deleteFromPath` method.
+
 ## 1.1.0
 - Add request date to stored values.
 - Raise dio_cache_interceptor minimum version.

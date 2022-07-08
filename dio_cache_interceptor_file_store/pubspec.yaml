@@ -1,18 +1,22 @@
 name: dio_cache_interceptor_file_store
 description: A filesystem cache store implementation for dio_cache_interceptor package.
 homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/dio_cache_interceptor_file_store
-version: 1.1.0
+version: 1.2.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  dio_cache_interceptor: ^3.2.0
+  dio_cache_interceptor: ^3.3.0
 
   # https://pub.dev/packages/path
   path: ^1.8.0
   # https://pub.dev/packages/synchronized
   synchronized: ^3.0.0
+
+# dependency_overrides:
+#   dio_cache_interceptor:
+#     path: ../dio_cache_interceptor
 
 dev_dependencies:
   # https://pub.dev/packages/lints

@@ -1,3 +1,7 @@
+## 1.1.0
+- feat: Add `Store.getFromPath` method.
+- feat: Add `Store.deleteFromPath` method.
+
 ## 1.0.1
 - Update ObjectBox package.
 
