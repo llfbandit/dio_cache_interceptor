@@ -83,7 +83,7 @@ class DbCacheStore extends CacheStore {
   }) async {
     final responses = <CacheResponse>[];
 
-    _getFromPath(
+    await _getFromPath(
       pathPattern,
       queryParams: queryParams,
       onResponseMatch: (r) async => responses.add(

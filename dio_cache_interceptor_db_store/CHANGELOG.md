@@ -1,3 +1,6 @@
+## 4.2.1
+- fix: Un-awaited `Store.getFromPath` method.
+
 ## 4.2.0
 - feat: Add `Store.getFromPath` method.
 - feat: Add `Store.deleteFromPath` method.
