@@ -1,3 +1,6 @@
+## 5.0.0
+- core: `Drift` version 2 upgrade.
+
 ## 4.2.1
 - fix: Un-awaited `Store.getFromPath` method.
 

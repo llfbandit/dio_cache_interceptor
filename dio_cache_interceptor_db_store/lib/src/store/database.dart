@@ -11,7 +11,7 @@ typedef _MigrateFunction = Future<void> Function(
   int,
 );
 
-@DriftDatabase(include: {'cache_table.moor'}, daos: [DioCacheDao])
+@DriftDatabase(include: {'cache_table.drift'}, daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
 
@@ -59,7 +59,7 @@ class DioCacheDatabase extends _$DioCacheDatabase {
   }
 }
 
-@DriftAccessor(include: {'cache_table.moor'})
+@DriftAccessor(include: {'cache_table.drift'})
 class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     with _$DioCacheDaoMixin {
   DioCacheDao(DioCacheDatabase db) : super(db);
@@ -86,7 +86,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   Future<void> deleteKey(String key, {bool staleOnly = false}) async {
     final query = delete(dioCache)
       ..where((t) {
-        final Expression<bool?> expr = t.cacheKey.equals(key);
+        final expr = t.cacheKey.equals(key);
 
         return staleOnly
             ? expr & t.maxStale.isSmallerOrEqualValue(DateTime.now().toUtc())

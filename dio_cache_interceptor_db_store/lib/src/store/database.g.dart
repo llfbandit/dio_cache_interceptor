@@ -3,10 +3,10 @@
 part of 'database.dart';
 
 // **************************************************************************
-// MoorGenerator
+// DriftDatabaseGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps, unnecessary_this
+// ignore_for_file: type=lint
 class DioCacheData extends DataClass implements Insertable<DioCacheData> {
   final String cacheKey;
   final DateTime? date;
@@ -21,7 +21,7 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
   final DateTime? requestDate;
   final DateTime responseDate;
   final String url;
-  DioCacheData(
+  const DioCacheData(
       {required this.cacheKey,
       this.date,
       this.cacheControl,
@@ -35,68 +35,37 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       this.requestDate,
       required this.responseDate,
       required this.url});
-  factory DioCacheData.fromData(Map<String, dynamic> data, {String? prefix}) {
-    final effectivePrefix = prefix ?? '';
-    return DioCacheData(
-      cacheKey: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}cacheKey'])!,
-      date: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}date']),
-      cacheControl: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}cacheControl']),
-      content: const BlobType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}content']),
-      eTag: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}eTag']),
-      expires: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}expires']),
-      headers: const BlobType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}headers']),
-      lastModified: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}lastModified']),
-      maxStale: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}maxStale']),
-      priority: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}priority'])!,
-      requestDate: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}requestDate']),
-      responseDate: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}responseDate'])!,
-      url: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}url'])!,
-    );
-  }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['cacheKey'] = Variable<String>(cacheKey);
     if (!nullToAbsent || date != null) {
-      map['date'] = Variable<DateTime?>(date);
+      map['date'] = Variable<DateTime>(date);
     }
     if (!nullToAbsent || cacheControl != null) {
-      map['cacheControl'] = Variable<String?>(cacheControl);
+      map['cacheControl'] = Variable<String>(cacheControl);
     }
     if (!nullToAbsent || content != null) {
-      map['content'] = Variable<Uint8List?>(content);
+      map['content'] = Variable<Uint8List>(content);
     }
     if (!nullToAbsent || eTag != null) {
-      map['eTag'] = Variable<String?>(eTag);
+      map['eTag'] = Variable<String>(eTag);
     }
     if (!nullToAbsent || expires != null) {
-      map['expires'] = Variable<DateTime?>(expires);
+      map['expires'] = Variable<DateTime>(expires);
     }
     if (!nullToAbsent || headers != null) {
-      map['headers'] = Variable<Uint8List?>(headers);
+      map['headers'] = Variable<Uint8List>(headers);
     }
     if (!nullToAbsent || lastModified != null) {
-      map['lastModified'] = Variable<String?>(lastModified);
+      map['lastModified'] = Variable<String>(lastModified);
     }
     if (!nullToAbsent || maxStale != null) {
-      map['maxStale'] = Variable<DateTime?>(maxStale);
+      map['maxStale'] = Variable<DateTime>(maxStale);
     }
     map['priority'] = Variable<int>(priority);
     if (!nullToAbsent || requestDate != null) {
-      map['requestDate'] = Variable<DateTime?>(requestDate);
+      map['requestDate'] = Variable<DateTime>(requestDate);
     }
     map['responseDate'] = Variable<DateTime>(responseDate);
     map['url'] = Variable<String>(url);
@@ -144,30 +113,32 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
 
   DioCacheData copyWith(
           {String? cacheKey,
-          DateTime? date,
-          String? cacheControl,
-          Uint8List? content,
-          String? eTag,
-          DateTime? expires,
-          Uint8List? headers,
-          String? lastModified,
-          DateTime? maxStale,
+          Value<DateTime?> date = const Value.absent(),
+          Value<String?> cacheControl = const Value.absent(),
+          Value<Uint8List?> content = const Value.absent(),
+          Value<String?> eTag = const Value.absent(),
+          Value<DateTime?> expires = const Value.absent(),
+          Value<Uint8List?> headers = const Value.absent(),
+          Value<String?> lastModified = const Value.absent(),
+          Value<DateTime?> maxStale = const Value.absent(),
           int? priority,
-          DateTime? requestDate,
+          Value<DateTime?> requestDate = const Value.absent(),
           DateTime? responseDate,
           String? url}) =>
       DioCacheData(
         cacheKey: cacheKey ?? this.cacheKey,
-        date: date ?? this.date,
-        cacheControl: cacheControl ?? this.cacheControl,
-        content: content ?? this.content,
-        eTag: eTag ?? this.eTag,
-        expires: expires ?? this.expires,
-        headers: headers ?? this.headers,
-        lastModified: lastModified ?? this.lastModified,
-        maxStale: maxStale ?? this.maxStale,
+        date: date.present ? date.value : this.date,
+        cacheControl:
+            cacheControl.present ? cacheControl.value : this.cacheControl,
+        content: content.present ? content.value : this.content,
+        eTag: eTag.present ? eTag.value : this.eTag,
+        expires: expires.present ? expires.value : this.expires,
+        headers: headers.present ? headers.value : this.headers,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
+        maxStale: maxStale.present ? maxStale.value : this.maxStale,
         priority: priority ?? this.priority,
-        requestDate: requestDate ?? this.requestDate,
+        requestDate: requestDate.present ? requestDate.value : this.requestDate,
         responseDate: responseDate ?? this.responseDate,
         url: url ?? this.url,
       );
@@ -274,16 +245,16 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
         url = Value(url);
   static Insertable<DioCacheData> custom({
     Expression<String>? cacheKey,
-    Expression<DateTime?>? date,
-    Expression<String?>? cacheControl,
-    Expression<Uint8List?>? content,
-    Expression<String?>? eTag,
-    Expression<DateTime?>? expires,
-    Expression<Uint8List?>? headers,
-    Expression<String?>? lastModified,
-    Expression<DateTime?>? maxStale,
+    Expression<DateTime>? date,
+    Expression<String>? cacheControl,
+    Expression<Uint8List>? content,
+    Expression<String>? eTag,
+    Expression<DateTime>? expires,
+    Expression<Uint8List>? headers,
+    Expression<String>? lastModified,
+    Expression<DateTime>? maxStale,
     Expression<int>? priority,
-    Expression<DateTime?>? requestDate,
+    Expression<DateTime>? requestDate,
     Expression<DateTime>? responseDate,
     Expression<String>? url,
   }) {
@@ -342,34 +313,34 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       map['cacheKey'] = Variable<String>(cacheKey.value);
     }
     if (date.present) {
-      map['date'] = Variable<DateTime?>(date.value);
+      map['date'] = Variable<DateTime>(date.value);
     }
     if (cacheControl.present) {
-      map['cacheControl'] = Variable<String?>(cacheControl.value);
+      map['cacheControl'] = Variable<String>(cacheControl.value);
     }
     if (content.present) {
-      map['content'] = Variable<Uint8List?>(content.value);
+      map['content'] = Variable<Uint8List>(content.value);
     }
     if (eTag.present) {
-      map['eTag'] = Variable<String?>(eTag.value);
+      map['eTag'] = Variable<String>(eTag.value);
     }
     if (expires.present) {
-      map['expires'] = Variable<DateTime?>(expires.value);
+      map['expires'] = Variable<DateTime>(expires.value);
     }
     if (headers.present) {
-      map['headers'] = Variable<Uint8List?>(headers.value);
+      map['headers'] = Variable<Uint8List>(headers.value);
     }
     if (lastModified.present) {
-      map['lastModified'] = Variable<String?>(lastModified.value);
+      map['lastModified'] = Variable<String>(lastModified.value);
     }
     if (maxStale.present) {
-      map['maxStale'] = Variable<DateTime?>(maxStale.value);
+      map['maxStale'] = Variable<DateTime>(maxStale.value);
     }
     if (priority.present) {
       map['priority'] = Variable<int>(priority.value);
     }
     if (requestDate.present) {
-      map['requestDate'] = Variable<DateTime?>(requestDate.value);
+      map['requestDate'] = Variable<DateTime>(requestDate.value);
     }
     if (responseDate.present) {
       map['responseDate'] = Variable<DateTime>(responseDate.value);
@@ -406,69 +377,69 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   DioCache(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String?> cacheKey = GeneratedColumn<String?>(
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
       'cacheKey', aliasedName, false,
-      type: const StringType(),
+      type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL PRIMARY KEY');
-  late final GeneratedColumn<DateTime?> date = GeneratedColumn<DateTime?>(
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
       'date', aliasedName, true,
-      type: const IntType(),
+      type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<String?> cacheControl = GeneratedColumn<String?>(
+  late final GeneratedColumn<String> cacheControl = GeneratedColumn<String>(
       'cacheControl', aliasedName, true,
-      type: const StringType(),
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<Uint8List?> content = GeneratedColumn<Uint8List?>(
+  late final GeneratedColumn<Uint8List> content = GeneratedColumn<Uint8List>(
       'content', aliasedName, true,
-      type: const BlobType(),
+      type: DriftSqlType.blob,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<String?> eTag = GeneratedColumn<String?>(
+  late final GeneratedColumn<String> eTag = GeneratedColumn<String>(
       'eTag', aliasedName, true,
-      type: const StringType(),
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<DateTime?> expires = GeneratedColumn<DateTime?>(
+  late final GeneratedColumn<DateTime> expires = GeneratedColumn<DateTime>(
       'expires', aliasedName, true,
-      type: const IntType(),
+      type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<Uint8List?> headers = GeneratedColumn<Uint8List?>(
+  late final GeneratedColumn<Uint8List> headers = GeneratedColumn<Uint8List>(
       'headers', aliasedName, true,
-      type: const BlobType(),
+      type: DriftSqlType.blob,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<String?> lastModified = GeneratedColumn<String?>(
+  late final GeneratedColumn<String> lastModified = GeneratedColumn<String>(
       'lastModified', aliasedName, true,
-      type: const StringType(),
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<DateTime?> maxStale = GeneratedColumn<DateTime?>(
+  late final GeneratedColumn<DateTime> maxStale = GeneratedColumn<DateTime>(
       'maxStale', aliasedName, true,
-      type: const IntType(),
+      type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<int?> priority = GeneratedColumn<int?>(
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
       'priority', aliasedName, false,
-      type: const IntType(),
+      type: DriftSqlType.int,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
-  late final GeneratedColumn<DateTime?> requestDate =
-      GeneratedColumn<DateTime?>('requestDate', aliasedName, true,
-          type: const IntType(),
-          requiredDuringInsert: false,
-          $customConstraints: '');
-  late final GeneratedColumn<DateTime?> responseDate =
-      GeneratedColumn<DateTime?>('responseDate', aliasedName, false,
-          type: const IntType(),
-          requiredDuringInsert: true,
-          $customConstraints: 'NOT NULL');
-  late final GeneratedColumn<String?> url = GeneratedColumn<String?>(
+  late final GeneratedColumn<DateTime> requestDate = GeneratedColumn<DateTime>(
+      'requestDate', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<DateTime> responseDate = GeneratedColumn<DateTime>(
+      'responseDate', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
       'url', aliasedName, false,
-      type: const StringType(),
+      type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
   @override
@@ -495,8 +466,35 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
   Set<GeneratedColumn> get $primaryKey => {cacheKey};
   @override
   DioCacheData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return DioCacheData.fromData(data,
-        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DioCacheData(
+      cacheKey: attachedDatabase.options.types
+          .read(DriftSqlType.string, data['${effectivePrefix}cacheKey'])!,
+      date: attachedDatabase.options.types
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}date']),
+      cacheControl: attachedDatabase.options.types
+          .read(DriftSqlType.string, data['${effectivePrefix}cacheControl']),
+      content: attachedDatabase.options.types
+          .read(DriftSqlType.blob, data['${effectivePrefix}content']),
+      eTag: attachedDatabase.options.types
+          .read(DriftSqlType.string, data['${effectivePrefix}eTag']),
+      expires: attachedDatabase.options.types
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires']),
+      headers: attachedDatabase.options.types
+          .read(DriftSqlType.blob, data['${effectivePrefix}headers']),
+      lastModified: attachedDatabase.options.types
+          .read(DriftSqlType.string, data['${effectivePrefix}lastModified']),
+      maxStale: attachedDatabase.options.types
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}maxStale']),
+      priority: attachedDatabase.options.types
+          .read(DriftSqlType.int, data['${effectivePrefix}priority'])!,
+      requestDate: attachedDatabase.options.types
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}requestDate']),
+      responseDate: attachedDatabase.options.types
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}responseDate'])!,
+      url: attachedDatabase.options.types
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+    );
   }
 
   @override
@@ -509,11 +507,12 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
 }
 
 abstract class _$DioCacheDatabase extends GeneratedDatabase {
-  _$DioCacheDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  _$DioCacheDatabase(QueryExecutor e) : super(e);
   late final DioCache dioCache = DioCache(this);
   late final DioCacheDao dioCacheDao = DioCacheDao(this as DioCacheDatabase);
   @override
-  Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
+  Iterable<TableInfo<Table, dynamic>> get allTables =>
+      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [dioCache];
 }
