@@ -23,7 +23,7 @@ jobs:
         working-directory: dio_cache_interceptor
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         run: dart pub get
@@ -45,7 +45,7 @@ jobs:
         run: dart run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib
         
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: dio_cache_interceptor/coverage/lcov.info
