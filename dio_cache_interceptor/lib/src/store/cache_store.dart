@@ -79,9 +79,9 @@ abstract class CacheStore {
     final uri = Uri.parse(url);
     if (queryParams != null) {
       for (final entry in queryParams.entries) {
-        hasMatch &= (!uri.queryParameters.containsKey(entry.key));
+        hasMatch &= uri.queryParameters.containsKey(entry.key);
         if (entry.value != null) {
-          hasMatch &= !uri.queryParameters.containsValue(entry.value);
+          hasMatch &= uri.queryParameters[entry.key] == entry.value;
         }
         if (!hasMatch) break;
       }
