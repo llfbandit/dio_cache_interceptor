@@ -1,3 +1,6 @@
+## 3.3.1
+- fix: pathExists queryParams are not checked correctly (thanks to @clragon)
+
 ## 3.3.0
 - feat: Add `Store.getFromPath` method.
 - feat: Add `Store.deleteFromPath` method.  

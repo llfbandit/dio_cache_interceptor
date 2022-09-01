@@ -16,6 +16,7 @@ Future<void> _addFooResponse(
   String? lastModified,
   List<int>? headers,
   DateTime? maxStale,
+  String url = 'https://foo.com',
 }) {
   final resp = CacheResponse(
     cacheControl: cacheControl ?? CacheControl(),
@@ -30,7 +31,7 @@ Future<void> _addFooResponse(
     priority: CachePriority.normal,
     requestDate: DateTime.now().subtract(const Duration(milliseconds: 50)),
     responseDate: DateTime.now(),
-    url: 'https://foo.com',
+    url: url,
   );
 
   return store.set(resp);
@@ -170,4 +171,139 @@ Future<void> concurrentAccess(CacheStore store) async {
   }
 
   await completer.future;
+}
+
+void pathExists(CacheStore store) {
+  // Match regex with no query params
+  expect(store.pathExists('/foo', RegExp('/foo')), isTrue);
+  expect(store.pathExists('/foo', RegExp('/bar')), isFalse);
+
+  // Match with null query params (matches all query params)
+  expect(
+    store.pathExists(
+      Uri(
+        path: '/foo',
+        queryParameters: {'bar': 'foobar'},
+      ).toString(),
+      RegExp('/foo'),
+      queryParams: null,
+    ),
+    isTrue,
+  );
+
+  // Match with null value query param (matches key with any value)
+  expect(
+    store.pathExists(
+      Uri(
+        path: '/foo',
+        queryParameters: {'bar': 'foobar'},
+      ).toString(),
+      RegExp('/foo'),
+      queryParams: {'bar': null},
+    ),
+    isTrue,
+  );
+
+  // Match with exact query params
+  expect(
+    store.pathExists(
+      Uri(
+        path: '/foo',
+        queryParameters: {'bar': 'foobar'},
+      ).toString(),
+      RegExp('/foo'),
+      queryParams: {'bar': 'foobar'},
+    ),
+    isTrue,
+  );
+
+  // No match on different query param value
+  expect(
+    store.pathExists(
+      Uri(
+        path: '/foo',
+        queryParameters: {'bar': 'foobar'},
+      ).toString(),
+      RegExp('/foo'),
+      queryParams: {'bar': 'baz'},
+    ),
+    isFalse,
+  );
+
+  // No match on query params with different values
+  expect(
+    store.pathExists(
+      Uri(
+        path: '/foo',
+        queryParameters: {
+          'bar': 'foo',
+          'qux': 'bar',
+        },
+      ).toString(),
+      RegExp('/foo'),
+      queryParams: {
+        'bar': 'foo',
+        'qux': 'foo',
+      },
+    ),
+    isFalse,
+  );
+}
+
+Future<void> deleteFromPath(CacheStore store) async {
+  await _addFooResponse(store);
+  expect(await store.exists('foo'), isTrue);
+  await store.deleteFromPath(RegExp('https://foo.com'));
+  expect(await store.exists('foo'), isFalse);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  expect(await store.exists('foo'), isTrue);
+  await store.deleteFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': null},
+  );
+  expect(await store.exists('foo'), isFalse);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  expect(await store.exists('foo'), isTrue);
+  await store.deleteFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': 'bar'},
+  );
+  expect(await store.exists('foo'), isFalse);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  expect(await store.exists('foo'), isTrue);
+  await store.deleteFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': 'foobar'},
+  );
+  expect(await store.exists('foo'), isTrue);
+}
+
+Future<void> getFromPath(CacheStore store) async {
+  await _addFooResponse(store);
+  var list = await store.getFromPath(RegExp('https://foo.com'));
+  expect(list.length, 1);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  list = await store.getFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': null},
+  );
+  expect(list.length, 1);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  list = await store.getFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': 'bar'},
+  );
+  expect(list.length, 1);
+
+  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  list = await store.getFromPath(
+    RegExp('https://foo.com'),
+    queryParams: {'bar': 'foobar'},
+  );
+  expect(list.length, 0);
 }
