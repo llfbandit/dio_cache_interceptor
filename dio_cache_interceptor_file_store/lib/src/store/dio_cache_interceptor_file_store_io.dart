@@ -22,21 +22,22 @@ class FileCacheStore extends CacheStore {
     CachePriority priorityOrBelow = CachePriority.high,
     bool staleOnly = false,
   }) async {
-    final futures = Iterable.generate(priorityOrBelow.index + 1, (i) async {
-      final directory = _directories[CachePriority.values[i]]!;
-      if (!await directory.exists()) return;
+    for (var index = 0; index <= priorityOrBelow.index; ++index) {
+      final directory = _directories[CachePriority.values[index]]!;
 
-      directory.listSync(followLinks: false).forEach((fse) async {
-        final file = (fse as File);
-        final key = path.basename(file.path);
+      if (!await directory.exists()) continue;
 
-        await _synchronized(key, () async {
-          await _deleteFile(file, staleOnly: staleOnly);
-        });
-      });
-    });
+      final fseList = directory.listSync(followLinks: false);
+      for (final fse in fseList) {
+        if (fse is File) {
+          final key = path.basename(fse.path);
 
-    await Future.wait(futures);
+          await _synchronized(key, () async {
+            await _deleteFile(fse, staleOnly: staleOnly);
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -81,26 +82,27 @@ class FileCacheStore extends CacheStore {
   }) async {
     final responses = <CacheResponse>[];
 
-    final futures = Iterable.generate(CachePriority.high.index + 1, (i) async {
-      final directory = _directories[CachePriority.values[i]]!;
-      if (!await directory.exists()) return;
+    for (final priority in CachePriority.values) {
+      final directory = _directories[priority]!;
 
-      directory.listSync(followLinks: false).forEach((fse) async {
-        final file = (fse as File);
-        final key = path.basename(file.path);
+      if (!await directory.exists()) continue;
 
-        await _synchronized(key, () async {
-          final resp = await _deserializeContent(file);
-          if (resp != null) {
-            if (pathExists(resp.url, pathPattern, queryParams: queryParams)) {
-              responses.add(resp);
+      final fseList = directory.listSync(followLinks: false);
+      for (final fse in fseList) {
+        if (fse is File) {
+          final key = path.basename(fse.path);
+
+          await _synchronized(key, () async {
+            final resp = await _deserializeContent(fse);
+            if (resp != null) {
+              if (pathExists(resp.url, pathPattern, queryParams: queryParams)) {
+                responses.add(resp);
+              }
             }
-          }
-        });
-      });
-    });
-
-    await Future.wait(futures);
+          });
+        }
+      }
+    }
 
     return responses;
   }

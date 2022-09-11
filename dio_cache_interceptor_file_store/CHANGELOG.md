@@ -1,3 +1,7 @@
+## 1.2.1
+- fix: Wrongly awaited `clean` method.
+- fix: Wrongly awaited `getFromPath` method.
+
 ## 1.2.0
 - feat: Add `Store.getFromPath` method.
 - feat: Add `Store.deleteFromPath` method.
