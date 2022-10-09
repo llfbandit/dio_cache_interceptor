@@ -15,6 +15,8 @@ typedef _MigrateFunction = Future<void> Function(
 class DioCacheDatabase extends _$DioCacheDatabase {
   DioCacheDatabase(QueryExecutor e) : super(e);
 
+  DioCacheDatabase.connect(DatabaseConnection c) : super.connect(c);
+
   final Map<int, _MigrateFunction> _migrationsMap = {
     1: _migrateToV2,
   };

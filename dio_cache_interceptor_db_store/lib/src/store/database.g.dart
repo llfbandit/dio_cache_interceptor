@@ -508,6 +508,7 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
 
 abstract class _$DioCacheDatabase extends GeneratedDatabase {
   _$DioCacheDatabase(QueryExecutor e) : super(e);
+  _$DioCacheDatabase.connect(DatabaseConnection c) : super.connect(c);
   late final DioCache dioCache = DioCache(this);
   late final DioCacheDao dioCacheDao = DioCacheDao(this as DioCacheDatabase);
   @override
