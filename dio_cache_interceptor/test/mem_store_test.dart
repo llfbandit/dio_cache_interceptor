@@ -16,7 +16,7 @@ void main() {
     await store.close();
   });
 
-  Future<void> _storeResponse(
+  Future<void> storeResponse(
     String key,
     List<int> content,
     List<int>? headers,
@@ -44,7 +44,7 @@ void main() {
     final content = Uint8List(100000);
 
     for (var i = 0; i < 50; ++i) {
-      await _storeResponse('foo_$i', content, null);
+      await storeResponse('foo_$i', content, null);
     }
 
     var valid = <String>[];
@@ -68,18 +68,18 @@ void main() {
   });
 
   test('maxEntrySize at max', () async {
-    await _storeResponse('foo1', Uint8List(100000), null);
+    await storeResponse('foo1', Uint8List(100000), null);
     expect(await store.exists('foo1'), isTrue);
 
-    await _storeResponse('foo2', Uint8List(99998), Uint8List(2));
+    await storeResponse('foo2', Uint8List(99998), Uint8List(2));
     expect(await store.exists('foo2'), isTrue);
   });
 
   test('maxEntrySize above max', () async {
-    await _storeResponse('foo1', Uint8List(100001), null);
+    await storeResponse('foo1', Uint8List(100001), null);
     expect(await store.exists('foo1'), isFalse);
 
-    await _storeResponse('foo2', Uint8List(99998), Uint8List(3));
+    await storeResponse('foo2', Uint8List(99998), Uint8List(3));
     expect(await store.exists('foo2'), isFalse);
   });
 

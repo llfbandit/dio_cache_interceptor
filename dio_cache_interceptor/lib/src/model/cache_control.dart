@@ -67,7 +67,7 @@ class CacheControl {
   /// Builds Cache Control from header values
   factory CacheControl.fromHeader(List<String>? headerValues) {
     // Parses single header value
-    void _parseHeaderValue(
+    void parseHeaderValue(
       StringScanner scanner,
       Map<String, String> parameters,
       List<String> other,
@@ -102,10 +102,10 @@ class CacheControl {
     for (var value in headerValues) {
       if (value.isNotEmpty) {
         final scanner = StringScanner(value);
-        _parseHeaderValue(scanner, parameters, other);
+        parseHeaderValue(scanner, parameters, other);
 
         while (scanner.scan(',')) {
-          _parseHeaderValue(scanner, parameters, other);
+          parseHeaderValue(scanner, parameters, other);
         }
         scanner.expectDone();
       }
