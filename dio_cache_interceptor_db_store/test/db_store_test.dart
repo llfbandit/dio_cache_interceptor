@@ -1,10 +1,8 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
 import 'package:dio_cache_interceptor_db_store/src/store/database.dart';
-import 'package:sqlite3/open.dart';
 import 'package:test/test.dart';
 
 import '../../dio_cache_interceptor/test/common_store_testing.dart';
@@ -12,13 +10,7 @@ import '../../dio_cache_interceptor/test/common_store_testing.dart';
 void main() {
   late DbCacheStore store;
 
-  DynamicLibrary _openOnWindows() {
-    final libFile = File('${Directory.current.path}/test/lib/sqlite3.dll');
-    return DynamicLibrary.open(libFile.path);
-  }
-
   setUpAll(() {
-    open.overrideFor(OperatingSystem.windows, _openOnWindows);
     store = DbCacheStore(databasePath: '${Directory.current.path}/test/data');
   });
 

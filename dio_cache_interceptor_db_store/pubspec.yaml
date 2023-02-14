@@ -21,10 +21,8 @@ dev_dependencies:
   # https://pub.dev/packages/drift_dev
   drift_dev: ^2.0.2
   # https://pub.dev/packages/build_runner
-  build_runner: ^2.0.5
+  build_runner: ^2.3.3
   # https://pub.dev/packages/lints
-  lints: ^1.0.1
-  # https://pub.dev/packages/sqlite3
-  sqlite3: ^1.1.2
+  lints: ^2.0.1
   # https://pub.dev/packages/test
   test: ^1.18.0
