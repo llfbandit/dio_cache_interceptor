@@ -10,14 +10,14 @@ environment:
 
 dependencies:
   # https://pub.dev/packages/dio
-  dio: ^4.0.0
+  dio: ^5.0.0
   # https://pub.dev/packages/uuid
-  uuid: ^3.0.4
+  uuid: ^3.0.7
   # https://pub.dev/packages/string_scanner
-  string_scanner: ^1.1.0
+  string_scanner: ^1.2.0
 
 dev_dependencies:
   # https://pub.dev/packages/lints
-  lints: ^1.0.1
+  lints: ^2.0.1
   # https://pub.dev/packages/test
-  test: ^1.18.0
+  test: ^1.23.1
