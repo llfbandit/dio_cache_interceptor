@@ -36,13 +36,10 @@ jobs:
       - name: Analyze project source
         run: dart analyze
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
           dart pub global activate coverage
-          dart run test --coverage="coverage"
-
-      - name: Convert coverage to LCOV
-        run: dart run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --base-directory=. --packages=.packages --report-on=lib
+          dart pub global run coverage:test_with_coverage
         
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
