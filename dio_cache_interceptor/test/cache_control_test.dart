@@ -7,7 +7,7 @@ import 'package:dio_cache_interceptor/src/util/request_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
-  CacheResponse _buildResponse({
+  CacheResponse buildResponse({
     DateTime? date,
     DateTime? expires,
     CacheControl? cacheControl,
@@ -32,14 +32,14 @@ void main() {
   }
 
   test('isExpired', () {
-    var resp = _buildResponse(
+    var resp = buildResponse(
       date: null,
       expires: null,
       cacheControl: CacheControl(),
     );
     expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
-    resp = _buildResponse(
+    resp = buildResponse(
       date: DateTime.now().subtract(const Duration(seconds: 12)),
       expires: null,
       cacheControl: CacheControl(maxAge: 10),
@@ -47,7 +47,7 @@ void main() {
     expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     // max-age takes precedence over expires
-    resp = _buildResponse(
+    resp = buildResponse(
       date: DateTime.now().subtract(const Duration(seconds: 12)),
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 10),
@@ -55,21 +55,21 @@ void main() {
     expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
     // max-age is invalid check with expires
-    resp = _buildResponse(
+    resp = buildResponse(
       date: DateTime.now().subtract(const Duration(seconds: 12)),
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 0),
     );
     expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
-    resp = _buildResponse(
+    resp = buildResponse(
       date: null,
       expires: DateTime.now().subtract(const Duration(hours: 10)),
       cacheControl: CacheControl(),
     );
     expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
 
-    resp = _buildResponse(
+    resp = buildResponse(
       date: DateTime.now(),
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(),
@@ -77,7 +77,7 @@ void main() {
     expect(resp.isExpired(requestCaching: CacheControl()), isFalse);
   });
 
-  void _compareCacheControls(CacheControl cc1, CacheControl cc2) {
+  void compareCacheControls(CacheControl cc1, CacheControl cc2) {
     expect(cc1.maxAge, equals(cc2.maxAge));
     expect(cc1.noCache, equals(cc2.noCache));
     expect(cc1.noStore, equals(cc2.noStore));
@@ -99,8 +99,8 @@ void main() {
     expect(cacheControl1.minFresh, equals(-1));
     expect(cacheControl1.mustRevalidate, equals(false));
 
-    _compareCacheControls(cacheControl1, CacheControl.fromHeader(null));
-    _compareCacheControls(cacheControl1, CacheControl.fromHeader([]));
+    compareCacheControls(cacheControl1, CacheControl.fromHeader(null));
+    compareCacheControls(cacheControl1, CacheControl.fromHeader([]));
   });
 
   test('headers', () {
@@ -119,11 +119,11 @@ void main() {
       'max-age=1, no-store, no-cache, public, unknown, unknown2=2, max-stale=2, min-fresh=3, must-revalidate',
     ]);
 
-    _compareCacheControls(cacheControl1, cacheControl2);
+    compareCacheControls(cacheControl1, cacheControl2);
 
     // Redo test with toHeader()
     final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
-    _compareCacheControls(cacheControl1, cacheControl3);
+    compareCacheControls(cacheControl1, cacheControl3);
   });
 
   test('headers splitted', () {
@@ -147,11 +147,11 @@ void main() {
       'must-revalidate',
     ]);
 
-    _compareCacheControls(cacheControl1, cacheControl2);
+    compareCacheControls(cacheControl1, cacheControl2);
 
     // Redo test with toHeader()
     final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
-    _compareCacheControls(cacheControl1, cacheControl3);
+    compareCacheControls(cacheControl1, cacheControl3);
   });
 
   test('request cache control from String', () {
@@ -174,7 +174,7 @@ void main() {
       },
     );
 
-    _compareCacheControls(
+    compareCacheControls(
       cacheControlReference,
       CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
     );
@@ -188,7 +188,7 @@ void main() {
       },
     );
 
-    _compareCacheControls(
+    compareCacheControls(
       cacheControlReference,
       CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
     );

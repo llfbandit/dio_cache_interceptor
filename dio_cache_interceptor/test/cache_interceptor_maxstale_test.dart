@@ -5,21 +5,21 @@ import 'package:test/test.dart';
 import 'mock_httpclient_adapter.dart';
 
 void main() {
-  late Dio _dio;
+  late Dio dio;
   late CacheStore store;
   late CacheOptions options;
 
   void setUpDefault() {
-    _dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
+    dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
 
     store = MemCacheStore();
     options = CacheOptions(store: store);
 
-    _dio.interceptors.add(DioCacheInterceptor(options: options));
+    dio.interceptors.add(DioCacheInterceptor(options: options));
   }
 
   void setUpMaxStale() {
-    _dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
+    dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
 
     store = MemCacheStore();
     options = CacheOptions(
@@ -27,16 +27,16 @@ void main() {
       maxStale: const Duration(seconds: 1),
     );
 
-    _dio.interceptors.add(DioCacheInterceptor(options: options));
+    dio.interceptors.add(DioCacheInterceptor(options: options));
   }
 
   tearDown(() {
-    _dio.close();
+    dio.close();
     store.close();
   });
 
-  Future<Response> _request(CacheOptions options) {
-    return _dio.get(
+  Future<Response> request(CacheOptions options) {
+    return dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options.toOptions(),
     );
@@ -45,7 +45,7 @@ void main() {
   test('maxStale from base', () async {
     setUpMaxStale();
 
-    final resp = await _request(options.copyWith(
+    final resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
     ));
 
@@ -56,7 +56,7 @@ void main() {
   test('maxStale from request', () async {
     setUpDefault();
 
-    final resp = await _request(options.copyWith(
+    final resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
       maxStale: const Nullable(Duration(seconds: 1)),
     ));
@@ -69,7 +69,7 @@ void main() {
     setUpMaxStale();
 
     // Request for the 1st time
-    var resp = await _request(options.copyWith(
+    var resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
     ));
     var key = resp.extra[CacheResponse.cacheKey];
@@ -78,7 +78,7 @@ void main() {
     await Future.delayed(const Duration(seconds: 2));
 
     // Request a 2nd time to ensure the cache entry is now deleted
-    resp = await _request(options.copyWith(maxStale: Nullable(null)));
+    resp = await request(options.copyWith(maxStale: Nullable(null)));
 
     expect(await store.exists(key), isFalse);
   });
@@ -87,7 +87,7 @@ void main() {
     setUpDefault();
 
     // Request for the 1st time
-    var resp = await _request(options.copyWith(
+    var resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
       maxStale: const Nullable(Duration(seconds: 1)),
     ));
@@ -98,7 +98,7 @@ void main() {
 
     // Request a 2nd time to postpone stale date
     // We wait for 2 second so the cache is now staled but we recover it
-    resp = await _request(options.copyWith(
+    resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
       maxStale: const Nullable(Duration(seconds: 1)),
     ));
@@ -108,7 +108,7 @@ void main() {
 
     // Request for the last time without maxStale directive to ensure
     // the cache entry is now deleted
-    resp = await _request(options);
+    resp = await request(options);
 
     expect(await store.exists(key), isFalse);
   });

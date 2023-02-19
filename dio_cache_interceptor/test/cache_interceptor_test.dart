@@ -5,26 +5,26 @@ import 'package:test/test.dart';
 import 'mock_httpclient_adapter.dart';
 
 void main() {
-  late Dio _dio;
+  late Dio dio;
   late CacheStore store;
   late CacheOptions options;
 
   setUp(() async {
-    _dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
+    dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
 
     store = MemCacheStore();
     await store.clean();
     options = CacheOptions(store: store);
 
-    _dio.interceptors.add(DioCacheInterceptor(options: options));
+    dio.interceptors.add(DioCacheInterceptor(options: options));
   });
 
   tearDown(() async {
-    _dio.close();
+    dio.close();
   });
 
   test('Fetch stream 200', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-stream',
       options: Options(responseType: ResponseType.stream),
     );
@@ -36,7 +36,7 @@ void main() {
 
   test('Fetch canceled', () async {
     try {
-      await _dio.get(
+      await dio.get(
         '${MockHttpClientAdapter.mockBase}/ok',
         cancelToken: CancelToken()..cancel(),
       );
@@ -59,13 +59,13 @@ void main() {
       )),
     );
 
-    var resp = await _dio.get(
+    var resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: cipherOptions.toOptions(),
     );
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
 
-    resp = await _dio.get(
+    resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options:
           cipherOptions.copyWith(policy: CachePolicy.forceCache).toOptions(),
@@ -74,22 +74,22 @@ void main() {
   });
 
   test('Fetch 200', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     expect(resp.data['path'], equals('/ok'));
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
   });
 
   test('Fetch bytes 200', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok-bytes');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok-bytes');
     expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
   });
 
   test('Fetch 304', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp304 = await _dio.get(
+    final resp304 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: Options(headers: {'if-none-match': resp.headers['etag']}),
     );
@@ -101,7 +101,7 @@ void main() {
   });
 
   test('Fetch cacheStoreNo policy', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: options.copyWith(policy: CachePolicy.noCache).toOptions(),
     );
@@ -111,21 +111,21 @@ void main() {
 
   test('Fetch force policy', () async {
     // 1st time fetch
-    var resp = await _dio.get(
+    var resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
     );
     expect(resp.statusCode, equals(200));
     expect(resp.extra[CacheResponse.fromNetwork], isTrue);
     // 2nd time cache
-    resp = await _dio.get(
+    resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
     );
     expect(resp.statusCode, equals(304));
     expect(resp.extra[CacheResponse.fromNetwork], isFalse);
     // 3rd time fetch
-    resp = await _dio.get(
+    resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options:
           options.copyWith(policy: CachePolicy.refreshForceCache).toOptions(),
@@ -135,11 +135,11 @@ void main() {
   });
 
   test('Fetch refresh policy', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp200 = await _dio.get(
+    final resp200 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: options
           .copyWith(
@@ -153,14 +153,14 @@ void main() {
   });
 
   test('Fetch post skip request', () async {
-    final resp = await _dio.post('${MockHttpClientAdapter.mockBase}/post');
+    final resp = await dio.post('${MockHttpClientAdapter.mockBase}/post');
     expect(resp.statusCode, equals(200));
     expect(resp.data['path'], equals('/post'));
     expect(resp.extra[CacheResponse.cacheKey], isNull);
   });
 
   test('Fetch post doesn\'t skip request', () async {
-    final resp = await _dio.post(
+    final resp = await dio.post(
       '${MockHttpClientAdapter.mockBase}/post',
       options: Options(
         extra: options.copyWith(allowPostMethod: true).toExtra(),
@@ -173,12 +173,12 @@ void main() {
   });
 
   test('Fetch hitCacheOnErrorExcept 500', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
     try {
-      await _dio.get(
+      await dio.get(
         '${MockHttpClientAdapter.mockBase}/ok',
         options: Options(
           extra: options
@@ -194,7 +194,7 @@ void main() {
     }
 
     try {
-      await _dio.get(
+      await dio.get(
         '${MockHttpClientAdapter.mockBase}/ok',
         options: Options(
           extra: options
@@ -215,11 +215,11 @@ void main() {
   });
 
   test('Fetch hitCacheOnErrorExcept 500 valid', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp2 = await _dio.get(
+    final resp2 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: Options(
         extra: options
@@ -237,11 +237,11 @@ void main() {
   });
 
   test('Fetch hitCacheOnErrorExcept socket exception valid', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/exception');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/exception');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp2 = await _dio.get(
+    final resp2 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/exception',
       options: Options(
         extra: options.copyWith(hitCacheOnErrorExcept: Nullable([])).toExtra()
@@ -254,13 +254,13 @@ void main() {
   });
 
   test('Fetch Cache-Control', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
     var cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    var resp304 = await _dio.get(
+    var resp304 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
     expect(resp304.statusCode, equals(304));
@@ -269,13 +269,13 @@ void main() {
   });
 
   test('Fetch Cache-Control expired', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
     );
     var cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp304 = await _dio.get(
+    final resp304 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
     );
     expect(resp304.statusCode, equals(304));
@@ -285,7 +285,7 @@ void main() {
   });
 
   test('Fetch Cache-Control no-store', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-no-store',
     );
     final cacheKey = resp.extra[CacheResponse.cacheKey];
@@ -293,7 +293,7 @@ void main() {
   });
 
   test('Fetch max-age', () async {
-    final resp = await _dio.get('${MockHttpClientAdapter.mockBase}/max-age');
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/max-age');
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     final cacheResp = await store.get(cacheKey);
     expect(cacheResp, isNotNull);
@@ -306,7 +306,7 @@ void main() {
   });
 
   test('Skip downloads', () async {
-    final resp = await _dio.get(
+    final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/download',
     );
     final cacheKey = resp.extra[CacheResponse.cacheKey];
