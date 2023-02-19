@@ -1,3 +1,9 @@
+## 5.1.0
+- core: Upgrade to Drift 2.5.
+- core: Use Drift `createBackgroundConnection` to handle background DB connection.
+- fix: Forward `logStatements` parameter when on desktop.
+- chore: Now download SQLite from remote before running tests.
+
 ## 5.0.0
 - core: `Drift` version 2 upgrade.
 

@@ -6,6 +6,9 @@
 build/
 coverage/
 test/data/
+sqlite3.dll
+libsqlite3.dylib
+libsqlite3.so
 
 # Directory created by dartdoc
 doc/api/

@@ -12,5 +12,3 @@ targets:
           # Less code generated
           skip_verification_code: true
           override_hash_and_equals_in_result_sets: false
-          # Using isolates for the database for better performance
-          generate_connect_constructor: true

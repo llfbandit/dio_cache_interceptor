@@ -12,7 +12,10 @@ DioCacheDatabase openDb({
   Directory(databasePath).createSync(recursive: true);
   final dbFile = File(p.join(databasePath, '$databaseName.db'));
 
-  return DioCacheDatabase.connect(
-    NativeDatabase.createBackgroundConnection(dbFile),
+  return DioCacheDatabase(
+    NativeDatabase.createBackgroundConnection(
+      dbFile,
+      logStatements: logStatements,
+    ),
   );
 }

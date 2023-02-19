@@ -2,11 +2,141 @@
 
 part of 'database.dart';
 
-// **************************************************************************
-// DriftDatabaseGenerator
-// **************************************************************************
-
 // ignore_for_file: type=lint
+class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  DioCache(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+      'cacheKey', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL PRIMARY KEY');
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+      'date', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<String> cacheControl = GeneratedColumn<String>(
+      'cacheControl', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<Uint8List> content = GeneratedColumn<Uint8List>(
+      'content', aliasedName, true,
+      type: DriftSqlType.blob,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<String> eTag = GeneratedColumn<String>(
+      'eTag', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<DateTime> expires = GeneratedColumn<DateTime>(
+      'expires', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<Uint8List> headers = GeneratedColumn<Uint8List>(
+      'headers', aliasedName, true,
+      type: DriftSqlType.blob,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<String> lastModified = GeneratedColumn<String>(
+      'lastModified', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<DateTime> maxStale = GeneratedColumn<DateTime>(
+      'maxStale', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
+      'priority', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<DateTime> requestDate = GeneratedColumn<DateTime>(
+      'requestDate', aliasedName, true,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<DateTime> responseDate = GeneratedColumn<DateTime>(
+      'responseDate', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+      'url', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  @override
+  List<GeneratedColumn> get $columns => [
+        cacheKey,
+        date,
+        cacheControl,
+        content,
+        eTag,
+        expires,
+        headers,
+        lastModified,
+        maxStale,
+        priority,
+        requestDate,
+        responseDate,
+        url
+      ];
+  @override
+  String get aliasedName => _alias ?? 'DioCache';
+  @override
+  String get actualTableName => 'DioCache';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  DioCacheData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DioCacheData(
+      cacheKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cacheKey'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}date']),
+      cacheControl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cacheControl']),
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.blob, data['${effectivePrefix}content']),
+      eTag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}eTag']),
+      expires: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires']),
+      headers: attachedDatabase.typeMapping
+          .read(DriftSqlType.blob, data['${effectivePrefix}headers']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lastModified']),
+      maxStale: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}maxStale']),
+      priority: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}priority'])!,
+      requestDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}requestDate']),
+      responseDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}responseDate'])!,
+      url: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+    );
+  }
+
+  @override
+  DioCache createAlias(String alias) {
+    return DioCache(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
 class DioCacheData extends DataClass implements Insertable<DioCacheData> {
   final String cacheKey;
   final DateTime? date;
@@ -167,10 +297,10 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
       cacheKey,
       date,
       cacheControl,
-      content,
+      $driftBlobEquality.hash(content),
       eTag,
       expires,
-      headers,
+      $driftBlobEquality.hash(headers),
       lastModified,
       maxStale,
       priority,
@@ -184,10 +314,10 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
           other.cacheKey == this.cacheKey &&
           other.date == this.date &&
           other.cacheControl == this.cacheControl &&
-          other.content == this.content &&
+          $driftBlobEquality.equals(other.content, this.content) &&
           other.eTag == this.eTag &&
           other.expires == this.expires &&
-          other.headers == this.headers &&
+          $driftBlobEquality.equals(other.headers, this.headers) &&
           other.lastModified == this.lastModified &&
           other.maxStale == this.maxStale &&
           other.priority == this.priority &&
@@ -372,155 +502,16 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
   }
 }
 
-class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  DioCache(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
-      'cacheKey', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL PRIMARY KEY');
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
-      'date', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<String> cacheControl = GeneratedColumn<String>(
-      'cacheControl', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<Uint8List> content = GeneratedColumn<Uint8List>(
-      'content', aliasedName, true,
-      type: DriftSqlType.blob,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<String> eTag = GeneratedColumn<String>(
-      'eTag', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<DateTime> expires = GeneratedColumn<DateTime>(
-      'expires', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<Uint8List> headers = GeneratedColumn<Uint8List>(
-      'headers', aliasedName, true,
-      type: DriftSqlType.blob,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<String> lastModified = GeneratedColumn<String>(
-      'lastModified', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<DateTime> maxStale = GeneratedColumn<DateTime>(
-      'maxStale', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
-      'priority', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  late final GeneratedColumn<DateTime> requestDate = GeneratedColumn<DateTime>(
-      'requestDate', aliasedName, true,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      $customConstraints: '');
-  late final GeneratedColumn<DateTime> responseDate = GeneratedColumn<DateTime>(
-      'responseDate', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  late final GeneratedColumn<String> url = GeneratedColumn<String>(
-      'url', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
-  @override
-  List<GeneratedColumn> get $columns => [
-        cacheKey,
-        date,
-        cacheControl,
-        content,
-        eTag,
-        expires,
-        headers,
-        lastModified,
-        maxStale,
-        priority,
-        requestDate,
-        responseDate,
-        url
-      ];
-  @override
-  String get aliasedName => _alias ?? 'DioCache';
-  @override
-  String get actualTableName => 'DioCache';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {cacheKey};
-  @override
-  DioCacheData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DioCacheData(
-      cacheKey: attachedDatabase.options.types
-          .read(DriftSqlType.string, data['${effectivePrefix}cacheKey'])!,
-      date: attachedDatabase.options.types
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}date']),
-      cacheControl: attachedDatabase.options.types
-          .read(DriftSqlType.string, data['${effectivePrefix}cacheControl']),
-      content: attachedDatabase.options.types
-          .read(DriftSqlType.blob, data['${effectivePrefix}content']),
-      eTag: attachedDatabase.options.types
-          .read(DriftSqlType.string, data['${effectivePrefix}eTag']),
-      expires: attachedDatabase.options.types
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires']),
-      headers: attachedDatabase.options.types
-          .read(DriftSqlType.blob, data['${effectivePrefix}headers']),
-      lastModified: attachedDatabase.options.types
-          .read(DriftSqlType.string, data['${effectivePrefix}lastModified']),
-      maxStale: attachedDatabase.options.types
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}maxStale']),
-      priority: attachedDatabase.options.types
-          .read(DriftSqlType.int, data['${effectivePrefix}priority'])!,
-      requestDate: attachedDatabase.options.types
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}requestDate']),
-      responseDate: attachedDatabase.options.types
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}responseDate'])!,
-      url: attachedDatabase.options.types
-          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
-    );
-  }
-
-  @override
-  DioCache createAlias(String alias) {
-    return DioCache(attachedDatabase, alias);
-  }
-
-  @override
-  bool get dontWriteConstraints => true;
-}
-
 abstract class _$DioCacheDatabase extends GeneratedDatabase {
   _$DioCacheDatabase(QueryExecutor e) : super(e);
-  _$DioCacheDatabase.connect(DatabaseConnection c) : super.connect(c);
   late final DioCache dioCache = DioCache(this);
   late final DioCacheDao dioCacheDao = DioCacheDao(this as DioCacheDatabase);
   @override
-  Iterable<TableInfo<Table, dynamic>> get allTables =>
+  Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [dioCache];
 }
-
-// **************************************************************************
-// DaoGenerator
-// **************************************************************************
 
 mixin _$DioCacheDaoMixin on DatabaseAccessor<DioCacheDatabase> {
   DioCache get dioCache => attachedDatabase.dioCache;
