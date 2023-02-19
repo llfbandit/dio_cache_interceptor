@@ -1,3 +1,6 @@
+## 1.2.2
+- chore: Updated dependencies.
+
 ## 1.2.1
 - fix: Wrongly awaited `clean` method.
 - fix: Wrongly awaited `getFromPath` method.

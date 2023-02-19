@@ -1,20 +1,27 @@
+import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor_db_store/dio_cache_interceptor_db_store.dart';
+import 'package:path_provider/path_provider.dart';
+
 void main(List<String> arguments) {
   // Full example is available at
   // https://github.com/llfbandit/dio_cache_interceptor/blob/master/dio_cache_interceptor/example/lib/main.dart
 
-  // late CacheStore cacheStore;
+  late CacheStore cacheStore;
 
-  // pp.getTemporaryDirectory().then((dir) {
-  //   cacheStore = DbCacheStore(databasePath: dir.path, logStatements: true);
+  getTemporaryDirectory().then((dir) {
+    cacheStore = DbCacheStore(databasePath: dir.path, logStatements: true);
 
-  //   cacheOptions = CacheOptions(
-  //     store: cacheStore,
-  //     hitCacheOnErrorExcept: [], // for offline behaviour
-  //   );
+    var cacheOptions = CacheOptions(
+      store: cacheStore,
+      hitCacheOnErrorExcept: [], // for offline behaviour
+    );
 
-  //   dio = Dio()
-  //     ..interceptors.add(
-  //       DioCacheInterceptor(options: cacheOptions),
-  //     );
-  // });
+    final dio = Dio()
+      ..interceptors.add(
+        DioCacheInterceptor(options: cacheOptions),
+      );
+
+    dio.get('https://www.foo.com');
+  });
 }

@@ -1,3 +1,6 @@
+## 1.1.1
+- chore: Updated dependencies.
+
 ## 1.1.0
 - feat: Add `Store.getFromPath` method.
 - feat: Add `Store.deleteFromPath` method.

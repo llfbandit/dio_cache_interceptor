@@ -1,3 +1,6 @@
+## 3.2.1
+- chore: Updated dependencies.
+
 ## 3.2.0
 - feat: Add `Store.getFromPath` method.
 - feat: Add `Store.deleteFromPath` method.
