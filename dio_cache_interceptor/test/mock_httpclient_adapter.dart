@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-class MockHttpClientAdapter extends HttpClientAdapter {
+class MockHttpClientAdapter implements HttpClientAdapter {
   static const String mockHost = 'mockserver';
   static const String mockBase = 'http://$mockHost';
 
@@ -69,10 +69,7 @@ class MockHttpClientAdapter extends HttpClientAdapter {
         );
       case '/exception':
         if (options.extra.containsKey('x-err')) {
-          throw DioError(
-            requestOptions: options,
-            type: DioErrorType.connectTimeout,
-          );
+          throw DioError(requestOptions: options);
         }
 
         return ResponseBody.fromString(

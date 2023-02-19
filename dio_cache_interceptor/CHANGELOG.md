@@ -1,3 +1,6 @@
+## 3.4.0
+- chore: Allow dio version 5 aside version 4.
+
 ## 3.3.1
 - fix: pathExists queryParams are not checked correctly (thanks to @clragon)
 
