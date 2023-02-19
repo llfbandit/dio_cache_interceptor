@@ -100,6 +100,8 @@ Future<void> _downloadForNix({
   required String temporaryDirPath,
   required String target,
 }) async {
+  if (Platform.isLinux) return;
+
   await _run('curl $_url --output sqlite.tar.gz',
       workingDirectory: temporaryDirPath);
   await _run('tar zxvf sqlite.tar.gz', workingDirectory: temporaryDirPath);

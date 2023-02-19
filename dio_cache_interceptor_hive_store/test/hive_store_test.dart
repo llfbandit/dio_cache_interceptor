@@ -8,7 +8,7 @@ import '../../dio_cache_interceptor/test/common_store_testing.dart';
 void main() {
   late HiveCacheStore store;
 
-  setUpAll(() async {
+  setUpAll(() {
     store = HiveCacheStore('${Directory.current.path}/test/data/file_store');
   });
 

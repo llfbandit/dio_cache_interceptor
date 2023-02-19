@@ -20,4 +20,4 @@ dev_dependencies:
   # https://pub.dev/packages/lints
   lints: ^2.0.1
   # https://pub.dev/packages/test
-  test: ^1.18.0
+  test: ^1.23.1

@@ -7,16 +7,16 @@ name: Dart
 
 on:
   push:
-    branches: [ master ]
+    branches: 
+      - master
+      - gha
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    container:
-      image:  google/dart:latest
 
     defaults:
       run:
@@ -24,6 +24,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
 
       - name: Install dependencies
         run: dart pub get
@@ -36,9 +40,12 @@ jobs:
       - name: Analyze project source
         run: dart analyze
 
-      - name: Run tests with coverage
+      - name: Activate coverage
         run: |
           dart pub global activate coverage
+
+      - name: Run tests with coverage
+        run: |
           dart pub global run coverage:test_with_coverage
         
       - name: Upload coverage to Codecov
@@ -46,3 +53,22 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: dio_cache_interceptor/coverage/lcov.info
+
+      # Run store tests.
+      - name: Run tests with coverage on DB Store
+        working-directory: dio_cache_interceptor_db_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+      
+      - name: Run tests with coverage on File Store
+        working-directory: dio_cache_interceptor_file_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+
+      - name: Run tests with coverage on Hive Store
+        working-directory: dio_cache_interceptor_hive_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
