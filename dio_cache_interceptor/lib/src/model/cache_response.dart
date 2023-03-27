@@ -233,7 +233,7 @@ class CacheResponse {
       expires: httpExpiresDate,
       headers: null,
       key: key,
-      lastModified: response.headers[lastModifiedHeader]?.first,
+      lastModified: response.headers[lastModifiedHeader]?.join(","),
       maxStale: checkedMaxStale != null
           ? DateTime.now().toUtc().add(checkedMaxStale)
           : null,
