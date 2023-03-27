@@ -22,7 +22,7 @@ Future<void> _addFooResponse(
     cacheControl: cacheControl ?? CacheControl(),
     content: utf8.encode('foo'),
     date: DateTime.now(),
-    eTag: 'an etag',
+    eTag: 'an, etag',
     expires: expires,
     headers: headers,
     key: key,
@@ -66,7 +66,7 @@ Future<void> getItem(CacheStore store) async {
   expect(resp, isNotNull);
   expect(resp?.key, equals('foo'));
   expect(resp?.url, equals('https://foo.com'));
-  expect(resp?.eTag, equals('an etag'));
+  expect(resp?.eTag, equals('an, etag'));
   expect(resp?.lastModified, isNull);
   expect(resp?.maxStale, isNotNull);
   expect(resp?.content, equals(utf8.encode('foo')));

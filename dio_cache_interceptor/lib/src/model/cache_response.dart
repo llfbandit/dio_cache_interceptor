@@ -200,7 +200,7 @@ class CacheResponse {
     required CacheOptions options,
     required Response response,
   }) async {
-    final dateStr = response.headers[dateHeader]?.first;
+    final dateStr = response.headers[dateHeader]?.join(',');
     DateTime? date;
     if (dateStr != null) {
       try {
@@ -210,7 +210,7 @@ class CacheResponse {
       }
     }
 
-    final expiresDateStr = response.headers[expiresHeader]?.first;
+    final expiresDateStr = response.headers[expiresHeader]?.join(',');
     DateTime? httpExpiresDate;
     if (expiresDateStr != null) {
       try {
@@ -229,11 +229,11 @@ class CacheResponse {
       ),
       content: null,
       date: date,
-      eTag: response.headers[etagHeader]?.first,
+      eTag: response.headers[etagHeader]?.join(','),
       expires: httpExpiresDate,
       headers: null,
       key: key,
-      lastModified: response.headers[lastModifiedHeader]?.first,
+      lastModified: response.headers[lastModifiedHeader]?.join(','),
       maxStale: checkedMaxStale != null
           ? DateTime.now().toUtc().add(checkedMaxStale)
           : null,

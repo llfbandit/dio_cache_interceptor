@@ -1,3 +1,7 @@
+## 3.4.1
+- chore: Ensure header values are join when there's comma (,) in the value (date, expires, last-modified, etag).
+Dio may or may not understand headers with single value (i.e.: 'Wed, 21 Oct 2015 07:28:00 GMT').
+
 ## 3.4.0
 - chore: Allow dio version 5 aside version 4.
 

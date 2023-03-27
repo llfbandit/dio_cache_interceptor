@@ -18,7 +18,7 @@ void main() {
       cacheControl: cacheControl ?? CacheControl(),
       content: utf8.encode('foo'),
       date: date,
-      eTag: 'an etag',
+      eTag: 'an, etag',
       expires: expires,
       headers: null,
       key: 'foo',
