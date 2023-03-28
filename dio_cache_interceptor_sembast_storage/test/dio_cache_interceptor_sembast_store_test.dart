@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dio_cache_interceptor_sembast_store/dio_cache_interceptor_sembast_store.dart';
+import 'package:dio_cache_interceptor_sembast_storage/dio_cache_interceptor_sembast_store.dart';
 import 'package:test/test.dart';
 import '../../dio_cache_interceptor/test/common_store_testing.dart';
 
@@ -7,7 +7,9 @@ void main() {
   late SembastCacheStore store;
 
   setUpAll(() async {
-    store = SembastCacheStore(storePath: Directory.current.path);
+    store = SembastCacheStore(
+      storePath: '${Directory.current.path}/test/data',
+    );
   });
 
   setUp(() async {
@@ -28,4 +30,9 @@ void main() {
   test('pathExists', () => pathExists(store));
   test('deleteFromPath', () => deleteFromPath(store));
   test('getFromPath', () => getFromPath(store));
+  test(
+    'Concurrent access',
+    () async => await concurrentAccess(store),
+    timeout: Timeout(Duration(minutes: 2)),
+  );
 }
