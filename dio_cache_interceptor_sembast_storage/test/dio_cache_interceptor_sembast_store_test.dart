@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:dio_cache_interceptor_sembast_storage/dio_cache_interceptor_sembast_store.dart';
+import 'package:dio_cache_interceptor_sembast_storage/dio_cache_interceptor_sembast_storage.dart';
 import 'package:test/test.dart';
 import '../../dio_cache_interceptor/test/common_store_testing.dart';
 
