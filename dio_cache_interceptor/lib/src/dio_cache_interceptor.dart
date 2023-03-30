@@ -83,6 +83,29 @@ class DioCacheInterceptor extends Interceptor {
       return;
     }
 
+    // Check if cache response should be used instead of server response
+    if (response.statusCode == 304) {
+      // Retrieve response from cache
+      final existing = await _loadResponse(response.requestOptions);
+      // Transform CacheResponse to Response object
+      final cacheResponse = existing?.toResponse(response.requestOptions);
+
+      if (cacheResponse != null) {
+        // Update cache response with response header values
+        await _saveResponse(
+          cacheResponse..updateCacheHeaders(response),
+          cacheOptions,
+          statusCode: response.statusCode,
+        );
+      }
+
+      // Resolve with found cached response
+      if (cacheResponse != null) {
+        handler.next(cacheResponse);
+        return;
+      }
+    }
+
     if (cacheOptions.policy == CachePolicy.noCache) {
       // Delete previous potential cached response
       await _getCacheStore(cacheOptions).delete(
