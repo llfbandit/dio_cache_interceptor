@@ -30,6 +30,11 @@ class DioCacheInterceptor extends Interceptor {
 
     final cacheOptions = _getCacheOptions(options);
 
+    if (cacheOptions.callResponseInterceptorsAfterNotModified) {
+      // Add 304 as a valid status so onResponse flow is used when a 304 occurs
+      options.validateStatus = (status) => options.validateStatus(status) || status == 304;
+    }
+
     if (_shouldSkip(options, options: cacheOptions)) {
       handler.next(options);
       return;
