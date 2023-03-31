@@ -31,8 +31,13 @@ class DioCacheInterceptor extends Interceptor {
     final cacheOptions = _getCacheOptions(options);
 
     if (cacheOptions.callResponseInterceptorsAfterNotModified) {
+      final optionValidateStatus = options.validateStatus;
+      bool validateStatus(int? status) {
+        return optionValidateStatus(status) || status == 304;
+      }
+
       // Add 304 as a valid status so onResponse flow is used when a 304 occurs
-      options.validateStatus = (status) => options.validateStatus(status) || status == 304;
+      options.validateStatus = validateStatus;
     }
 
     if (_shouldSkip(options, options: cacheOptions)) {
@@ -209,8 +214,7 @@ class DioCacheInterceptor extends Interceptor {
     if (response != null) {
       // Purge entry if staled
       final maxStale = CacheOptions.fromExtra(request)?.maxStale;
-      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) &&
-          response.isStaled()) {
+      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) && response.isStaled()) {
         await cacheStore.delete(cacheKey);
         return null;
       }
@@ -242,8 +246,7 @@ class DioCacheInterceptor extends Interceptor {
 
       // Update extra fields with cache info
       response.extra[CacheResponse.cacheKey] = cacheResp.key;
-      response.extra[CacheResponse.fromNetwork] =
-          CacheStrategyFactory.allowedStatusCodes.contains(statusCode);
+      response.extra[CacheResponse.fromNetwork] = CacheStrategyFactory.allowedStatusCodes.contains(statusCode);
     }
   }
 

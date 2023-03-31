@@ -61,6 +61,9 @@ final options = const CacheOptions(
   // Default. Allows to cache POST requests.
   // Overriding [keyBuilder] is strongly recommended when [true].
   allowPostMethod: false,
+  // handle not-modified status in response flow
+  // This allows following response interceptors to still be called
+  callResponseInterceptorsAfterNotModified: false,
 );
 
 // Add cache interceptor with global/default options
