@@ -214,7 +214,8 @@ class DioCacheInterceptor extends Interceptor {
     if (response != null) {
       // Purge entry if staled
       final maxStale = CacheOptions.fromExtra(request)?.maxStale;
-      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) && response.isStaled()) {
+      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) &&
+          response.isStaled()) {
         await cacheStore.delete(cacheKey);
         return null;
       }
@@ -246,7 +247,8 @@ class DioCacheInterceptor extends Interceptor {
 
       // Update extra fields with cache info
       response.extra[CacheResponse.cacheKey] = cacheResp.key;
-      response.extra[CacheResponse.fromNetwork] = CacheStrategyFactory.allowedStatusCodes.contains(statusCode);
+      response.extra[CacheResponse.fromNetwork] =
+          CacheStrategyFactory.allowedStatusCodes.contains(statusCode);
     }
   }
 
