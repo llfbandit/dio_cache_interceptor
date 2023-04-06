@@ -30,7 +30,13 @@ class CacheStrategyFactory {
     // Found
     302,
     // Temporary Redirect
-    307
+    307,
+    // Not found
+    404,
+    // Bad method
+    405,
+    // Not implemented
+    501,
   ];
 
   CacheStrategyFactory({
@@ -42,50 +48,43 @@ class CacheStrategyFactory {
 
   /// Returns a strategy to use assuming the request can use the network.
   Future<CacheStrategy> compute() async {
-    final requestCaching = CacheControl.fromHeader(
+    final rqCacheCtrl = CacheControl.fromHeader(
       request.headerValuesAsList(cacheControlHeader),
     );
 
-    // Check if we need to return early
-    if (!_isCacheable(requestCaching, response)) {
-      return CacheStrategy(request, null);
-    }
-
     // Build cache reponse
-    final receivedResponse = response;
-    if (receivedResponse != null &&
-        cacheResponse == null &&
-        _hasCacheDirectives(receivedResponse)) {
-      cacheResponse = await CacheResponse.fromResponse(
-        key: cacheOptions.keyBuilder(request),
-        options: cacheOptions,
-        response: receivedResponse,
-      );
+    final resp = response;
+    if (resp != null && cacheResponse == null) {
+      if (_enforceResponseCachable() || _isCacheable(rqCacheCtrl, resp)) {
+        cacheResponse = await CacheResponse.fromResponse(
+          key: cacheOptions.keyBuilder(request),
+          options: cacheOptions,
+          response: resp,
+        );
 
-      return CacheStrategy(null, cacheResponse);
+        return CacheStrategy(null, cacheResponse);
+      }
     }
 
-    // We have a cached reponse
     final cache = cacheResponse;
     if (cache != null) {
+      // We have a cached reponse
+
       // Regardless cache response data, return it.
       if (cacheOptions.policy == CachePolicy.forceCache) {
         return CacheStrategy(null, cache);
       }
 
       // Check cached response freshness
-      final responseCaching = cache.cacheControl;
-
-      if (!responseCaching.noCache &&
-          !cache.isExpired(requestCaching: requestCaching)) {
+      final respCtrl = cache.cacheControl;
+      if (!respCtrl.noCache && !cache.isExpired(rqCacheCtrl)) {
         return CacheStrategy(null, cache);
       }
 
       // Find conditions to add to the request for validation.
       if (cache.eTag != null) {
         request.headers[ifNoneMatchHeader] = cache.eTag;
-      }
-      if (cache.lastModified != null) {
+      } else if (cache.lastModified != null) {
         request.headers[ifModifiedSinceHeader] = cache.lastModified;
       } else if (cache.date != null) {
         request.headers[ifModifiedSinceHeader] = HttpDate.format(cache.date!);
@@ -96,56 +95,37 @@ class CacheStrategyFactory {
   }
 
   /// Returns true if [response] can be stored to later serve another request.
-  bool _isCacheable(CacheControl requestCaching, Response? response) {
-    final policy = cacheOptions.policy;
-    if (policy == CachePolicy.noCache) {
-      return false;
-    }
+  bool _isCacheable(CacheControl rqCacheCtrl, Response response) {
+    if (cacheOptions.policy == CachePolicy.noCache) return false;
 
-    if (response != null) {
-      // Skip download
-      if (response.isAttachment()) return false;
+    // Always go to network for uncacheable response codes
+    final statusCode = response.statusCode;
+    if (statusCode == null) return false;
 
-      final responseCaching = CacheControl.fromHeader(
-        response.headers[cacheControlHeader],
-      );
-      // revise no-store header with force policy options
-      if (responseCaching.noStore && !_enforceResponseCachable()) return false;
+    // Skip download
+    if (response.isAttachment()) return false;
 
-      // Always go to network for uncacheable
-      // response codes (RFC 7231 section 6.1)
-      final statusCode = response.statusCode;
-      if (statusCode == null) return false;
-      if (!allowedStatusCodes.contains(statusCode)) {
-        if (statusCode != 302 && statusCode != 307) {
-          return false;
-        }
+    final respCacheCtrl = CacheControl.fromHeader(
+      response.headers[cacheControlHeader],
+    );
 
+    // revise no-store header with force policy options
+    if ((rqCacheCtrl.noStore || respCacheCtrl.noStore) &&
+        !_enforceResponseCachable()) return false;
+
+    if (!allowedStatusCodes.contains(statusCode)) {
+      if (statusCode == 302 || statusCode == 307) {
         // 302 & 307 can only be cached with the right response headers.
         // https://datatracker.ietf.org/doc/html/rfc7234#section-3
         if (response.headers[expiresHeader]?.first == null &&
-            responseCaching.maxAge == -1 &&
-            responseCaching.privacy != null) {
+            respCacheCtrl.maxAge == -1 &&
+            respCacheCtrl.privacy != null) {
           return false;
         }
       }
     }
 
-    // revise no-store header with force policy options
-    if (requestCaching.noStore && !_enforceResponseCachable()) return false;
-
-    return true;
-  }
-
-  bool _hasCacheDirectives(Response response) {
-    if (_enforceResponseCachable()) {
-      return true;
-    }
-
-    var result = response.headers[etagHeader] != null;
-    result |= response.headers[lastModifiedHeader] != null;
-
-    return result;
+    return _hasCacheDirectives(response, respCacheCtrl);
   }
 
   bool _enforceResponseCachable() {
@@ -153,5 +133,18 @@ class CacheStrategyFactory {
 
     return policy == CachePolicy.forceCache ||
         policy == CachePolicy.refreshForceCache;
+  }
+
+  bool _hasCacheDirectives(Response response, CacheControl respCacheCtrl) {
+    if (_enforceResponseCachable()) {
+      return true;
+    }
+
+    var result = response.headers[etagHeader] != null;
+    result |= response.headers[lastModifiedHeader] != null;
+    result |= response.headers[expiresHeader] != null;
+    result |= respCacheCtrl.maxAge > 0;
+
+    return result;
   }
 }

@@ -34,8 +34,6 @@ void main() {
     );
   });
 
-  // TODO re-enable this test when Dio team has fixed CancelToken().cancel()
-  // new behaviour
   // test('Fetch canceled', () async {
   //   try {
   //     await dio.get(
@@ -301,10 +299,10 @@ void main() {
     expect(cacheResp, isNotNull);
 
     // We're before max-age: 1
-    expect(cacheResp!.isExpired(requestCaching: CacheControl()), isFalse);
+    expect(cacheResp!.isExpired(CacheControl()), isFalse);
     // We're after max-age: 1
     await Future.delayed(const Duration(seconds: 1));
-    expect(cacheResp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(cacheResp.isExpired(CacheControl()), isTrue);
   });
 
   test('Skip downloads', () async {
