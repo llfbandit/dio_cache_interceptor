@@ -298,6 +298,12 @@ ModelDefinition getObjectBoxModel() {
           final object = CacheResponseBox(
               key: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 6, ''),
+              priority:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
+              responseDate: DateTime.fromMillisecondsSinceEpoch(
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0)),
+              url: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 24, ''),
               content: const fb.ListReader<int>(fb.Int8Reader(), lazy: false)
                   .vTableGetNullable(buffer, rootOffset, 8),
               date: dateValue == null
@@ -308,17 +314,11 @@ ModelDefinition getObjectBoxModel() {
               expires: expiresValue == null
                   ? null
                   : DateTime.fromMillisecondsSinceEpoch(expiresValue),
-              headers: const fb.ListReader<int>(fb.Int8Reader(), lazy: false)
-                  .vTableGetNullable(buffer, rootOffset, 16),
-              lastModified: const fb.StringReader(asciiOptimization: true)
-                  .vTableGetNullable(buffer, rootOffset, 18),
-              maxStale: maxStaleValue == null
-                  ? null
-                  : DateTime.fromMillisecondsSinceEpoch(maxStaleValue),
-              requestDate: requestDateValue == null ? null : DateTime.fromMillisecondsSinceEpoch(requestDateValue),
-              priority: const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
-              responseDate: DateTime.fromMillisecondsSinceEpoch(const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0)),
-              url: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''))
+              headers:
+                  const fb.ListReader<int>(fb.Int8Reader(), lazy: false).vTableGetNullable(buffer, rootOffset, 16),
+              lastModified: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 18),
+              maxStale: maxStaleValue == null ? null : DateTime.fromMillisecondsSinceEpoch(maxStaleValue),
+              requestDate: requestDateValue == null ? null : DateTime.fromMillisecondsSinceEpoch(requestDateValue))
             ..id = const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 4);
           object.cacheControl.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 28, 0);
