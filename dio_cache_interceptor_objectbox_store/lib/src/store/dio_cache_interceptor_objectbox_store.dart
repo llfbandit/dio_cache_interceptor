@@ -127,8 +127,8 @@ class ObjectBoxCacheStore extends CacheStore {
 
   void _getFromPath(
     RegExp pathPattern, {
-    Map<String, String?>? queryParams,
     required void Function(CacheResponseBox) onResponseMatch,
+    Map<String, String?>? queryParams,
   }) {
     var results = <CacheResponseBox>[];
     const limit = 10;
@@ -159,6 +159,9 @@ class ObjectBoxCacheStore extends CacheStore {
 class CacheResponseBox {
   CacheResponseBox({
     required this.key,
+    required this.priority,
+    required this.responseDate,
+    required this.url,
     this.content,
     this.date,
     this.eTag,
@@ -167,9 +170,6 @@ class CacheResponseBox {
     this.lastModified,
     this.maxStale,
     this.requestDate,
-    required this.priority,
-    required this.responseDate,
-    required this.url,
   });
 
   @Id()
