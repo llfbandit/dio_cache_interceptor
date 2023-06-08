@@ -167,6 +167,7 @@ class DioCacheInterceptor extends Interceptor {
     final rqMethod = request?.method.toUpperCase();
     var result = (rqMethod != _getMethodName);
     result &= (!options.allowPostMethod || rqMethod != _postMethodName);
+    result |= (!options.saveWhenNull && response?.data == null);
 
     return result;
   }

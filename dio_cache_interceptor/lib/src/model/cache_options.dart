@@ -83,6 +83,9 @@ class CacheOptions {
   // UUID helper to mark requests
   static final _uuid = Uuid();
 
+  // To save even if Response.data is null
+  final bool saveWhenNull;
+
   const CacheOptions({
     this.policy = CachePolicy.request,
     this.hitCacheOnErrorExcept,
@@ -91,6 +94,7 @@ class CacheOptions {
     this.priority = CachePriority.normal,
     this.cipher,
     this.allowPostMethod = false,
+    this.saveWhenNull = true,
     required this.store,
   });
 
@@ -119,6 +123,7 @@ class CacheOptions {
     CacheStore? store,
     Nullable<CacheCipher>? cipher,
     bool? allowPostMethod,
+    bool? saveWhenNull
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
@@ -131,6 +136,7 @@ class CacheOptions {
       store: store ?? this.store,
       cipher: cipher != null ? cipher.value : this.cipher,
       allowPostMethod: allowPostMethod ?? this.allowPostMethod,
+      saveWhenNull: saveWhenNull ?? this.saveWhenNull,
     );
   }
 }
