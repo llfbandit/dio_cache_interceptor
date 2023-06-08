@@ -74,7 +74,7 @@ class DioCacheInterceptor extends Interceptor {
   ) async {
     final cacheOptions = _getCacheOptions(response.requestOptions);
 
-    if (_shouldSkip(
+    if ((!cacheOptions.saveWhenNull && response.data == null) || _shouldSkip(
       response.requestOptions,
       response: response,
       options: cacheOptions,
@@ -167,7 +167,6 @@ class DioCacheInterceptor extends Interceptor {
     final rqMethod = request?.method.toUpperCase();
     var result = (rqMethod != _getMethodName);
     result &= (!options.allowPostMethod || rqMethod != _postMethodName);
-    result |= (!options.saveWhenNull && response?.data == null);
 
     return result;
   }
