@@ -55,4 +55,17 @@ void main() {
     );
     expect(deserializedContent, equals(content));
   });
+
+  test('Serialize null', () async {
+    final serializedContent = await serializeContent(
+      ResponseType.json,
+      null,
+    );
+    final deserializedContent = await deserializeContent(
+      ResponseType.json,
+      serializedContent,
+    );
+
+    expect(deserializedContent, isNull);
+  });
 }
