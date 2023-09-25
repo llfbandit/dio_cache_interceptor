@@ -1,6 +1,7 @@
 ## 3.4.3
 - fix: Correctly sierialize null content responses.
 - chore: explicitly allow dart 3.
+- chore: Now requires Dio >= 5.2.0+1.
 
 ## 3.4.2
 - fix: Headers were not saved/restored in/from `CacheResponse`.

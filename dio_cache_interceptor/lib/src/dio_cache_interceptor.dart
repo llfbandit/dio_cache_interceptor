@@ -101,7 +101,7 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   void onError(
-    DioError err,
+    DioException err,
     ErrorInterceptorHandler handler,
   ) async {
     final cacheOptions = _getCacheOptions(err.requestOptions);
@@ -154,9 +154,9 @@ class DioCacheInterceptor extends Interceptor {
     RequestOptions? request, {
     required CacheOptions options,
     Response? response,
-    DioError? error,
+    DioException? error,
   }) {
-    if (error?.type == DioErrorType.cancel) {
+    if (error?.type == DioExceptionType.cancel) {
       return true;
     }
 

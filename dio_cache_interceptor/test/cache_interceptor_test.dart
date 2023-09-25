@@ -190,7 +190,7 @@ void main() {
         ),
       );
     } catch (err) {
-      expect((err as DioError).response?.statusCode, equals(500));
+      expect((err as DioException).response?.statusCode, equals(500));
     }
 
     try {
@@ -207,7 +207,7 @@ void main() {
         ),
       );
     } catch (err) {
-      expect((err as DioError).response?.statusCode, equals(500));
+      expect((err as DioException).response?.statusCode, equals(500));
       return;
     }
 
