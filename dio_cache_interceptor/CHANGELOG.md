@@ -1,3 +1,6 @@
+## 3.4.4
+- chore: Allow UUID package version v4.x
+
 ## 3.4.3
 - fix: Correctly sierialize null content responses.
 - chore: explicitly allow dart 3.
