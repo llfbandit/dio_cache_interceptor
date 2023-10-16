@@ -88,14 +88,14 @@ class _MyAppState extends State<MyApp> {
               tabs: [
                 Tab(
                     child: Text(
-                  'With server cache',
-                  textAlign: TextAlign.center,
-                )),
+                      'With server cache',
+                      textAlign: TextAlign.center,
+                    )),
                 Tab(
                     child: Text(
-                  'Without server cache',
-                  textAlign: TextAlign.center,
-                )),
+                      'Without server cache',
+                      textAlign: TextAlign.center,
+                    )),
                 Tab(child: Text('Image')),
               ],
             ),
@@ -133,35 +133,35 @@ class _WithCacheTabState extends State<_WithCacheTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.cleanStore();
                 setState(() => text = result);
               },
               child: Text('Clear store'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.deleteEntry(url);
                 setState(() => text = result);
               },
               child: Text('Clear single entry'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.requestCall(url);
                 setState(() => text = result);
               },
               child: Text('Call (Request policy)'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.refreshCall(url);
                 setState(() => text = result);
               },
               child: Text('Call (Refresh policy)'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.noCacheCall(url);
                 setState(() => text = result);
@@ -196,35 +196,35 @@ class _WithoutCacheTabState extends State<_WithoutCacheTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.cleanStore();
                 setState(() => text = result);
               },
               child: Text('Clear store'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.deleteEntry(url);
                 setState(() => text = result);
               },
               child: Text('Clear single entry'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.requestCall(url);
                 setState(() => text = result);
               },
               child: Text('Call (Request policy)'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.forceCacheCall(url);
                 setState(() => text = result);
               },
               child: Text('Call (forceCache policy)'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () async {
                 final result = await widget.caller.refreshForceCacheCall(url);
                 setState(() => text = result);
