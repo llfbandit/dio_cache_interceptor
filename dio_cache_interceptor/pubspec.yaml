@@ -3,16 +3,16 @@ description: Dio HTTP cache interceptor with multiple stores respecting HTTP dir
 repository: https://github.com/llfbandit/dio_cache_interceptor
 issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 
-version: 3.4.1
+version: 3.4.4
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   # https://pub.dev/packages/dio
-  dio: ">=4.0.0 <6.0.0"  
+  dio: ">=5.2.0+1 <6.0.0"  
   # https://pub.dev/packages/uuid
-  uuid: ^3.0.4
+  uuid: ">=3.0.7 <5.0.0"
   # https://pub.dev/packages/string_scanner
   string_scanner: ^1.1.0
 

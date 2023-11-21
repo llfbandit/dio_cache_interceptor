@@ -3,7 +3,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
-Future<List<int>> serializeContent(ResponseType type, dynamic content) async {
+Future<List<int>?> serializeContent(ResponseType type, dynamic content) async {
+  if (content == null) {
+    return null;
+  }
+
   switch (type) {
     case ResponseType.bytes:
       return content;

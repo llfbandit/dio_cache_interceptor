@@ -69,7 +69,7 @@ class MockHttpClientAdapter implements HttpClientAdapter {
         );
       case '/exception':
         if (options.extra.containsKey('x-err')) {
-          throw DioError(requestOptions: options);
+          throw DioException(requestOptions: options);
         }
 
         return ResponseBody.fromString(

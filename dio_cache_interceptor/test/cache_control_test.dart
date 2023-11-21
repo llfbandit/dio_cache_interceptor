@@ -37,14 +37,14 @@ void main() {
       expires: null,
       cacheControl: CacheControl(),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(resp.isExpired(CacheControl()), isTrue);
 
     resp = buildResponse(
       date: DateTime.now().subtract(const Duration(seconds: 12)),
       expires: null,
       cacheControl: CacheControl(maxAge: 10),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(resp.isExpired(CacheControl()), isTrue);
 
     // max-age takes precedence over expires
     resp = buildResponse(
@@ -52,7 +52,7 @@ void main() {
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 10),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(resp.isExpired(CacheControl()), isTrue);
 
     // max-age is invalid check with expires
     resp = buildResponse(
@@ -60,21 +60,21 @@ void main() {
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(maxAge: 0),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(resp.isExpired(CacheControl()), isTrue);
 
     resp = buildResponse(
       date: null,
       expires: DateTime.now().subtract(const Duration(hours: 10)),
       cacheControl: CacheControl(),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isTrue);
+    expect(resp.isExpired(CacheControl()), isTrue);
 
     resp = buildResponse(
       date: DateTime.now(),
       expires: DateTime.now().add(const Duration(hours: 10)),
       cacheControl: CacheControl(),
     );
-    expect(resp.isExpired(requestCaching: CacheControl()), isFalse);
+    expect(resp.isExpired(CacheControl()), isFalse);
   });
 
   void compareCacheControls(CacheControl cc1, CacheControl cc2) {

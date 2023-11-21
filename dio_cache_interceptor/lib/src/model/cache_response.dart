@@ -90,12 +90,12 @@ class CacheResponse {
 
   Headers getHeaders() {
     final checkedHeaders = headers;
-    final decHeaders = (checkedHeaders != null)
-        ? jsonDecode(utf8.decode(checkedHeaders)) as Map<String, dynamic>
-        : null;
-
     final h = Headers();
-    decHeaders?.forEach((key, value) => h.set(key, value));
+
+    if (checkedHeaders != null) {
+      final map = jsonDecode(utf8.decode(checkedHeaders));
+      map.forEach((key, value) => h.set(key, value));
+    }
 
     return h;
   }
@@ -106,33 +106,31 @@ class CacheResponse {
   }
 
   /// Checks if response is expired.
-  bool isExpired({required CacheControl requestCaching}) {
-    final responseCaching = cacheControl;
+  bool isExpired(CacheControl rqCacheCtrl) {
+    final respCacheCtrl = cacheControl;
 
-    if (!responseCaching.noCache) {
-      final ageMillis = _cacheResponseAge();
+    final ageMillis = _cacheResponseAge();
 
-      var freshMillis = _computeFreshnessLifetime();
-      final maxAge = requestCaching.maxAge;
-      if (maxAge != -1) {
-        freshMillis = min(freshMillis, maxAge * 1000);
-      }
+    var freshMillis = _computeFreshnessLifetime();
+    final maxAge = rqCacheCtrl.maxAge;
+    if (maxAge != -1) {
+      freshMillis = min(freshMillis, maxAge * 1000);
+    }
 
-      var maxStaleMillis = 0;
-      final maxStale = requestCaching.maxStale;
-      if (!responseCaching.mustRevalidate && maxStale != -1) {
-        maxStaleMillis = maxStale * 1000;
-      }
+    var maxStaleMillis = 0;
+    final maxStale = rqCacheCtrl.maxStale;
+    if (!respCacheCtrl.mustRevalidate && maxStale != -1) {
+      maxStaleMillis = maxStale * 1000;
+    }
 
-      var minFreshMillis = 0;
-      final minFresh = requestCaching.minFresh;
-      if (minFresh != -1) {
-        minFreshMillis = minFresh * 1000;
-      }
+    var minFreshMillis = 0;
+    final minFresh = rqCacheCtrl.minFresh;
+    if (minFresh != -1) {
+      minFreshMillis = minFresh * 1000;
+    }
 
-      if (ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
-        return false;
-      }
+    if (ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
+      return false;
     }
 
     return true;
@@ -148,7 +146,7 @@ class CacheResponse {
     final receivedResponseMillis = responseDate.millisecondsSinceEpoch;
 
     final headers = getHeaders();
-    final ageSeconds = int.parse(headers[ageHeader]?.first ?? '-1');
+    final ageSeconds = int.tryParse(headers[ageHeader]?.first ?? '') ?? -1;
 
     final apparentReceivedAge = (servedDate != null)
         ? max(0, receivedResponseMillis - servedDate.millisecondsSinceEpoch)
@@ -231,7 +229,7 @@ class CacheResponse {
       date: date,
       eTag: response.headers[etagHeader]?.join(','),
       expires: httpExpiresDate,
-      headers: null,
+      headers: utf8.encode(jsonEncode(response.headers.map)),
       key: key,
       lastModified: response.headers[lastModifiedHeader]?.join(','),
       maxStale: checkedMaxStale != null
