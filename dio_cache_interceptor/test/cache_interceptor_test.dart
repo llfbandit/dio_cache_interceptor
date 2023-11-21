@@ -100,6 +100,25 @@ void main() {
     expect(resp304.headers['etag'], equals(['5678']));
   });
 
+  test('Fetch 304 handle in response flow', () async {
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    final resp304 = await dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok',
+      options: Options(
+        headers: {'if-none-match': resp.headers['etag']},
+        validateStatus: (status) => status != null && ((status >= 200 && status < 300) || status == 304),
+      ),
+    );
+    expect(resp304.statusCode, equals(304));
+    expect(resp.data['path'], equals('/ok'));
+    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.headers['etag'], equals(['5678']));
+  });
+
   test('Fetch cacheStoreNo policy', () async {
     final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
