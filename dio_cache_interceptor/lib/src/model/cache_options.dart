@@ -77,10 +77,6 @@ class CacheOptions {
   /// allow POST method request to be cached.
   final bool allowPostMethod;
 
-  /// handle not-modified status in response flow
-  /// This allows following response interceptors to still be called
-  final bool callResponseInterceptorsAfterNotModified;
-
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
 
@@ -95,7 +91,6 @@ class CacheOptions {
     this.priority = CachePriority.normal,
     this.cipher,
     this.allowPostMethod = false,
-    this.callResponseInterceptorsAfterNotModified = false,
     required this.store,
   });
 
@@ -124,7 +119,6 @@ class CacheOptions {
     CacheStore? store,
     Nullable<CacheCipher>? cipher,
     bool? allowPostMethod,
-    bool? callResponseInterceptorsAfterNotModified,
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
@@ -137,8 +131,6 @@ class CacheOptions {
       store: store ?? this.store,
       cipher: cipher != null ? cipher.value : this.cipher,
       allowPostMethod: allowPostMethod ?? this.allowPostMethod,
-      callResponseInterceptorsAfterNotModified:
-          callResponseInterceptorsAfterNotModified ?? this.callResponseInterceptorsAfterNotModified,
     );
   }
 }
