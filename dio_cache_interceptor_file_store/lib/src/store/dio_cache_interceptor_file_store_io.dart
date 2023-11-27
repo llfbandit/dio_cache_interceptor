@@ -138,14 +138,9 @@ class FileCacheStore extends CacheStore {
     String key,
     FutureOr<T> Function() computation,
   ) async {
-    final lock = _locks.putIfAbsent(key, () => Lock(reentrant: true));
+    final lock = _locks.putIfAbsent(key, () => Lock());
 
-    final result = await lock.synchronized(() {
-      final result = computation.call();
-      return result;
-    });
-
-    _locks.remove(key);
+    final result = await lock.synchronized(() => computation());
 
     return result;
   }
