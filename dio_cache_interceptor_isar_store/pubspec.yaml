@@ -1,24 +1,23 @@
 name: dio_cache_interceptor_isar_store
 description: A DB cache store implementation with Isar for dio_cache_interceptor package.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/llfbandit/dio_cache_interceptor
 issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
-
-isar_version: &isar_version ^3.1.0+1
+  flutter: ">=3.0.0"
 
 dependencies:
   dio_cache_interceptor: ^3.4.4
 
   # https://pub.dev/packages/isar
-  isar: *isar_version  
+  isar: ^3.1.0+1
   # https://pub.dev/packages/isar_flutter_libs
-  isar_flutter_libs: *isar_version
+  isar_flutter_libs: ^3.1.0+1
 
 dev_dependencies:
-  isar_generator: *isar_version
+  isar_generator: ^3.1.0+1
   build_runner: any
 
   # https://pub.dev/packages/lints
