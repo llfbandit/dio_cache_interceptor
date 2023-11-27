@@ -82,7 +82,7 @@ jobs:
           dart pub global run coverage:test_with_coverage
       
       - name: Run tests with coverage on Sembast Store
-        working-directory: dio_cache_interceptor_sembast_store
+        working-directory: dio_cache_interceptor_sembast_storage
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
