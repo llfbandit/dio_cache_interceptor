@@ -13,3 +13,6 @@ test/data/
 
 # Directory created by dartdoc
 doc/api/
+
+.flutter-plugins
+.flutter-plugins-dependencies
