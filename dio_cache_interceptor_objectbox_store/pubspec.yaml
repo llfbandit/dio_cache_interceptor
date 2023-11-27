@@ -10,7 +10,8 @@ dependencies:
   dio_cache_interceptor: ^3.4.4
   # https://pub.dev/packages/objectbox
   objectbox: ^2.3.1
-  objectbox_flutter_libs: any
+  # https://pub.dev/packages/objectbox_flutter_libs
+  objectbox_flutter_libs: ^2.3.1
   # https://pub.dev/packages/flat_buffers
   flat_buffers: ^2.0.5
 

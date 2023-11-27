@@ -1,6 +1,8 @@
 name: dio_cache_interceptor_isar_store
 description: A DB cache store implementation with Isar for dio_cache_interceptor package.
 version: 1.0.0
+repository: https://github.com/llfbandit/dio_cache_interceptor
+issue_tracker: https://github.com/llfbandit/dio_cache_interceptor/issues
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
