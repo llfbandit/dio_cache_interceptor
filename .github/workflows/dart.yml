@@ -25,9 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          channel: 'stable'
 
       - name: Install dependencies
         run: dart pub get
@@ -47,7 +47,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           dart pub global run coverage:test_with_coverage
-        
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -69,6 +69,18 @@ jobs:
 
       - name: Run tests with coverage on Hive Store
         working-directory: dio_cache_interceptor_hive_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+      
+      - name: Run tests with coverage on ObjectBox Store
+        working-directory: dio_cache_interceptor_objectbox_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+      
+      - name: Run tests with coverage on Sembast Store
+        working-directory: dio_cache_interceptor_sembast_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
