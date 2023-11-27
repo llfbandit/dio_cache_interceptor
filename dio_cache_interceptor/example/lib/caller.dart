@@ -65,7 +65,7 @@ class Caller {
 
     try {
       return dio.get(url, options: options);
-    } on DioError catch (err) {
+    } catch (err) {
       return Future.value(null);
     }
   }

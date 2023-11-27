@@ -1,3 +1,6 @@
+## 3.2.2
+- chore: Updated dependencies.
+
 ## 3.2.1
 - chore: Updated dependencies.
 

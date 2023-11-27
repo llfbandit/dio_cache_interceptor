@@ -90,9 +90,10 @@ class DioCache extends Table with TableInfo<DioCache, DioCacheData> {
         url
       ];
   @override
-  String get aliasedName => _alias ?? 'DioCache';
+  String get aliasedName => _alias ?? actualTableName;
   @override
-  String get actualTableName => 'DioCache';
+  String get actualTableName => $name;
+  static const String $name = 'DioCache';
   @override
   Set<GeneratedColumn> get $primaryKey => {cacheKey};
   @override
@@ -340,6 +341,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
   final Value<DateTime?> requestDate;
   final Value<DateTime> responseDate;
   final Value<String> url;
+  final Value<int> rowid;
   const DioCacheCompanion({
     this.cacheKey = const Value.absent(),
     this.date = const Value.absent(),
@@ -354,6 +356,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     this.requestDate = const Value.absent(),
     this.responseDate = const Value.absent(),
     this.url = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   DioCacheCompanion.insert({
     required String cacheKey,
@@ -369,6 +372,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     this.requestDate = const Value.absent(),
     required DateTime responseDate,
     required String url,
+    this.rowid = const Value.absent(),
   })  : cacheKey = Value(cacheKey),
         priority = Value(priority),
         responseDate = Value(responseDate),
@@ -387,6 +391,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     Expression<DateTime>? requestDate,
     Expression<DateTime>? responseDate,
     Expression<String>? url,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (cacheKey != null) 'cacheKey': cacheKey,
@@ -402,6 +407,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       if (requestDate != null) 'requestDate': requestDate,
       if (responseDate != null) 'responseDate': responseDate,
       if (url != null) 'url': url,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
@@ -418,7 +424,8 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       Value<int>? priority,
       Value<DateTime?>? requestDate,
       Value<DateTime>? responseDate,
-      Value<String>? url}) {
+      Value<String>? url,
+      Value<int>? rowid}) {
     return DioCacheCompanion(
       cacheKey: cacheKey ?? this.cacheKey,
       date: date ?? this.date,
@@ -433,6 +440,7 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
       requestDate: requestDate ?? this.requestDate,
       responseDate: responseDate ?? this.responseDate,
       url: url ?? this.url,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -478,6 +486,9 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
     if (url.present) {
       map['url'] = Variable<String>(url.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -496,7 +507,8 @@ class DioCacheCompanion extends UpdateCompanion<DioCacheData> {
           ..write('priority: $priority, ')
           ..write('requestDate: $requestDate, ')
           ..write('responseDate: $responseDate, ')
-          ..write('url: $url')
+          ..write('url: $url, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }

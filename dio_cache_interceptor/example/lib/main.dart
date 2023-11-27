@@ -1,22 +1,24 @@
-import 'dart:io';
+// import 'dart:io';
 import 'dart:ui';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart' as pp;
+// import 'package:path_provider/path_provider.dart' as pp;
 import 'caller.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<StatefulWidget> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -83,8 +85,8 @@ class _MyAppState extends State<MyApp> {
         length: 3,
         child: Scaffold(
           appBar: AppBar(
-            title: Text('Dio cache interceptor'),
-            bottom: TabBar(
+            title: const Text('Dio cache interceptor'),
+            bottom: const TabBar(
               tabs: [
                 Tab(
                     child: Text(
@@ -131,42 +133,42 @@ class _WithCacheTabState extends State<_WithCacheTab> {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.cleanStore();
                 setState(() => text = result);
               },
-              child: Text('Clear store'),
+              child: const Text('Clear store'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.deleteEntry(url);
                 setState(() => text = result);
               },
-              child: Text('Clear single entry'),
+              child: const Text('Clear single entry'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.requestCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (Request policy)'),
+              child: const Text('Call (Request policy)'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.refreshCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (Refresh policy)'),
+              child: const Text('Call (Refresh policy)'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.noCacheCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (No cache policy)'),
+              child: const Text('Call (No cache policy)'),
             ),
             Text(text),
           ],
@@ -194,42 +196,42 @@ class _WithoutCacheTabState extends State<_WithoutCacheTab> {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.cleanStore();
                 setState(() => text = result);
               },
-              child: Text('Clear store'),
+              child: const Text('Clear store'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.deleteEntry(url);
                 setState(() => text = result);
               },
-              child: Text('Clear single entry'),
+              child: const Text('Clear single entry'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.requestCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (Request policy)'),
+              child: const Text('Call (Request policy)'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.forceCacheCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (forceCache policy)'),
+              child: const Text('Call (forceCache policy)'),
             ),
-            RaisedButton(
+            TextButton(
               onPressed: () async {
                 final result = await widget.caller.refreshForceCacheCall(url);
                 setState(() => text = result);
               },
-              child: Text('Call (refreshForceCache policy)'),
+              child: const Text('Call (refreshForceCache policy)'),
             ),
             Text(text),
           ],
@@ -257,9 +259,10 @@ class _ImageCacheTabState extends State<_ImageCacheTab> {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Look at print output to get status code',
               textAlign: TextAlign.center,
             ),
@@ -281,31 +284,36 @@ class DioImageProvider extends ImageProvider<DioImageProvider> {
   const DioImageProvider(this.url, this.caller);
 
   @override
-  ImageStreamCompleter load(DioImageProvider key, decode) {
+  ImageStreamCompleter loadImage(
+    DioImageProvider key,
+    ImageDecoderCallback decode,
+  ) {
     return MultiFrameImageStreamCompleter(
       codec: _loadAsync(decode),
       scale: 1.0,
     );
   }
 
-  Future<Codec> _loadAsync(DecoderCallback decode) async {
+  Future<Codec> _loadAsync(ImageDecoderCallback decode) async {
     final response = await caller.dio.get<Uint8List>(
       url,
       options: Options(responseType: ResponseType.bytes),
     );
 
     final bytes = response.data;
-    if (bytes == null || bytes.length == 0) {
+    if (bytes == null || bytes.isEmpty) {
       throw StateError('$url cannot be loaded as an image.');
     }
 
-    print(
-      response.statusCode == 200
-          ? 'From network ${response.statusCode}'
-          : 'From cache ${response.statusCode}',
-    );
+    if (kDebugMode) {
+      print(
+        response.statusCode == 200
+            ? 'From network ${response.statusCode}'
+            : 'From cache ${response.statusCode}',
+      );
+    }
 
-    return decode(bytes);
+    return decode(await ImmutableBuffer.fromUint8List(bytes));
   }
 
   @override
@@ -313,7 +321,7 @@ class DioImageProvider extends ImageProvider<DioImageProvider> {
     // Force eviction of previously cached image by flutter framework
     // Without this line, load(...) isn't called again
     // This is only for testing purpose
-    PaintingBinding.instance?.imageCache?.evict(this);
+    PaintingBinding.instance.imageCache.evict(this);
 
     return Future.value(this);
   }

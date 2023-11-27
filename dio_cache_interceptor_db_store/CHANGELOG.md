@@ -1,3 +1,6 @@
+## 5.1.1
+- chore: Updated dependencies.
+
 ## 5.1.0
 - core: Upgrade to Drift 2.5.
 - core: Use Drift `createBackgroundConnection` to handle background DB connection.

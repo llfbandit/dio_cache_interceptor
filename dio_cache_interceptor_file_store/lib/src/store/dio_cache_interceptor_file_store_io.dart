@@ -145,7 +145,7 @@ class FileCacheStore extends CacheStore {
       return result;
     });
 
-    _locks.remove(lock);
+    _locks.remove(key);
 
     return result;
   }
