@@ -7,7 +7,7 @@ environment:
   sdk: ">=2.15.0 <4.0.0"
 
 dependencies:
-  dio_cache_interceptor: ^3.4.0
+  dio_cache_interceptor: ^3.4.4
   # https://pub.dev/packages/sembast
   sembast: ^3.4.3
   # https://pub.dev/packages/sembast_web

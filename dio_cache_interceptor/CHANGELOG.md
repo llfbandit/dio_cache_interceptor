@@ -1,6 +1,7 @@
-## 3.4.5
+## 3.5.0
 - chore: Updated dependencies.
 - chore: Updated example.
+- feat: Isar added as store.
 
 ## 3.4.4
 - chore: Allow UUID package version v4.x
