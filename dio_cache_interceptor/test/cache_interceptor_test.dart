@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:test/test.dart';
@@ -89,10 +91,7 @@ void main() {
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(await store.exists(cacheKey), isTrue);
 
-    final resp304 = await dio.get(
-      '${MockHttpClientAdapter.mockBase}/ok',
-      options: Options(headers: {'if-none-match': resp.headers['etag']}),
-    );
+    final resp304 = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     expect(resp304.statusCode, equals(304));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
@@ -311,5 +310,29 @@ void main() {
     );
     final cacheKey = resp.extra[CacheResponse.cacheKey];
     expect(cacheKey, isNull);
+  });
+
+  test('Fetch 304 handle in response flow', () async {
+    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final cacheKey = resp.extra[CacheResponse.cacheKey];
+    expect(await store.exists(cacheKey), isTrue);
+
+    expect(resp.headers['etag'], ['1234']);
+
+    final resp304 = await dio.get(
+      '${MockHttpClientAdapter.mockBase}/ok',
+      options: Options(validateStatus: (status) => status == 304),
+    );
+
+    expect(resp304.statusCode, equals(304));
+    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
+    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+
+    final cacheResp = await store.get(cacheKey);
+    expect(
+      cacheResp?.content,
+      equals(Uint8List.fromList('{"path":"/ok"}'.codeUnits)),
+    );
+    expect(cacheResp?.eTag, equals('5678'));
   });
 }

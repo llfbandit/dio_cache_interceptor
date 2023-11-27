@@ -44,7 +44,7 @@ class DioCacheInterceptor extends Interceptor {
 
     final strategy = await CacheStrategyFactory(
       request: options,
-      cacheResponse: await _loadResponse(options),
+      cacheResponse: await _loadCacheResponse(options),
       cacheOptions: cacheOptions,
     ).compute();
 
@@ -90,6 +90,15 @@ class DioCacheInterceptor extends Interceptor {
       );
     }
 
+    // Is status 304 being set as valid status?
+    if (response.statusCode == 304) {
+      // Update cache response with response header values
+      final cacheResponse = await _loadResponse(response.requestOptions);
+      if (cacheResponse != null) {
+        response = cacheResponse..updateCacheHeaders(response);
+      }
+    }
+
     await _saveResponse(
       response,
       cacheOptions,
@@ -113,9 +122,7 @@ class DioCacheInterceptor extends Interceptor {
 
     if (_isCacheCheckAllowed(err.response, cacheOptions)) {
       // Retrieve response from cache
-      final existing = await _loadResponse(err.requestOptions);
-      // Transform CacheResponse to Response object
-      final cacheResponse = existing?.toResponse(err.requestOptions);
+      final cacheResponse = await _loadResponse(err.requestOptions);
 
       if (err.response != null && cacheResponse != null) {
         // Update cache response with response header values
@@ -172,7 +179,7 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   /// Reads cached response from cache store.
-  Future<CacheResponse?> _loadResponse(RequestOptions request) async {
+  Future<CacheResponse?> _loadCacheResponse(RequestOptions request) async {
     final options = _getCacheOptions(request);
     final cacheKey = options.keyBuilder(request);
     final cacheStore = _getCacheStore(options);
@@ -191,6 +198,13 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     return null;
+  }
+
+  /// Reads cached response from cache store and transforms it to Response object.
+  Future<Response?> _loadResponse(RequestOptions request) async {
+    final existing = await _loadCacheResponse(request);
+    // Transform CacheResponse to Response object
+    return existing?.toResponse(request);
   }
 
   /// Writes cached response to cache store if strategy allows it.

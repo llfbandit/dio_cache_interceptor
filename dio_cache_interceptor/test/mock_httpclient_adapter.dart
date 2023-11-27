@@ -47,7 +47,6 @@ class MockHttpClientAdapter implements HttpClientAdapter {
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType],
             'etag': ['1234'],
-            'last-modified': ['Wed, 21 Oct 2045 07:28:00 GMT'],
           },
         );
       case '/ok-nodirective':
@@ -78,7 +77,9 @@ class MockHttpClientAdapter implements HttpClientAdapter {
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType],
             'etag': ['1234'],
-            'last-modified': ['Wed, 21 Oct 2045 07:28:00 GMT'],
+            'last-modified': [
+              HttpDate.format(DateTime.now().add(Duration(days: 1)))
+            ],
           },
         );
       case '/ok-stream':
@@ -113,7 +114,9 @@ class MockHttpClientAdapter implements HttpClientAdapter {
               Headers.contentTypeHeader: [Headers.jsonContentType],
               'cache-control': ['public', 'max-age=0'],
               'date': ['Wed, 21 Oct 2000 07:28:00 GMT'],
-              'expires': ['Wed, 21 Oct 2050 07:28:00 GMT'],
+              'expires': [
+                HttpDate.format(DateTime.now().add(Duration(days: 10)))
+              ],
               'etag': ['9875'],
             },
           );
@@ -139,7 +142,9 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
               'cache-control': ['no-store'],
-              'expires': ['Wed, 21 Oct 2050 07:28:00 GMT'],
+              'expires': [
+                HttpDate.format(DateTime.now().add(Duration(days: 10)))
+              ],
               'etag': ['9875'],
             },
           );

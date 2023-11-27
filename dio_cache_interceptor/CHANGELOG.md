@@ -2,6 +2,7 @@
 - chore: Updated dependencies.
 - chore: Updated example.
 - feat: Isar added as store.
+- feat: Status 304 is now managed when set as valid status.
 
 ## 3.4.4
 - chore: Allow UUID package version v4.x
