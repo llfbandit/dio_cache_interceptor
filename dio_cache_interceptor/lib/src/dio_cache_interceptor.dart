@@ -57,7 +57,7 @@ class DioCacheInterceptor extends Interceptor {
 
       handler.resolve(
         cacheResponse.toResponse(options, fromNetwork: false),
-        true,
+        cacheOptions.callResponseInterceptorsOnResolve,
       );
       return;
     }
