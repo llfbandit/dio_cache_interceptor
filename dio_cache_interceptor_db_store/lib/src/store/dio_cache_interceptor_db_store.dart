@@ -1,5 +1,6 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor_db_store/src/store/database.dart';
+import 'package:drift/drift.dart';
 
 /// A store saving responses in a dedicated database
 /// from an optional [directory].
@@ -62,7 +63,7 @@ class DbCacheStore extends CacheStore {
     return _getFromPath(
       pathPattern,
       queryParams: queryParams,
-      onResponseMatch: (r) => delete(r.cacheKey),
+      onResult: _db.dioCacheDao.deleteKeys,
     );
   }
 
@@ -86,8 +87,8 @@ class DbCacheStore extends CacheStore {
     await _getFromPath(
       pathPattern,
       queryParams: queryParams,
-      onResponseMatch: (r) async => responses.add(
-        _db.dioCacheDao.mapDataToResponse(r),
+      onResult: (keys) async => responses.addAll(
+        await _db.dioCacheDao.getMany(keys),
       ),
     );
 
@@ -107,24 +108,36 @@ class DbCacheStore extends CacheStore {
   Future<void> _getFromPath(
     RegExp pathPattern, {
     Map<String, String?>? queryParams,
-    required Future<void> Function(DioCacheData) onResponseMatch,
+    required Future<void> Function(List<String>) onResult,
   }) async {
-    var results = <DioCacheData>[];
-    const limit = 10;
-    int? offset;
+    List<MapEntry<String, String>> results = [];
 
-    do {
-      final query = _db.dioCacheDao.select(_db.dioCacheDao.dioCache)
-        ..limit(limit, offset: offset);
-      results = await query.get();
+    final Expression<bool> matchesPath = _db.dioCacheDao.dioCache.url.regexp(
+      pathPattern.pattern,
+      multiLine: pathPattern.isMultiLine,
+      caseSensitive: pathPattern.isCaseSensitive,
+      unicode: pathPattern.isUnicode,
+      dotAll: pathPattern.isDotAll,
+    );
 
-      for (final result in results) {
-        if (pathExists(result.url, pathPattern, queryParams: queryParams)) {
-          await onResponseMatch(result);
-        }
-      }
+    results = await (_db.dioCacheDao.selectOnly(_db.dioCacheDao.dioCache)
+          ..where(matchesPath)
+          ..addColumns([
+            _db.dioCacheDao.dioCache.cacheKey,
+            _db.dioCacheDao.dioCache.url,
+          ]))
+        .map(
+          (p0) => MapEntry(
+            p0.read(_db.dioCacheDao.dioCache.cacheKey)!,
+            p0.read(_db.dioCacheDao.dioCache.url)!,
+          ),
+        )
+        .get();
 
-      offset = (offset ?? 0) + limit;
-    } while (results.isNotEmpty);
+    results.removeWhere(
+      (e) => !pathExists(e.value, pathPattern, queryParams: queryParams),
+    );
+
+    await onResult(results.map((e) => e.key).toList());
   }
 }
