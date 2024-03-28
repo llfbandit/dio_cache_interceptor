@@ -20,7 +20,7 @@ class DioCacheInterceptor extends Interceptor {
         _store = options.store!;
 
   @override
-  void onRequest(
+  Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
@@ -68,7 +68,7 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(
+  Future<void> onResponse(
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
@@ -109,7 +109,7 @@ class DioCacheInterceptor extends Interceptor {
   }
 
   @override
-  void onError(
+  Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
