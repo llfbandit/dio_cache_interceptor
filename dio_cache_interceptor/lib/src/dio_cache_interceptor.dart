@@ -188,7 +188,8 @@ class DioCacheInterceptor extends Interceptor {
     if (response != null) {
       // Purge entry if staled
       final maxStale = CacheOptions.fromExtra(request)?.maxStale;
-      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) &&
+    if (((maxStale == null || maxStale == const Duration(microseconds: 0)) &&
+              response.isStaled()) ||
           response.isStaled()) {
         await cacheStore.delete(cacheKey);
         return null;
