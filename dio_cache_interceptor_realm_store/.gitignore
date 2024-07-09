@@ -16,3 +16,6 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Realm binary
+/binary
