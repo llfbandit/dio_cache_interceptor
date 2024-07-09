@@ -1,0 +1,24 @@
+name: dio_cache_interceptor_realm_store
+description: A DB cache store implementation with Realm for dio_cache_interceptor package.
+version: 1.0.0
+repository: https://github.com/VinhNgT/dio_cache_interceptor
+issue_tracker: https://github.com/VinhNgT/dio_cache_interceptor/issues
+
+environment:
+  sdk: ">=3.1.0 <4.0.0"
+
+dependencies:
+  dio_cache_interceptor: ^3.4.4
+
+  # https://pub.dev/packages/realm_dart
+  realm_dart: ^2.3.0
+  # https://pub.dev/packages/realm_common
+  realm_common: ^2.3.0
+
+dev_dependencies:
+  build_runner: any
+
+  # https://pub.dev/packages/lints
+  lints: ^3.0.0
+  # https://pub.dev/packages/test
+  test: ^1.23.1
