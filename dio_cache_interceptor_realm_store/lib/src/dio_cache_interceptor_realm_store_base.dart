@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_cache_interceptor_realm_store/src/domain/dio_cache_realm_models.dart';
 import 'package:realm_dart/realm.dart';
@@ -10,24 +12,39 @@ class RealmCacheStore extends CacheStore {
   /// Realm store.
   Realm? _realm;
 
-  RealmCacheStore({required this.storePath}) {
+  /// Realm configuration.
+  late final Configuration _realmConfig;
+
+  /// Realm object schemas.
+  final List<SchemaObject> _realmSchemas = [
+    CacheResponseRealm.schema,
+    CacheControlRealm.schema,
+  ];
+
+  /// Creates a Realm cache store.
+  ///
+  /// - [storePath] is the path where the Realm file will be stored.
+  /// - [inMemmory] if true, the store will be in-memory only. [storePath] is
+  ///   still needed to save auxiliary files.
+  RealmCacheStore({required this.storePath, bool inMemmory = false}) {
+    if (inMemmory) {
+      _realmConfig = Configuration.inMemory(
+        _realmSchemas,
+        path: '$storePath/cache-api.realm',
+      );
+    } else {
+      _realmConfig = Configuration.local(
+        _realmSchemas,
+        path: '$storePath/cache-api.realm',
+        shouldDeleteIfMigrationNeeded: true,
+      );
+    }
+
     clean(staleOnly: true);
   }
 
   Realm _openRealm() {
-    if (_realm == null) {
-      final realmCfg = Configuration.local(
-        [
-          CacheResponseRealm.schema,
-          CacheControlRealm.schema,
-        ],
-        path: '$storePath/cache-api.realm',
-        shouldDeleteIfMigrationNeeded: true,
-      );
-
-      _realm = Realm(realmCfg);
-    }
-
+    _realm ??= Realm(_realmConfig);
     return _realm!;
   }
 
@@ -45,43 +62,22 @@ class RealmCacheStore extends CacheStore {
     );
 
     // If staleOnly is false, we don't care about maxStale. Just delete all.
-    // if (!staleOnly) {
-    //   realm.write(() {
-    //     realm.deleteMany(results);
-    //   });
-    //   return;
-    // }
+    if (!staleOnly) {
+      realm.write(() {
+        realm.deleteMany(results);
+      });
+      return;
+    }
 
     // Delete only staled responses.
-    // final stalledResponses = _getStalledResponses();
-    // final stalledResult = results.query(
-    //   'key IN \$0',
-    //   [stalledResponses.map((e) => e.key)],
-    // );
-    // realm.write(() {
-    //   realm.deleteMany(stalledResult);
-    // });
-
-    for (final result in results) {
-      if ((staleOnly && result.toObject().isStaled()) || !staleOnly) {
-        realm.write(() {
-          realm.delete(result);
-        });
+    realm.write(() {
+      for (final response in results) {
+        if (_isResponseStaled(response)) {
+          realm.delete(response);
+        }
       }
-    }
+    });
   }
-
-  // RealmResults<CacheResponseRealm> _getStalledResponses() {
-  //   final realm = _openRealm();
-
-  //   // Realm stores dates in UTC.
-  //   final utcNow = DateTime.now().toUtc();
-  //   return realm.query<CacheResponseRealm>(
-  //     // This is the equivalent of maxStale?.isBefore(DateTime.now()) ?? false
-  //     'maxStale != nil AND maxStale < \$0',
-  //     [utcNow],
-  //   );
-  // }
 
   @override
   Future<void> close() async {
@@ -93,7 +89,7 @@ class RealmCacheStore extends CacheStore {
     final realm = _openRealm();
     final resp = realm.find<CacheResponseRealm>(key);
 
-    if (resp == null || (staleOnly && !resp.toObject().isStaled())) {
+    if (resp == null || (staleOnly && !_isResponseStaled(resp))) {
       return;
     }
 
@@ -163,6 +159,10 @@ class RealmCacheStore extends CacheStore {
       }
       realm.add($CacheResponseRealm.fromObject(response));
     });
+  }
+
+  bool _isResponseStaled(CacheResponseRealm response) {
+    return response.maxStale?.isBefore(DateTime.now()) ?? false;
   }
 
   void _getFromPath(
