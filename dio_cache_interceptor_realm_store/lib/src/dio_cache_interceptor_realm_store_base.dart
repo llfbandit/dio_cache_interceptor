@@ -113,7 +113,12 @@ class RealmCacheStore extends CacheStore {
       _getFromPath(
         pathPattern,
         queryParams: queryParams,
-        onResponseMatch: realm.delete,
+        onResponseMatch: (freezedResponse) {
+          final response = realm.find<CacheResponseRealm>(freezedResponse.key);
+          if (response != null) {
+            realm.delete(response);
+          }
+        },
       );
     });
   }
@@ -167,22 +172,18 @@ class RealmCacheStore extends CacheStore {
   }) {
     final realm = _openRealm();
 
-    /// Don't freak out, this is lazily loaded.
-    ///
-    /// Because Realm does not support skip/offset, we have to implement it
-    /// ownselves.
-    ///
-    /// The database can change between each do-while iteration, so freezing it
-    /// to avoid any complications.
+    /// The database can change between each `onResponseMatch` call, so freezing
+    /// it to avoid any complications.
     final allResponses = realm.all<CacheResponseRealm>().freeze();
 
     try {
-      RealmResults<CacheResponseRealm> results;
+      Iterable<CacheResponseRealm> results;
       const limit = 10;
       int offset = 0;
 
       do {
-        results = allResponses.skip(offset).query('LIMIT($limit)');
+        results =
+            allResponses.skip(min(offset, allResponses.length)).take(limit);
 
         for (final result in results) {
           if (pathExists(result.url, pathPattern, queryParams: queryParams)) {
