@@ -97,18 +97,29 @@ Future<void> deleteItem(CacheStore store) async {
 Future<void> clean(CacheStore store) async {
   await _addFooResponse(
     store,
+    key: 'not-stale',
     maxStale: DateTime.now().add(const Duration(days: 1)),
   );
-  expect(await store.exists('foo'), isTrue);
+  await _addFooResponse(
+    store,
+    key: 'stale',
+    maxStale: DateTime.now().subtract(const Duration(days: 1)),
+  );
 
-  await store.clean(staleOnly: true);
-  expect(await store.exists('foo'), isTrue);
+  expect(await store.exists('not-stale'), isTrue);
+  expect(await store.exists('stale'), isTrue);
 
   await store.clean(priorityOrBelow: CachePriority.low);
-  expect(await store.exists('foo'), isTrue);
+  expect(await store.exists('not-stale'), isTrue);
+  expect(await store.exists('stale'), isTrue);
+
+  await store.clean(staleOnly: true);
+  expect(await store.exists('not-stale'), isTrue);
+  expect(await store.exists('stale'), isFalse);
 
   await store.clean();
-  expect(await store.exists('foo'), isFalse);
+  expect(await store.exists('not-stale'), isFalse);
+  expect(await store.exists('stale'), isFalse);
 }
 
 Future<void> expires(CacheStore store) async {
