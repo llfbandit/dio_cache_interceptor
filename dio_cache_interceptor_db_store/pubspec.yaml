@@ -6,7 +6,7 @@ environment:
   sdk: ">=2.14.0 <4.0.0"
 
 dependencies:
-  dio_cache_interceptor: ^3.4.4
+  dio_cache_interceptor: ^3.5.0
 
   # https://pub.dev/packages/drift
   drift: ^2.5.0

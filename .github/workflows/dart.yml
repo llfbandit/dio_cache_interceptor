@@ -7,7 +7,7 @@ name: Dart
 
 on:
   push:
-    branches: 
+    branches:
       - master
       - gha
   pull_request:
@@ -61,7 +61,7 @@ jobs:
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
-      
+
       - name: Run tests with coverage on File Store
         working-directory: dio_cache_interceptor_file_store
         run: |
@@ -73,20 +73,26 @@ jobs:
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
-      
+
+      - name: Run tests with coverage on Hive CE Store
+        working-directory: dio_cache_interceptor_hive_ce_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+
       - name: Run tests with coverage on ObjectBox Store
         working-directory: dio_cache_interceptor_objectbox_store
         run: |
           bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
           dart pub get
           dart pub global run coverage:test_with_coverage
-      
+
       - name: Run tests with coverage on Sembast Store
         working-directory: dio_cache_interceptor_sembast_storage
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
-      
+
       - name: Run tests with coverage on Isar Store
         working-directory: dio_cache_interceptor_isar_store
         run: |
