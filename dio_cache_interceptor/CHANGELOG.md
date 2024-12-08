@@ -1,3 +1,8 @@
+## 3.5.1
+- fix: Allow `"` in header values.
+- chore: Some more tests added.
+- chore: Updated README.md.
+
 ## 3.5.0
 - chore: Updated dependencies.
 - chore: Updated example.
@@ -8,7 +13,7 @@
 - chore: Allow UUID package version v4.x
 
 ## 3.4.3
-- fix: Correctly sierialize null content responses.
+- fix: Correctly serialize null content responses.
 - chore: explicitly allow dart 3.
 - chore: Now requires Dio >= 5.2.0+1.
 
