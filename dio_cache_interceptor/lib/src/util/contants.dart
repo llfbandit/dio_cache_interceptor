@@ -10,7 +10,7 @@ const ifNoneMatchHeader = 'if-none-match';
 const lastModifiedHeader = 'last-modified';
 
 /// An HTTP token.
-final token = RegExp(r'[^()<>@,;:"\\/[\]?={} \t\x00-\x1F\x7F]+');
+final token = RegExp(r'[^()<>@,;:\\/[\]?={} \t\x00-\x1F\x7F]+');
 
 /// Linear whitespace.
 final _lws = RegExp(r'(?:\r\n)?[ \t]+');

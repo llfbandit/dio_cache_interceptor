@@ -193,4 +193,30 @@ void main() {
       CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
     );
   });
+
+  test('cache control with field name', () {
+    final cacheControlReference = CacheControl.fromHeader([
+      'max-age=1',
+      'no-store',
+      'no-cache="set-cookie"',
+      'public',
+      'max-stale=2',
+      'min-fresh=3',
+      'must-revalidate',
+    ].reversed.toList());
+
+    // Correctly formatted
+    var rq = RequestOptions(
+      path: 'https://foo.com',
+      headers: {
+        cacheControlHeader:
+            'max-age=1, no-store, no-cache="set-cookie", public, max-stale=2, min-fresh=3, must-revalidate'
+      },
+    );
+
+    compareCacheControls(
+      cacheControlReference,
+      CacheControl.fromHeader(rq.headerValuesAsList(cacheControlHeader)),
+    );
+  });
 }
