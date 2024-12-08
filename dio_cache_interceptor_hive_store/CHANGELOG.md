@@ -1,3 +1,6 @@
+## 4.0.0
+- feat: Replace `hive` with `hive_ce`.
+
 ## 3.2.2
 - chore: Updated dependencies.
 

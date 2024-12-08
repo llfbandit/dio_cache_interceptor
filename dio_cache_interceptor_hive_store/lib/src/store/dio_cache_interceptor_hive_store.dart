@@ -1,5 +1,5 @@
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 /// A store saving responses using hive.
 ///
