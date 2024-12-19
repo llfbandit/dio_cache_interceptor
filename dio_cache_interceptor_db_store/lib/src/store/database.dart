@@ -96,6 +96,11 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     await query.go();
   }
 
+  Future<void> deleteKeys(List<String> keys) async {
+    final query = delete(dioCache)..where((t) => t.cacheKey.isIn(keys));
+    await query.go();
+  }
+
   Future<bool> exists(String key) async {
     final countExp = dioCache.cacheKey.count();
     final query = selectOnly(dioCache)..addColumns([countExp]);
@@ -113,6 +118,14 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     if (result == null) return Future.value();
 
     return mapDataToResponse(result);
+  }
+
+  Future<List<CacheResponse>> getMany(List<String> keys) async {
+    final query = select(dioCache)
+      ..where((t) => t.cacheKey.isIn(keys))
+      ..orderBy([(t) => OrderingTerm(expression: t.date)]);
+
+    return query.get().then((e) => e.map(mapDataToResponse).toList());
   }
 
   Future<void> set(CacheResponse response) async {
