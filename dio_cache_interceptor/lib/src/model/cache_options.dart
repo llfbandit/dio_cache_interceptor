@@ -77,11 +77,18 @@ class CacheOptions {
   /// allow POST method request to be cached.
   final bool allowPostMethod;
 
+  /// Whether or not to call the the response interceptors when the response is
+  /// resolved manually with [handler.response].
+  ///
+  /// This is [callFollowingResponseInterceptor] in the [resolve] method.
+  final bool callResponseInterceptorsOnResolve;
+
   // Key to retrieve options from request
   static const _extraKey = '@cache_options@';
 
   // UUID helper to mark requests
   static final _uuid = Uuid();
+
 
   const CacheOptions({
     this.policy = CachePolicy.request,
@@ -92,6 +99,7 @@ class CacheOptions {
     this.cipher,
     this.allowPostMethod = false,
     required this.store,
+    this.callResponseInterceptorsOnResolve = true,
   });
 
   static CacheOptions? fromExtra(RequestOptions request) {
@@ -119,6 +127,7 @@ class CacheOptions {
     CacheStore? store,
     Nullable<CacheCipher>? cipher,
     bool? allowPostMethod,
+    bool? callResponseInterceptorsOnResolve,
   }) {
     return CacheOptions(
       policy: policy ?? this.policy,
@@ -131,6 +140,8 @@ class CacheOptions {
       store: store ?? this.store,
       cipher: cipher != null ? cipher.value : this.cipher,
       allowPostMethod: allowPostMethod ?? this.allowPostMethod,
+      callResponseInterceptorsOnResolve: callResponseInterceptorsOnResolve ??
+          this.callResponseInterceptorsOnResolve
     );
   }
 }
