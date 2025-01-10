@@ -1,15 +1,15 @@
 name: dio_cache_interceptor_db_store
 description: A DB cache store implementation with Drift for dio_cache_interceptor package.
 homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/dio_cache_interceptor_db_store
-version: 5.1.1
+version: 6.0.0
 environment:
-  sdk: ">=2.14.0 <4.0.0"
+  sdk: ^3.0.0
 
 dependencies:
   dio_cache_interceptor: ^3.4.4
 
   # https://pub.dev/packages/drift
-  drift: ^2.5.0
+  drift: ^2.9.0
   # https://pub.dev/packages/path
   path: ^1.8.0
 
@@ -19,7 +19,7 @@ dev_dependencies:
   # https://pub.dev/packages/build_runner
   build_runner: ^2.3.3
   # https://pub.dev/packages/lints
-  lints: ^3.0.0
+  lints: ^5.0.0
   # https://pub.dev/packages/test
   test: ^1.23.1
 

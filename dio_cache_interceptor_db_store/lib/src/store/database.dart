@@ -13,7 +13,7 @@ typedef _MigrateFunction = Future<void> Function(
 
 @DriftDatabase(include: {'cache_table.drift'}, daos: [DioCacheDao])
 class DioCacheDatabase extends _$DioCacheDatabase {
-  DioCacheDatabase(QueryExecutor e) : super(e);
+  DioCacheDatabase(super.e);
 
   final Map<int, _MigrateFunction> _migrationsMap = {
     1: _migrateToV2,
@@ -62,7 +62,7 @@ class DioCacheDatabase extends _$DioCacheDatabase {
 @DriftAccessor(include: {'cache_table.drift'})
 class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
     with _$DioCacheDaoMixin {
-  DioCacheDao(DioCacheDatabase db) : super(db);
+  DioCacheDao(super.db);
 
   Future<void> clean({
     CachePriority priorityOrBelow = CachePriority.high,
@@ -97,11 +97,10 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
   }
 
   Future<bool> exists(String key) async {
-    final countExp = dioCache.cacheKey.count();
-    final query = selectOnly(dioCache)..addColumns([countExp]);
-    final count = await query.map((row) => row.read(countExp)).getSingle();
-
-    return count == 1;
+    final query = select(dioCache)
+      ..where((t) => t.cacheKey.equals(key))
+      ..limit(1);
+    return (await query.getSingleOrNull()) != null;
   }
 
   Future<CacheResponse?> get(String key) async {

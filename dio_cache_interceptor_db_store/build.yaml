@@ -12,3 +12,5 @@ targets:
           # Less code generated
           skip_verification_code: true
           override_hash_and_equals_in_result_sets: false
+          generate_values_in_copy_with: false
+          generate_manager: false

@@ -1,3 +1,9 @@
+## 6.0.0
+- feat: Updated dependencies for make this package compatible with WASM.
+- fix: `exists` method was not returning result from filtered key.
+- chore: Raised dart SDK minimum to 3.0.0.
+- chore: Raised Drift minimum to 2.9.0.
+
 ## 5.1.1
 - chore: Updated dependencies.
 

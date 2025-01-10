@@ -244,35 +244,58 @@ class DioCacheData extends DataClass implements Insertable<DioCacheData> {
 
   DioCacheData copyWith(
           {String? cacheKey,
-          Value<DateTime?> date = const Value.absent(),
-          Value<String?> cacheControl = const Value.absent(),
-          Value<Uint8List?> content = const Value.absent(),
-          Value<String?> eTag = const Value.absent(),
-          Value<DateTime?> expires = const Value.absent(),
-          Value<Uint8List?> headers = const Value.absent(),
-          Value<String?> lastModified = const Value.absent(),
-          Value<DateTime?> maxStale = const Value.absent(),
+          DateTime? date,
+          String? cacheControl,
+          Uint8List? content,
+          String? eTag,
+          DateTime? expires,
+          Uint8List? headers,
+          String? lastModified,
+          DateTime? maxStale,
           int? priority,
-          Value<DateTime?> requestDate = const Value.absent(),
+          DateTime? requestDate,
           DateTime? responseDate,
           String? url}) =>
       DioCacheData(
         cacheKey: cacheKey ?? this.cacheKey,
-        date: date.present ? date.value : this.date,
-        cacheControl:
-            cacheControl.present ? cacheControl.value : this.cacheControl,
-        content: content.present ? content.value : this.content,
-        eTag: eTag.present ? eTag.value : this.eTag,
-        expires: expires.present ? expires.value : this.expires,
-        headers: headers.present ? headers.value : this.headers,
-        lastModified:
-            lastModified.present ? lastModified.value : this.lastModified,
-        maxStale: maxStale.present ? maxStale.value : this.maxStale,
+        date: date ?? this.date,
+        cacheControl: cacheControl ?? this.cacheControl,
+        content: content ?? this.content,
+        eTag: eTag ?? this.eTag,
+        expires: expires ?? this.expires,
+        headers: headers ?? this.headers,
+        lastModified: lastModified ?? this.lastModified,
+        maxStale: maxStale ?? this.maxStale,
         priority: priority ?? this.priority,
-        requestDate: requestDate.present ? requestDate.value : this.requestDate,
+        requestDate: requestDate ?? this.requestDate,
         responseDate: responseDate ?? this.responseDate,
         url: url ?? this.url,
       );
+  DioCacheData copyWithCompanion(DioCacheCompanion data) {
+    return DioCacheData(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      date: data.date.present ? data.date.value : this.date,
+      cacheControl: data.cacheControl.present
+          ? data.cacheControl.value
+          : this.cacheControl,
+      content: data.content.present ? data.content.value : this.content,
+      eTag: data.eTag.present ? data.eTag.value : this.eTag,
+      expires: data.expires.present ? data.expires.value : this.expires,
+      headers: data.headers.present ? data.headers.value : this.headers,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
+      maxStale: data.maxStale.present ? data.maxStale.value : this.maxStale,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      requestDate:
+          data.requestDate.present ? data.requestDate.value : this.requestDate,
+      responseDate: data.responseDate.present
+          ? data.responseDate.value
+          : this.responseDate,
+      url: data.url.present ? data.url.value : this.url,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('DioCacheData(')

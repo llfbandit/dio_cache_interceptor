@@ -12,7 +12,7 @@ class DbCacheStore extends CacheStore {
   /// - Useful if you want more than one DB.
   final String databaseName;
 
-  /// Data base location.
+  /// Database location.
   ///
   /// - On mobile, prefer getApplicationDocumentsDirectory()
   ///   given by path_provider.
@@ -26,15 +26,25 @@ class DbCacheStore extends CacheStore {
   // Our DB connection
   final DioCacheDatabase _db;
 
+  /// SQLite WASM library path
+  final String webSqlite3WasmPath;
+
+  /// Drift worker path
+  final String webDriftWorkerPath;
+
   DbCacheStore({
     required this.databasePath,
     this.databaseName = tableName,
     this.logStatements = false,
-  }) : _db = openDb(
+    this.webSqlite3WasmPath = 'sqlite3.wasm',
+    this.webDriftWorkerPath = 'drift_worker.dart.js',
+  }) : _db = DioCacheDatabase(openDb(
           databasePath: databasePath,
           databaseName: databaseName,
+          webSqlite3WasmPath: webSqlite3WasmPath,
+          webDriftWorkerPath: webDriftWorkerPath,
           logStatements: logStatements,
-        ) {
+        )) {
     clean(staleOnly: true);
   }
 
