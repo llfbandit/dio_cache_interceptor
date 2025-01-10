@@ -160,4 +160,17 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
       url: data.url,
     );
   }
+
+  Future<void> deleteKeys(List<String> keys) async {
+    final query = delete(dioCache)..where((t) => t.cacheKey.isIn(keys));
+    await query.go();
+  }
+
+  Future<List<CacheResponse>> getMany(List<String> keys) {
+    final query = select(dioCache)
+      ..where((t) => t.cacheKey.isIn(keys))
+      ..orderBy([(t) => OrderingTerm(expression: t.date)]);
+
+    return query.get().then((e) => e.map(mapDataToResponse).toList());
+  }
 }
