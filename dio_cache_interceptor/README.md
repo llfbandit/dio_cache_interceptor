@@ -29,6 +29,7 @@ Dio HTTP cache interceptor with multiple stores respecting HTTP directives (or n
 - __IsarCacheStore__: Cache using Isar package (available on all platforms) [Get it](https://pub.dev/packages/dio_cache_interceptor_isar_store).
 - __ObjectBoxCacheStore__: Cache using ObjectBox package (no web support) [Get it](https://pub.dev/packages/dio_cache_interceptor_objectbox_store).
 - __SembastCacheStore__: Cache using Sembast package [Get it](https://pub.dev/packages/dio_cache_interceptor_sembast_storage).
+- __MMKVCacheStore__: Cache using MMKV package (iOS & Android only) [Get it](https://pub.dev/packages/dio_cache_interceptor_mmkv_store).
 - __MemCacheStore__: Volatile cache with LRU strategy.
 
 ## Usage
