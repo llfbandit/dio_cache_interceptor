@@ -55,13 +55,6 @@ void main() async {
   final rootDir = await MMKVCacheStore.initialise();
   print('MMKVCacheStore initialized with rootDir: $rootDir');
 
-  // Create an instance of MMKVCacheStore.
-  final cacheStore = MMKVCacheStore(
-    rootDir: rootDir,
-    mmapID: "dio_cache", // Optional: custom identifier.
-    cryptKey: "your_encryption_key", // Optional: enable encryption.
-  );
-
   // Use cacheStore with your Dio cache interceptor.
   runApp(MyApp());
 }
@@ -89,10 +82,7 @@ void setupDio() async {
   final rootDir = await MMKVCacheStore.initialise();
   
   // Create cache store
-  final cacheStore = MMKVCacheStore(
-    rootDir: rootDir,
-    mmapID: "dio_cache",
-  );
+  final cacheStore = MMKVCacheStore();
 
   // Create cache options
   final cacheOptions = CacheOptions(
