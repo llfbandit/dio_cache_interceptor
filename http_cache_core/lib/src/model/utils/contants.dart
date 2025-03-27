@@ -27,7 +27,7 @@ const tokenChars = r"!#$%&'*+\-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`"
     'abcdefghijklmnopqrstuvwxyz|~';
 
 /// Splits comma-seperated header values.
-var headerSplitter = RegExp(r'[ \t]*,[ \t]*');
+final headerSplitter = RegExp(r'[ \t]*,[ \t]*');
 
 /// Splits comma-seperated "Set-Cookie" header values.
 ///
@@ -49,4 +49,4 @@ var headerSplitter = RegExp(r'[ \t]*,[ \t]*');
 /// `<extension-av>`.
 ///
 /// See https://datatracker.ietf.org/doc/html/rfc6265#section-4.1.1
-var setCookieSplitter = RegExp(r'[ \t]*,[ \t]*(?=[' + tokenChars + r']+=)');
+final setCookieSplitter = RegExp(r'[ \t]*,[ \t]*(?=[' + tokenChars + r']+=)');

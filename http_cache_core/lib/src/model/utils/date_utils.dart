@@ -1,9 +1,9 @@
 import 'http_date.dart';
 
 DateTime? getExpiresHeaderValue(String? headerValue) {
-  if (headerValue != null) {
+  if (headerValue case final expires?) {
     try {
-      return HttpDate.parse(headerValue);
+      return HttpDate.parse(expires);
     } catch (_) {
       // Invalid date format => meaning something already expired
       return DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);

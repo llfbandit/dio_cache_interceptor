@@ -94,9 +94,27 @@ void main() {
         ),
       );
 
-      final decryptedResponse = await cacheResponse.readContent(options);
-      expect(decryptedResponse.content, utf8.encode('tnetnoc esnopser'));
-      expect(decryptedResponse.headers, utf8.encode('}"01" :"ega"{'));
+      final response = await cacheResponse.readContent(options);
+      expect(response.content, utf8.encode('tnetnoc esnopser'));
+      expect(response.headers, utf8.encode('}"01" :"ega"{'));
+    });
+
+    test('writeContent encrypts content and headers', () async {
+      final options = CacheOptions(
+        store: MemCacheStore(),
+        cipher: CacheCipher(
+          decrypt: (bytes) {
+            return Future.value(bytes.reversed.toList(growable: false));
+          },
+          encrypt: (bytes) async {
+            return Future.value(bytes.reversed.toList(growable: false));
+          },
+        ),
+      );
+
+      final response = await cacheResponse.writeContent(options);
+      expect(response.content, utf8.encode('tnetnoc esnopser'));
+      expect(response.headers, utf8.encode('}"01" :"ega"{'));
     });
 
     test('Equality', () {
