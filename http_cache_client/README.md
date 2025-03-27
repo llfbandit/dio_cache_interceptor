@@ -1,4 +1,4 @@
-HTTP cache interceptor with multiple stores respecting HTTP directives (or not).
+HTTP cache client with multiple stores respecting HTTP directives (or not).
 
 Also available as interceptor for [dio package](https://pub.dev/packages/dio_cache_interceptor).
 

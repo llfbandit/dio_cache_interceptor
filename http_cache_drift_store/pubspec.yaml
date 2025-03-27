@@ -1,5 +1,5 @@
 name: http_cache_drift_store
-description: A DB cache store implementation with Drift.
+description: A DB cache store agnostic HTTP client implementation with Drift.
 homepage: https://github.com/llfbandit/dart_http_cache/tree/master/http_cache_drift_store
 version: 7.0.0
 environment:
