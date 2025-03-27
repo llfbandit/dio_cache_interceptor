@@ -1,3 +1,6 @@
+## 4.0.1
+- fix: Improve cache save time.
+
 ## 4.0.0
 - chore: Reworked package to be only a `dio` interceptor. Leaving space to do the same with `http` package or others.
 - feat: ** __BREAKING__ ** Stores save response status codes.

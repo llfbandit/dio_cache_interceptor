@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/src/extension/cache_response_extension.dart';
+import 'package:dio_cache_interceptor/src/utils/content_serialization.dart';
 import 'package:http_cache_core/http_cache_core.dart';
 
 extension ResponseExtension on Response {
@@ -12,13 +13,19 @@ extension ResponseExtension on Response {
     final date = getDateHeaderValue(headers[dateHeader]?.join(','));
     final expires = getExpiresHeaderValue(headers[expiresHeader]?.join(','));
 
+    final h = utf8.encode(jsonEncode(headers.map));
+    final content = await serializeContent(
+      requestOptions.responseType,
+      data,
+    );
+
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(headers[cacheControlHeader]),
-      content: null,
+      content: await options.cipher?.encryptContent(content) ?? content,
       date: date,
       eTag: headers[etagHeader]?.join(','),
       expires: expires,
-      headers: utf8.encode(jsonEncode(headers.map)),
+      headers: await options.cipher?.encryptContent(h) ?? h,
       key: key,
       lastModified: headers[lastModifiedHeader]?.join(','),
       maxStale: (options.maxStale != null)

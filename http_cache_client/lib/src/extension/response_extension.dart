@@ -15,15 +15,17 @@ extension ResponseExtension on http.Response {
 
     final expires = getExpiresHeaderValue(headers[expiresHeader]);
 
+    final h = utf8.encode(jsonEncode(headers));
+
     return CacheResponse(
       cacheControl: CacheControl.fromHeader(
         headersSplitValues[cacheControlHeader],
       ),
-      content: null,
+      content: await options.cipher?.encryptContent(bodyBytes) ?? bodyBytes,
       date: respDate,
       eTag: headers[etagHeader],
       expires: expires,
-      headers: utf8.encode(jsonEncode(headers)),
+      headers: await options.cipher?.encryptContent(h) ?? h,
       key: key,
       lastModified: headers[lastModifiedHeader],
       maxStale: (options.maxStale != null)

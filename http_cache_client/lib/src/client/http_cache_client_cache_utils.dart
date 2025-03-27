@@ -100,9 +100,7 @@ extension _CacheClientUtils on CacheClient {
     final cacheResp = strategy.cacheResponse;
     if (cacheResp != null) {
       // Store response to cache store
-      await _getCacheStore(request.options).set(
-        await cacheResp.writeContent(request.options, response: response),
-      );
+      await _getCacheStore(request.options).set(cacheResp);
     }
   }
 }

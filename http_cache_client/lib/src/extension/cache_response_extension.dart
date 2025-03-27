@@ -14,28 +14,6 @@ extension CacheResponseExtension on CacheResponse {
     );
   }
 
-  Future<CacheResponse> writeContent(
-    CacheOptions options, {
-    http.Response? response,
-  }) async {
-    final cipher = options.cipher;
-
-    if (response != null) {
-      final h = utf8.encode(jsonEncode(response.headers));
-      final bodyBytes = response.bodyBytes;
-
-      return copyWith(
-        content: await cipher?.encryptContent(bodyBytes) ?? bodyBytes,
-        headers: await cipher?.encryptContent(h) ?? h,
-      );
-    }
-
-    return copyWith(
-      content: await cipher?.encryptContent(content) ?? content,
-      headers: await cipher?.encryptContent(headers) ?? headers,
-    );
-  }
-
   Map<String, String> _getHeaders() {
     final h = <String, String>{};
 
