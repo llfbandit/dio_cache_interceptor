@@ -95,7 +95,7 @@ class CacheClient extends http.BaseClient {
       }
     }
 
-    return HttpBaseRequest(request, options);
+    return HttpBaseRequest(request, options, DateTime.now());
   }
 
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].

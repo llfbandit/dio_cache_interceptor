@@ -4,8 +4,9 @@ import 'package:http_cache_core/http_cache_core.dart';
 class HttpBaseRequest extends BaseRequest {
   final http.BaseRequest inner;
   final CacheOptions options;
+  final DateTime _date;
 
-  HttpBaseRequest(this.inner, this.options);
+  HttpBaseRequest(this.inner, this.options, this._date);
 
   @override
   List<String>? headerValuesAsList(String header) {
@@ -38,4 +39,6 @@ class HttpBaseRequest extends BaseRequest {
       inner.headers[header] = value;
     }
   }
+
+  DateTime get requestDate => _date;
 }

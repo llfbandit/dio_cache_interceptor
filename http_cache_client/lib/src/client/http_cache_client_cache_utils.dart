@@ -94,6 +94,7 @@ extension _CacheClientUtils on CacheClient {
           headers: request.inner.headers,
         ),
         options: request.options,
+        requestDate: request.requestDate,
       ),
     );
 

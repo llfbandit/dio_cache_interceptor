@@ -7,12 +7,9 @@ extension ResponseExtension on http.Response {
   Future<CacheResponse> toCacheResponse({
     required String key,
     required CacheOptions options,
+    required DateTime requestDate,
   }) async {
     final respDate = getDateHeaderValue(headers[dateHeader]);
-    final reqDate = getDateHeaderValue(request!.headers[dateHeader]) ??
-        (respDate ?? DateTime.now().toUtc())
-            .subtract(Duration(milliseconds: 150));
-
     final expires = getExpiresHeaderValue(headers[expiresHeader]);
 
     final h = utf8.encode(jsonEncode(headers));
@@ -32,7 +29,7 @@ extension ResponseExtension on http.Response {
           ? DateTime.now().toUtc().add(options.maxStale!)
           : null,
       priority: options.priority,
-      requestDate: reqDate,
+      requestDate: requestDate,
       responseDate: respDate ?? DateTime.now().toUtc(),
       url: request!.url.toString(),
       statusCode: statusCode,
