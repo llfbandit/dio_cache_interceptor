@@ -10,6 +10,7 @@
 .svn/
 migrate_working_dir/
 coverage/
+.dart_tool/
 
 # Melos local packages links
 **/pubspec_overrides.yaml
