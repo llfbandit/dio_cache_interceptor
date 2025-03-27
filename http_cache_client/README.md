@@ -24,7 +24,7 @@ Also available as interceptor for [dio package](https://pub.dev/packages/dio_cac
 - __BackupCacheStore__: Combined store with primary and secondary.
 - __DriftCacheStore__: Cache with Drift [Get it](https://pub.dev/packages/http_cache_drift_store).
 - __FileCacheStore__: Cache with file system (Does nothing on web platform) [Get it](https://pub.dev/packages/http_cache_file_store).
-- __HiveCacheStore__: Cache using Hive package (available on all platforms (V3 - hive / V4 - hive_ce)) [Get it](https://pub.dev/packages/http_cache_hive_store).
+- __HiveCacheStore__: Cache using hive_ce package [Get it](https://pub.dev/packages/http_cache_hive_store).
 - __IsarCacheStore__: Cache using Isar package (available on all platforms) [Get it](https://pub.dev/packages/http_cache_isar_store).
 - __ObjectBoxCacheStore__: Cache using ObjectBox package (no web support) [Get it](https://pub.dev/packages/http_cache_objectbox_store).
 - __SembastCacheStore__: Cache using Sembast package [Get it](https://pub.dev/packages/http_cache_sembast_store).
@@ -67,7 +67,7 @@ final options = const CacheOptions(
 );
 
 // Add cache interceptor with global/default options
-final client = CacheClient(http.Client(), options: options));
+final client = CacheClient(http.Client(), options: options);
 
 // ...
 
