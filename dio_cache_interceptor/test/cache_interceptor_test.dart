@@ -2,6 +2,9 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor/src/extension/cache_option_extension.dart';
+import 'package:dio_cache_interceptor/src/extension/cache_response_extension.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 import 'package:test/test.dart';
 
 import 'mock_httpclient_adapter.dart';
@@ -31,7 +34,7 @@ void main() {
       options: Options(responseType: ResponseType.stream),
     );
     expect(
-      await store.exists(resp.extra[CacheResponse.cacheKey] ?? ''),
+      await store.exists(resp.extra[extraCacheKey] ?? ''),
       isFalse,
     );
   });
@@ -53,19 +56,19 @@ void main() {
 
   test('Fetch with cipher', () async {
     final cipherOptions = options.copyWith(
-      cipher: Nullable(CacheCipher(
+      cipher: CacheCipher(
         decrypt: (bytes) =>
             Future.value(bytes.reversed.toList(growable: false)),
         encrypt: (bytes) =>
             Future.value(bytes.reversed.toList(growable: false)),
-      )),
+      ),
     );
 
     var resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: cipherOptions.toOptions(),
     );
-    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+    expect(await store.exists(resp.extra[extraCacheKey]), isTrue);
 
     resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
@@ -78,24 +81,24 @@ void main() {
   test('Fetch 200', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     expect(resp.data['path'], equals('/ok'));
-    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+    expect(await store.exists(resp.extra[extraCacheKey]), isTrue);
   });
 
   test('Fetch bytes 200', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok-bytes');
-    expect(await store.exists(resp.extra[CacheResponse.cacheKey]), isTrue);
+    expect(await store.exists(resp.extra[extraCacheKey]), isTrue);
   });
 
   test('Fetch 304', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     final resp304 = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    expect(resp304.statusCode, equals(304));
+    expect(resp304.statusCode, equals(200));
     expect(resp.data['path'], equals('/ok'));
-    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.extra[extraCacheKey], equals(key));
+    expect(resp304.extra[extraFromNetworkKey], isTrue);
     expect(resp304.headers['etag'], equals(['5678']));
   });
 
@@ -105,7 +108,7 @@ void main() {
       options: options.copyWith(policy: CachePolicy.noCache).toOptions(),
     );
     expect(resp.statusCode, equals(200));
-    expect(resp.extra[CacheResponse.cacheKey], isNull);
+    expect(resp.extra[extraCacheKey], isNull);
   });
 
   test('Fetch force policy', () async {
@@ -115,14 +118,14 @@ void main() {
       options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
     );
     expect(resp.statusCode, equals(200));
-    expect(resp.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp.extra[extraFromNetworkKey], isTrue);
     // 2nd time cache
     resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
       options: options.copyWith(policy: CachePolicy.forceCache).toOptions(),
     );
-    expect(resp.statusCode, equals(304));
-    expect(resp.extra[CacheResponse.fromNetwork], isFalse);
+    expect(resp.statusCode, equals(200));
+    expect(resp.extra[extraFromNetworkKey], isFalse);
     // 3rd time fetch
     resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok-nodirective',
@@ -130,20 +133,20 @@ void main() {
           options.copyWith(policy: CachePolicy.refreshForceCache).toOptions(),
     );
     expect(resp.statusCode, equals(200));
-    expect(resp.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp.extra[extraFromNetworkKey], isTrue);
   });
 
   test('Fetch refresh policy', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     final resp200 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: options
           .copyWith(
             policy: CachePolicy.refresh,
-            maxStale: Nullable(Duration(minutes: 10)),
+            maxStale: Duration(minutes: 10),
           )
           .toOptions(),
     );
@@ -155,7 +158,7 @@ void main() {
     final resp = await dio.post('${MockHttpClientAdapter.mockBase}/post');
     expect(resp.statusCode, equals(200));
     expect(resp.data['path'], equals('/post'));
-    expect(resp.extra[CacheResponse.cacheKey], isNull);
+    expect(resp.extra[extraCacheKey], isNull);
   });
 
   test('Fetch post doesn\'t skip request', () async {
@@ -168,23 +171,21 @@ void main() {
 
     expect(resp.statusCode, equals(200));
     expect(resp.data['path'], equals('/post'));
-    expect(resp.extra[CacheResponse.cacheKey], isNotNull);
+    expect(resp.extra[extraCacheKey], isNotNull);
   });
 
-  test('Fetch hitCacheOnErrorExcept 500', () async {
-    final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+  test('Fetch hitCacheOnErrorCodes 500', () async {
+    var resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
+    expect(resp.statusCode, equals(200));
 
     try {
-      await dio.get(
+      resp = await dio.get(
         '${MockHttpClientAdapter.mockBase}/ok',
         options: Options(
-          extra: options
-              .copyWith(
-                  hitCacheOnErrorExcept: Nullable([500]),
-                  policy: CachePolicy.refresh)
-              .toExtra()
+          extra: options.copyWith(
+              hitCacheOnErrorCodes: [], policy: CachePolicy.refresh).toExtra()
             ..addAll({'x-err': '500'}),
         ),
       );
@@ -193,15 +194,11 @@ void main() {
     }
 
     try {
-      await dio.get(
+      resp = await dio.get(
         '${MockHttpClientAdapter.mockBase}/ok',
         options: Options(
-          extra: options
-              .copyWith(
-                hitCacheOnErrorExcept: null,
-                policy: CachePolicy.refresh,
-              )
-              .toExtra()
+          extra: options.copyWith(
+              hitCacheOnErrorCodes: [], policy: CachePolicy.refresh).toExtra()
             ..addAll({'x-err': '500'}),
         ),
       );
@@ -213,42 +210,39 @@ void main() {
     expect(false, isTrue, reason: 'Should never reach this check');
   });
 
-  test('Fetch hitCacheOnErrorExcept 500 valid', () async {
+  test('Fetch hitCacheOnErrorCodes 500 valid', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
+    expect(resp.statusCode, equals(200));
 
     final resp2 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
       options: Options(
-        extra: options
-            .copyWith(
-              hitCacheOnErrorExcept: Nullable([]),
-              policy: CachePolicy.refresh,
-            )
-            .toExtra()
+        extra: options.copyWith(
+            hitCacheOnErrorCodes: [500], policy: CachePolicy.refresh).toExtra()
           ..addAll({'x-err': '500'}),
       ),
     );
 
-    expect(resp2.statusCode, equals(304));
+    expect(resp2.statusCode, equals(200));
     expect(resp2.data['path'], equals('/ok'));
   });
 
-  test('Fetch hitCacheOnErrorExcept socket exception valid', () async {
+  test('Fetch hitCacheOnNetworkFailure valid', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/exception');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     final resp2 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/exception',
       options: Options(
-        extra: options.copyWith(hitCacheOnErrorExcept: Nullable([])).toExtra()
+        extra: options.copyWith(hitCacheOnNetworkFailure: true).toExtra()
           ..addAll({'x-err': '500'}),
       ),
     );
 
-    expect(resp2.statusCode, equals(304));
+    expect(resp2.statusCode, equals(200));
     expect(resp2.data['path'], equals('/exception'));
   });
 
@@ -256,45 +250,45 @@ void main() {
     final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
-    var cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    var key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     var resp304 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control',
     );
-    expect(resp304.statusCode, equals(304));
-    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.statusCode, equals(200));
+    expect(resp304.extra[extraCacheKey], equals(key));
+    expect(resp304.extra[extraFromNetworkKey], isTrue);
   });
 
-  test('Fetch Cache-Control expired', () async {
+  test('Fetch Cache-Control expired with etag', () async {
     final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
     );
-    var cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    var key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     final resp304 = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-expired',
     );
-    expect(resp304.statusCode, equals(304));
-    cacheKey = resp304.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
-    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.statusCode, equals(200));
+    key = resp304.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
+    expect(resp304.extra[extraFromNetworkKey], isTrue);
   });
 
   test('Fetch Cache-Control no-store', () async {
     final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/cache-control-no-store',
     );
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(cacheKey, isNull);
+    final key = resp.extra[extraCacheKey];
+    expect(key, isNull);
   });
 
   test('Fetch max-age', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/max-age');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    final cacheResp = await store.get(cacheKey);
+    final key = resp.extra[extraCacheKey];
+    final cacheResp = await store.get(key);
     expect(cacheResp, isNotNull);
 
     // We're before max-age: 1
@@ -308,14 +302,14 @@ void main() {
     final resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/download',
     );
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(cacheKey, isNull);
+    final key = resp.extra[extraCacheKey];
+    expect(key, isNull);
   });
 
   test('Fetch 304 handle in response flow', () async {
     final resp = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
-    final cacheKey = resp.extra[CacheResponse.cacheKey];
-    expect(await store.exists(cacheKey), isTrue);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
     expect(resp.headers['etag'], ['1234']);
 
@@ -324,11 +318,11 @@ void main() {
       options: Options(validateStatus: (status) => status == 304),
     );
 
-    expect(resp304.statusCode, equals(304));
-    expect(resp304.extra[CacheResponse.cacheKey], equals(cacheKey));
-    expect(resp304.extra[CacheResponse.fromNetwork], isTrue);
+    expect(resp304.statusCode, equals(200));
+    expect(resp304.extra[extraCacheKey], equals(key));
+    expect(resp304.extra[extraFromNetworkKey], isTrue);
 
-    final cacheResp = await store.get(cacheKey);
+    final cacheResp = await store.get(key);
     expect(
       cacheResp?.content,
       equals(Uint8List.fromList('{"path":"/ok"}'.codeUnits)),

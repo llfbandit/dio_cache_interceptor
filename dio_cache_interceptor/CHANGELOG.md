@@ -1,3 +1,15 @@
+## 4.0.0
+- chore: Reworked package to be only a `dio` interceptor. Leaving space to do the same with `http` package or others.
+- feat: ** __BREAKING__ ** Stores save response status codes.
+  - Store migration is implicit, you have nothing to do.
+  - 304 may still be forwarded for older cached responses.
+- feat: ** __BREAKING__ ** `hitCacheOnErrorExcept` is split with `hitCacheOnNetworkFailure`. Term is now positive and replaced by `hitCacheOnErrorCodes`.
+- feat: Add `hitCacheOnNetworkFailure` to allow restore previous cached response on network failure (connection, TO, ...).
+- chore: Stores are now fully agnostic and don't rely on `dio_cache_interceptor` package.
+- chore: Source code cleanup.
+- chore: Min SDK is now 3.0.0.
+- chore: Updated dependencies.
+
 ## 3.5.1
 - fix: Allow `"` in header values.
 - chore: Some more tests added.

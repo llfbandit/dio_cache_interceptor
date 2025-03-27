@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/src/model/cache_strategy.dart';
+import 'package:dio_cache_interceptor/src/model/dio_base_response.dart';
+import 'package:dio_cache_interceptor/src/extension/cache_response_extension.dart';
+import 'package:dio_cache_interceptor/src/extension/request_extension.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 
-import './model/cache_response.dart';
-import './store/cache_store.dart';
-import 'model/cache_options.dart';
-import 'util/response_extension.dart';
+import 'model/dio_base_request.dart';
+import 'extension/response_extension.dart';
+
+part 'dio_cache_interceptor_cache_utils.dart';
 
 /// Cache interceptor
 class DioCacheInterceptor extends Interceptor {
-  static const String _getMethodName = 'GET';
-  static const String _postMethodName = 'POST';
-
   final CacheOptions _options;
   final CacheStore _store;
 
@@ -26,7 +26,7 @@ class DioCacheInterceptor extends Interceptor {
   ) async {
     // Add time when the request has been sent
     // for further expiry calculation.
-    options.extra[CacheResponse.requestSentDate] = DateTime.now();
+    options.extra[extraRequestSentDateKey] = DateTime.now();
 
     final cacheOptions = _getCacheOptions(options);
 
@@ -43,7 +43,7 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     final strategy = await CacheStrategyFactory(
-      request: options,
+      request: DioBaseRequest(options),
       cacheResponse: await _loadCacheResponse(options),
       cacheOptions: cacheOptions,
     ).compute();
@@ -51,7 +51,6 @@ class DioCacheInterceptor extends Interceptor {
     var cacheResponse = strategy.cacheResponse;
     if (cacheResponse != null) {
       // Cache hit
-
       // Update cached response if needed
       cacheResponse = await _updateCacheResponse(cacheResponse, cacheOptions);
 
@@ -59,12 +58,15 @@ class DioCacheInterceptor extends Interceptor {
         cacheResponse.toResponse(options, fromNetwork: false),
         true,
       );
-      return;
+    } else {
+      // Requests with conditional request if available
+      // or requests with given options
+      if (strategy.request is DioBaseRequest) {
+        handler.next((strategy.request as DioBaseRequest).request);
+      } else {
+        handler.next(options);
+      }
     }
-
-    // Requests with conditional request if available
-    // or requests with given options
-    handler.next(strategy.request ?? options);
   }
 
   @override
@@ -86,7 +88,7 @@ class DioCacheInterceptor extends Interceptor {
     if (cacheOptions.policy == CachePolicy.noCache) {
       // Delete previous potential cached response
       await _getCacheStore(cacheOptions).delete(
-        cacheOptions.keyBuilder(response.requestOptions),
+        _getCacheKey(cacheOptions, response.requestOptions),
       );
     }
 
@@ -120,14 +122,14 @@ class DioCacheInterceptor extends Interceptor {
       return;
     }
 
-    if (_isCacheCheckAllowed(err.response, cacheOptions)) {
+    if (isCacheCheckAllowed(err.response?.statusCode, cacheOptions)) {
       // Retrieve response from cache
       final cacheResponse = await _loadResponse(err.requestOptions);
 
       if (err.response != null && cacheResponse != null) {
         // Update cache response with response header values
         await _saveResponse(
-          cacheResponse..updateCacheHeaders(err.response),
+          cacheResponse..updateCacheHeaders(err.response!),
           cacheOptions,
           statusCode: err.response?.statusCode,
         );
@@ -141,139 +143,5 @@ class DioCacheInterceptor extends Interceptor {
     }
 
     handler.next(err);
-  }
-
-  /// Gets cache options from given [request]
-  /// or defaults to interceptor options.
-  CacheOptions _getCacheOptions(RequestOptions request) {
-    return CacheOptions.fromExtra(request) ?? _options;
-  }
-
-  /// Gets cache store from given [options]
-  /// or defaults to interceptor store.
-  CacheStore _getCacheStore(CacheOptions options) {
-    return options.store ?? _store;
-  }
-
-  /// Check if the callback should not be proceed against HTTP method
-  /// or cancel error type.
-  bool _shouldSkip(
-    RequestOptions? request, {
-    required CacheOptions options,
-    Response? response,
-    DioException? error,
-  }) {
-    if (error?.type == DioExceptionType.cancel) {
-      return true;
-    }
-
-    if (response?.extra[CacheResponse.cacheKey] != null) {
-      return true;
-    }
-
-    final rqMethod = request?.method.toUpperCase();
-    var result = (rqMethod != _getMethodName);
-    result &= (!options.allowPostMethod || rqMethod != _postMethodName);
-
-    return result;
-  }
-
-  /// Reads cached response from cache store.
-  Future<CacheResponse?> _loadCacheResponse(RequestOptions request) async {
-    final options = _getCacheOptions(request);
-    final cacheKey = options.keyBuilder(request);
-    final cacheStore = _getCacheStore(options);
-    final response = await cacheStore.get(cacheKey);
-
-    if (response != null) {
-      // Purge entry if staled
-      final maxStale = CacheOptions.fromExtra(request)?.maxStale;
-      if ((maxStale == null || maxStale == const Duration(microseconds: 0)) &&
-          response.isStaled()) {
-        await cacheStore.delete(cacheKey);
-        return null;
-      }
-
-      return response.readContent(options);
-    }
-
-    return null;
-  }
-
-  /// Reads cached response from cache store and transforms it to Response object.
-  Future<Response?> _loadResponse(RequestOptions request) async {
-    final existing = await _loadCacheResponse(request);
-    // Transform CacheResponse to Response object
-    return existing?.toResponse(request);
-  }
-
-  /// Writes cached response to cache store if strategy allows it.
-  Future<void> _saveResponse(
-    Response response,
-    CacheOptions cacheOptions, {
-    int? statusCode,
-  }) async {
-    final strategy = await CacheStrategyFactory(
-      request: response.requestOptions,
-      response: response,
-      cacheOptions: cacheOptions,
-    ).compute();
-
-    final cacheResp = strategy.cacheResponse;
-    if (cacheResp != null) {
-      // Store response to cache store
-      await _getCacheStore(cacheOptions).set(
-        await cacheResp.writeContent(cacheOptions, response: response),
-      );
-
-      // Update extra fields with cache info
-      response.extra[CacheResponse.cacheKey] = cacheResp.key;
-      response.extra[CacheResponse.fromNetwork] =
-          CacheStrategyFactory.allowedStatusCodes.contains(statusCode);
-    }
-  }
-
-  /// Checks if we can try to resolve cached response
-  /// against given [err] and [cacheOptions].
-  bool _isCacheCheckAllowed(Response? errResponse, CacheOptions cacheOptions) {
-    // Determine if we can return cached response
-    if (errResponse?.statusCode == 304) {
-      return true;
-    } else {
-      final hcoeExcept = cacheOptions.hitCacheOnErrorExcept;
-      if (hcoeExcept == null) return false;
-
-      if (errResponse == null) {
-        // Offline or any other connection error
-        return true;
-      } else if (!hcoeExcept.contains(errResponse.statusCode)) {
-        // Status code is allowed to try cache look up.
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Updates cached response if input has maxStale
-  /// This allows to push off deletion of the entry.
-  Future<CacheResponse> _updateCacheResponse(
-    CacheResponse cacheResponse,
-    CacheOptions cacheOptions,
-  ) async {
-    // Add or update maxStale
-    final maxStaleUpdate = cacheOptions.maxStale;
-    if (maxStaleUpdate != null) {
-      cacheResponse = cacheResponse.copyWith(
-        maxStale: DateTime.now().toUtc().add(maxStaleUpdate),
-      );
-
-      // Store response to cache store
-      await _getCacheStore(cacheOptions).set(
-        await cacheResponse.writeContent(cacheOptions),
-      );
-    }
-
-    return cacheResponse;
   }
 }

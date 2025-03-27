@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: dio_cache_interceptor
+        working-directory: http_cache_interceptor
 
     steps:
       - uses: actions/checkout@v3
@@ -53,42 +53,48 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          files: dio_cache_interceptor/coverage/lcov.info
+          files: http_cache_interceptor/coverage/lcov.info
 
       # Run store tests.
       - name: Run tests with coverage on DB Store
-        working-directory: dio_cache_interceptor_db_store
+        working-directory: http_cache_drift_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
       
       - name: Run tests with coverage on File Store
-        working-directory: dio_cache_interceptor_file_store
+        working-directory: http_cache_file_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
 
       - name: Run tests with coverage on Hive Store
-        working-directory: dio_cache_interceptor_hive_store
+        working-directory: http_cache_hive_store
+        run: |
+          dart pub get
+          dart pub global run coverage:test_with_coverage
+      
+      - name: Run tests with coverage on Isar Store
+        working-directory: http_cache_isar_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
       
       - name: Run tests with coverage on ObjectBox Store
-        working-directory: dio_cache_interceptor_objectbox_store
+        working-directory: http_cache_objectbox_store
         run: |
           bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
           dart pub get
           dart pub global run coverage:test_with_coverage
       
       - name: Run tests with coverage on Sembast Store
-        working-directory: dio_cache_interceptor_sembast_storage
+        working-directory: http_cache_sembast_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage
       
       - name: Run tests with coverage on Isar Store
-        working-directory: dio_cache_interceptor_isar_store
+        working-directory: http_cache_isar_store
         run: |
           dart pub get
           dart pub global run coverage:test_with_coverage

@@ -1,0 +1,28 @@
+name: http_cache_isar_store
+description: A DB cache store implementation with Isar.
+version: 2.0.0
+repository: https://github.com/llfbandit/dart_http_cache
+issue_tracker: https://github.com/llfbandit/dart_http_cache/issues
+
+environment:
+  sdk: ^3.0.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  http_cache_core: ^1.0.0
+
+  # https://pub.dev/packages/isar
+  isar: ^3.1.0+1
+  # https://pub.dev/packages/isar_flutter_libs
+  isar_flutter_libs: ^3.1.0+1
+
+dev_dependencies:
+  isar_generator: ^3.1.0+1
+  build_runner: any
+
+  # https://pub.dev/packages/lints
+  lints: ^5.0.0
+  # https://pub.dev/packages/test
+  test: ^1.24.4
+
+  http_cache_store_tester: ^1.0.0

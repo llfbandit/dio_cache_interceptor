@@ -1,0 +1,7 @@
+name: http_cache_workspace
+
+environment:
+  sdk: ^3.0.0
+
+dev_dependencies:
+  melos: ^6.0.0

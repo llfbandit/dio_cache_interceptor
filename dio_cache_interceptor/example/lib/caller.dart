@@ -44,9 +44,7 @@ class Caller {
   }
 
   Future<String> deleteEntry(String url) async {
-    final key = CacheOptions.defaultCacheKeyBuilder(
-      RequestOptions(path: url),
-    );
+    final key = CacheOptions.defaultCacheKeyBuilder(url: Uri.parse(url));
     await cacheStore.delete(key);
     return 'Entry "$url" cleared';
   }

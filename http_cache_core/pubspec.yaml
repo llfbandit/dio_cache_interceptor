@@ -1,0 +1,22 @@
+name: http_cache_core
+description: HTTP cache core models.
+version: 1.0.0
+repository: https://github.com/llfbandit/dart_http_cache
+issue_tracker: https://github.com/llfbandit/dart_http_cache/issues
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  # https://pub.dev/packages/collection
+  collection: ^1.17.2
+  # https://pub.dev/packages/string_scanner
+  string_scanner: ^1.1.0
+  # https://pub.dev/packages/uuid
+  uuid: ^4.5.0
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.4
+
+  http_cache_store_tester: ^1.0.0

@@ -1,0 +1,34 @@
+name: http_cache
+
+packages:
+  - dio_cache_interceptor
+  - dio_cache_interceptor/example
+  - http_cache_client
+  - http_cache_core
+  - http_cache_drift_store
+  - http_cache_file_store
+  - http_cache_hive_store
+  - http_cache_isar_store
+  - http_cache_objectbox_store
+  - http_cache_sembast_store
+  - http_cache_store_tester
+
+# Don't generate intellij files
+ide:
+  intellij: false
+
+command:
+  # When a dependency in a package is listed it will be replaced with the following versions.
+  bootstrap:
+    environment:
+      sdk: ^3.0.0
+    dev_dependencies:
+      # Linter rules (https://pub.dev/packages/lints)
+      lints: ^5.0.0
+      # https://pub.dev/packages/test
+      test: ^1.24.4
+
+  clean:
+    hooks:
+      # Runs "flutter clean" in all Flutter packages (`--flutter`) with concurrency
+      post: melos exec --flutter -c 1 -- "flutter clean"

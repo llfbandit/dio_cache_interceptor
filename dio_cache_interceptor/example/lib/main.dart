@@ -15,7 +15,7 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<StatefulWidget> createState() => _MyAppState();
@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     cacheStore = MemCacheStore(maxSize: 10485760, maxEntrySize: 1048576);
     cacheOptions = CacheOptions(
       store: cacheStore,
-      hitCacheOnErrorExcept: [], // for offline behaviour
+      hitCacheOnNetworkFailure: true, // for offline behaviour
     );
 
     dio = Dio()

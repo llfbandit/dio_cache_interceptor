@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_cache_interceptor/src/extension/cache_option_extension.dart';
+import 'package:dio_cache_interceptor/src/extension/cache_response_extension.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 import 'package:test/test.dart';
 
 import 'mock_httpclient_adapter.dart';
@@ -50,7 +53,7 @@ void main() {
     ));
 
     expect(resp.statusCode, equals(200));
-    expect(resp.extra[CacheResponse.cacheKey], isNotNull);
+    expect(resp.extra[extraCacheKey], isNotNull);
   });
 
   test('maxStale from request', () async {
@@ -58,11 +61,11 @@ void main() {
 
     final resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
-      maxStale: const Nullable(Duration(seconds: 1)),
+      maxStale: const Duration(seconds: 1),
     ));
 
     expect(resp.statusCode, equals(200));
-    expect(resp.extra[CacheResponse.cacheKey], isNotNull);
+    expect(resp.extra[extraCacheKey], isNotNull);
   });
 
   test('maxStale removal from base', () async {
@@ -72,13 +75,13 @@ void main() {
     var resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
     ));
-    var key = resp.extra[CacheResponse.cacheKey];
+    var key = resp.extra[extraCacheKey];
     expect(await store.exists(key), isTrue);
 
     await Future.delayed(const Duration(seconds: 2));
 
     // Request a 2nd time to ensure the cache entry is now deleted
-    resp = await request(options.copyWith(maxStale: Nullable(null)));
+    resp = await request(options.copyWith(maxStale: Duration.zero));
 
     expect(await store.exists(key), isFalse);
   });
@@ -89,9 +92,9 @@ void main() {
     // Request for the 1st time
     var resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
-      maxStale: const Nullable(Duration(seconds: 1)),
+      maxStale: const Duration(seconds: 1),
     ));
-    var key = resp.extra[CacheResponse.cacheKey];
+    var key = resp.extra[extraCacheKey];
     expect(await store.exists(key), isTrue);
 
     await Future.delayed(const Duration(seconds: 2));
@@ -100,7 +103,7 @@ void main() {
     // We wait for 2 second so the cache is now staled but we recover it
     resp = await request(options.copyWith(
       policy: CachePolicy.forceCache,
-      maxStale: const Nullable(Duration(seconds: 1)),
+      maxStale: const Duration(seconds: 1),
     ));
     expect(await store.exists(key), isTrue);
 

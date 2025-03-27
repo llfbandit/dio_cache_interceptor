@@ -1,0 +1,25 @@
+name: http_cache_objectbox_store
+description: A DB cache store implementation with ObjectBox.
+version: 2.0.0
+homepage: https://github.com/llfbandit/dart_http_cache/tree/master/http_cache_objectbox_store
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  http_cache_core: ^1.0.0
+
+  # https://pub.dev/packages/objectbox
+  objectbox: ^4.0.3
+
+dev_dependencies:
+  # https://pub.dev/packages/build_runner
+  build_runner: ^2.3.3
+  # https://pub.dev/packages/objectbox_generator
+  objectbox_generator: ^4.0.3
+  # https://pub.dev/packages/lints
+  lints: ^5.0.0
+  # https://pub.dev/packages/test
+  test: ^1.24.4
+
+  http_cache_store_tester: ^1.0.0

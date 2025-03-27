@@ -1,9 +1,0 @@
-include: package:lints/recommended.yaml
-
-analyzer:
-  exclude:
-    - "example/**"
-    - "dio_cache_interceptor_db_store/**"
-    - "dio_cache_interceptor_file_store/**"
-    - "dio_cache_interceptor_hive_store/**"
-    - "dio_cache_interceptor_objectbox_store/**"

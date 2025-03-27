@@ -1,0 +1,15 @@
+name: http_cache_store_tester
+description: Common store tests & utils.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  http_cache_core: ^1.0.0
+  # https://pub.dev/packages/test
+  test: ^1.23.1
+
+dev_dependencies:
+  lints: ^5.0.0
