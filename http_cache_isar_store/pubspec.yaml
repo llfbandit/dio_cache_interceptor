@@ -1,6 +1,6 @@
 name: http_cache_isar_store
 description: A DB cache store agnostic HTTP client implementation with Isar.
-version: 2.0.0
+version: 2.0.1
 repository: https://github.com/llfbandit/dart_http_cache
 issue_tracker: https://github.com/llfbandit/dart_http_cache/issues
 

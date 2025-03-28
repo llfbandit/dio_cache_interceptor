@@ -20,7 +20,9 @@ class IsarCacheStore extends CacheStore {
   IsarCacheStore(
     this.directory, {
     this.name = 'dio_cache',
-  });
+  }) {
+    clean(staleOnly: true);
+  }
 
   @override
   Future<void> clean({
