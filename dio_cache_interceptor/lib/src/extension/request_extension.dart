@@ -14,10 +14,6 @@ extension RequestExtension on RequestOptions {
     return value;
   }
 
-  Map<String, dynamic> toExtra() {
-    return {extraKey: this};
-  }
-
   CacheOptions? getCacheOptions() {
     return extra[extraKey];
   }
