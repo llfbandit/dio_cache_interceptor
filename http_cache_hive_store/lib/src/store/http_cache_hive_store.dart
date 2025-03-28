@@ -9,28 +9,35 @@ class HiveCacheStore extends CacheStore {
   // Optional cipher to use directly with Hive
   final HiveCipher? encryptionCipher;
 
+  /// The Hive instance to use.
+  final HiveInterface hive;
+
   LazyBox<CacheResponse>? _box;
 
   /// Initialize cache store by giving Hive a home directory.
   /// [directory] can be null only on web platform or if you already use Hive
   /// in your app.
+  ///
+  /// [hiveInterface] is the Hive instance to use. Mostly used for testing.
+  /// If not provided, the default [Hive] instance will be used.
   HiveCacheStore(
     String? directory, {
     this.hiveBoxName = 'dio_cache',
     this.encryptionCipher,
-  }) {
+    HiveInterface? hiveInterface,
+  }) : hive = hiveInterface ?? Hive {
     if (directory != null) {
-      Hive.init(directory);
+      hive.init(directory);
     }
 
-    if (!Hive.isAdapterRegistered(_CacheResponseAdapter._typeId)) {
-      Hive.registerAdapter(_CacheResponseAdapter());
+    if (!hive.isAdapterRegistered(_CacheResponseAdapter._typeId)) {
+      hive.registerAdapter(_CacheResponseAdapter());
     }
-    if (!Hive.isAdapterRegistered(_CacheControlAdapter._typeId)) {
-      Hive.registerAdapter(_CacheControlAdapter());
+    if (!hive.isAdapterRegistered(_CacheControlAdapter._typeId)) {
+      hive.registerAdapter(_CacheControlAdapter());
     }
-    if (!Hive.isAdapterRegistered(_CachePriorityAdapter._typeId)) {
-      Hive.registerAdapter(_CachePriorityAdapter());
+    if (!hive.isAdapterRegistered(_CachePriorityAdapter._typeId)) {
+      hive.registerAdapter(_CachePriorityAdapter());
     }
 
     clean(staleOnly: true);
@@ -140,7 +147,7 @@ class HiveCacheStore extends CacheStore {
   }
 
   Future<LazyBox<CacheResponse>> _openBox() async {
-    _box ??= await Hive.openLazyBox<CacheResponse>(
+    _box ??= await hive.openLazyBox<CacheResponse>(
       hiveBoxName,
       encryptionCipher: encryptionCipher,
     );

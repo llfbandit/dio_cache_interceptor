@@ -1,7 +1,7 @@
 name: http_cache_hive_store
 description: A DB cache store agnostic HTTP client implementation with hive_ce.
 homepage: https://github.com/llfbandit/dart_http_cache/tree/master/http_cache_hive_store
-version: 5.0.0
+version: 5.0.1
 
 environment:
   sdk: ^3.0.0
