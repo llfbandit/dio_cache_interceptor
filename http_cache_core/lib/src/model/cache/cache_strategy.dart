@@ -70,6 +70,11 @@ class CacheStrategyFactory {
         return CacheStrategy(null, cacheResponse);
       }
 
+      // maxStale takes precedence on HTTP directives
+      if (cacheResponse.maxStale != null && !cacheResponse.isStaled()) {
+        return CacheStrategy(null, cacheResponse);
+      }
+
       // Check cached response freshness
       final respCtrl = cacheResponse.cacheControl;
       if (!respCtrl.noCache && !cacheResponse.isExpired(rqCacheCtrl)) {

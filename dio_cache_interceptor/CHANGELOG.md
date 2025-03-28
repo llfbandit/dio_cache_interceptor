@@ -1,5 +1,6 @@
 ## 4.0.1
 - fix: Improve cache save time.
+- fix: `CacheOptions#maxStale` usage may lead to empty response body.
 
 ## 4.0.0
 - chore: Reworked package to be only a `dio` interceptor. Leaving space to do the same with `http` package or others.

@@ -38,7 +38,7 @@ void main() {
 
   Future<Response> request(CacheOptions options) {
     return dio.get(
-      '${MockHttpClientAdapter.mockBase}/ok-nodirective',
+      '${MockHttpClientAdapter.mockBase}/ok',
       options: options.toOptions(),
     );
   }
@@ -46,71 +46,46 @@ void main() {
   test('maxStale from base', () async {
     setUpMaxStale();
 
-    final resp = await request(options.copyWith(
-      policy: CachePolicy.forceCache,
-    ));
+    // 1st time - request is stored in cache
+    var resp = await request(options);
+    final key = resp.extra[extraCacheKey];
+    expect(await store.exists(key), isTrue);
 
-    expect(resp.statusCode, equals(200));
-    expect(resp.extra[extraCacheKey], isNotNull);
+    // 2nd time - the response is restored from cache, no remote call
+    resp = await request(options);
+    var fromNetwork = resp.extra[extraFromNetworkKey];
+    expect(fromNetwork, isFalse);
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    // 3rd time - the response is staled, remote call
+    resp = await request(options);
+    fromNetwork = resp.extra[extraFromNetworkKey];
+    expect(fromNetwork, isTrue);
   });
 
   test('maxStale from request', () async {
     setUpDefault();
 
-    final resp = await request(options.copyWith(
-      policy: CachePolicy.forceCache,
-      maxStale: const Duration(seconds: 1),
-    ));
-
-    expect(resp.statusCode, equals(200));
-    expect(resp.extra[extraCacheKey], isNotNull);
-  });
-
-  test('maxStale removal from base', () async {
-    setUpMaxStale();
-
-    // Request for the 1st time
+    // 1st time - request is stored in cache
     var resp = await request(options.copyWith(
-      policy: CachePolicy.forceCache,
-    ));
-    var key = resp.extra[extraCacheKey];
-    expect(await store.exists(key), isTrue);
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Request a 2nd time to ensure the cache entry is now deleted
-    resp = await request(options.copyWith(maxStale: Duration.zero));
-
-    expect(await store.exists(key), isFalse);
-  });
-
-  test('maxStale removal from request', () async {
-    setUpDefault();
-
-    // Request for the 1st time
-    var resp = await request(options.copyWith(
-      policy: CachePolicy.forceCache,
       maxStale: const Duration(seconds: 1),
     ));
-    var key = resp.extra[extraCacheKey];
+    final key = resp.extra[extraCacheKey];
     expect(await store.exists(key), isTrue);
 
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Request a 2nd time to postpone stale date
-    // We wait for 2 second so the cache is now staled but we recover it
-    resp = await request(options.copyWith(
-      policy: CachePolicy.forceCache,
-      maxStale: const Duration(seconds: 1),
-    ));
-    expect(await store.exists(key), isTrue);
+    // 2nd time - the response is restored from cache, no remote call
+    resp = await request(options);
+    var fromNetwork = resp.extra[extraFromNetworkKey];
+    expect(fromNetwork, isFalse);
 
     await Future.delayed(const Duration(seconds: 1));
 
-    // Request for the last time without maxStale directive to ensure
-    // the cache entry is now deleted
-    resp = await request(options);
-
-    expect(await store.exists(key), isFalse);
+    // 3rd time - the response is staled, remote call
+    resp = await request(options.copyWith(
+      maxStale: const Duration(seconds: 1),
+    ));
+    fromNetwork = resp.extra[extraFromNetworkKey];
+    expect(fromNetwork, isTrue);
   });
 }

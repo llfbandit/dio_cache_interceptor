@@ -27,73 +27,52 @@ void main() {
   test('maxStale from base', () async {
     setUpMaxStale();
 
-    final resp = await getOkNoDirective(options.copyWith(
-      policy: CachePolicy.forceCache,
-    ));
-
-    expect(resp.statusCode, equals(200));
+    // 1st time - request is stored in cache
+    var resp = await getOk(options);
     final key = options.keyBuilder(url: resp.request!.url);
     expect(await store.exists(key), isTrue);
+
+    // 2nd time - the response is restored from cache, no remote call
+    await getOk(options);
+    final cache1 = await store.get(key);
+    expect(cache1?.isStaled(), isFalse);
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    // 3rd time - the response is staled, remote call
+    final cache2 = await store.get(key);
+    expect(cache2?.isStaled(), isTrue);
+    resp = await getOk(options);
+    final cache3 = await store.get(key);
+    expect(cache3?.isStaled(), isFalse);
   });
 
   test('maxStale from request', () async {
     setUpDefault();
 
-    final resp = await getOkNoDirective(options.copyWith(
-      policy: CachePolicy.forceCache,
-      maxStale: const Duration(seconds: 1),
-    ));
-
-    expect(resp.statusCode, equals(200));
-    final key = options.keyBuilder(url: resp.request!.url);
-    expect(await store.exists(key), isTrue);
-  });
-
-  test('maxStale removal from base', () async {
-    setUpMaxStale();
-
-    // Request for the 1st time
-    var resp = await getOkNoDirective(options.copyWith(
-      policy: CachePolicy.forceCache,
-    ));
-    final key = options.keyBuilder(url: resp.request!.url);
-    expect(await store.exists(key), isTrue);
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Request a 2nd time to ensure the cache entry is now deleted
-    resp = await getOkNoDirective(options.copyWith(maxStale: Duration.zero));
-
-    expect(await store.exists(key), isFalse);
-  });
-
-  test('maxStale removal from request', () async {
-    setUpDefault();
-
-    // Request for the 1st time
-    var resp = await getOkNoDirective(options.copyWith(
-      policy: CachePolicy.forceCache,
+    // 1st time - request is stored in cache
+    var resp = await getOk(options.copyWith(
       maxStale: const Duration(seconds: 1),
     ));
     final key = options.keyBuilder(url: resp.request!.url);
     expect(await store.exists(key), isTrue);
 
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Request a 2nd time to postpone stale date
-    // We wait for 2 second so the cache is now staled but we recover it
-    resp = await getOkNoDirective(options.copyWith(
-      policy: CachePolicy.forceCache,
+    // 2nd time - the response is restored from cache, no remote call
+    await getOk(options.copyWith(
       maxStale: const Duration(seconds: 1),
     ));
-    expect(await store.exists(key), isTrue);
+    final cache1 = await store.get(key);
+    expect(cache1?.isStaled(), isFalse);
 
     await Future.delayed(const Duration(seconds: 1));
 
-    // Request for the last time without maxStale directive to ensure
-    // the cache entry is now deleted
-    resp = await getOkNoDirective(options);
-
-    expect(await store.exists(key), isFalse);
+    // 3rd time - the response is staled, remote call
+    final cache2 = await store.get(key);
+    expect(cache2?.isStaled(), isTrue);
+    resp = await getOk(options.copyWith(
+      maxStale: const Duration(seconds: 1),
+    ));
+    final cache3 = await store.get(key);
+    expect(cache3?.isStaled(), isFalse);
   });
 }

@@ -41,19 +41,7 @@ extension _CacheClientUtils on CacheClient {
     final cacheStore = _getCacheStore(request.options);
     final response = await cacheStore.get(cacheKey);
 
-    if (response != null) {
-      // Purge entry if staled
-      final maxStale = request.options.maxStale;
-      if ((maxStale == null || maxStale == Duration.zero) &&
-          response.isStaled()) {
-        await cacheStore.delete(cacheKey);
-        return null;
-      }
-
-      return response.readContent(request.options);
-    }
-
-    return null;
+    return response?.readContent(request.options);
   }
 
   /// Updates cached response if input has maxStale

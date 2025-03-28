@@ -46,19 +46,7 @@ extension _DioCacheInterceptorUtils on DioCacheInterceptor {
     final cacheStore = _getCacheStore(options);
     final response = await cacheStore.get(cacheKey);
 
-    if (response != null) {
-      // Purge entry if staled
-      final maxStale = request.getCacheOptions()?.maxStale;
-      if ((maxStale == null || maxStale == Duration.zero) &&
-          response.isStaled()) {
-        await cacheStore.delete(cacheKey);
-        return null;
-      }
-
-      return response.readContent(options);
-    }
-
-    return null;
+    return response?.readContent(options);
   }
 
   /// Reads cached response from cache store and transforms it to Response object.
