@@ -40,18 +40,31 @@ extension _DioCacheInterceptorUtils on DioCacheInterceptor {
   }
 
   /// Reads cached response from cache store.
-  Future<CacheResponse?> _loadCacheResponse(RequestOptions request) async {
+  Future<CacheResponse?> _loadCacheResponse(
+    RequestOptions request, {
+    required bool readHeaders,
+    required bool readBody,
+  }) async {
     final options = _getCacheOptions(request);
     final cacheKey = _getCacheKey(options, request);
     final cacheStore = _getCacheStore(options);
     final response = await cacheStore.get(cacheKey);
 
-    return response?.readContent(options);
+    return response?.readContent(
+      options,
+      readHeaders: readHeaders,
+      readBody: readBody,
+    );
   }
 
   /// Reads cached response from cache store and transforms it to Response object.
   Future<Response?> _loadResponse(RequestOptions request) async {
-    final existing = await _loadCacheResponse(request);
+    final existing = await _loadCacheResponse(
+      request,
+      readHeaders: true,
+      readBody: true,
+    );
+
     // Transform CacheResponse to Response object
     return existing?.toResponse(request);
   }

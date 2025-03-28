@@ -67,12 +67,13 @@ void main() {
       options: cipherOptions.toOptions(),
     );
     expect(await store.exists(resp.extra[extraCacheKey]), isTrue);
+    expect(resp.data['path'], equals('/ok'));
 
     resp = await dio.get(
       '${MockHttpClientAdapter.mockBase}/ok',
-      options:
-          cipherOptions.copyWith(policy: CachePolicy.forceCache).toOptions(),
+      options: cipherOptions.toOptions(),
     );
+    expect(await store.exists(resp.extra[extraCacheKey]), isTrue);
     expect(resp.data['path'], equals('/ok'));
   });
 

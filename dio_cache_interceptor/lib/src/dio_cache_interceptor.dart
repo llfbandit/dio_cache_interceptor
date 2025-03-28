@@ -44,13 +44,25 @@ class DioCacheInterceptor extends Interceptor {
 
     final strategy = await CacheStrategyFactory(
       request: DioBaseRequest(options),
-      cacheResponse: await _loadCacheResponse(options),
+      cacheResponse: await _loadCacheResponse(
+        options,
+        readHeaders: true,
+        readBody: false,
+      ),
       cacheOptions: cacheOptions,
     ).compute();
 
     var cacheResponse = strategy.cacheResponse;
     if (cacheResponse != null) {
       // Cache hit
+
+      // Finish reading content from cached response
+      cacheResponse = await cacheResponse.readContent(
+        cacheOptions,
+        readHeaders: false,
+        readBody: true,
+      );
+
       // Update cached response if needed
       cacheResponse = await _updateCacheResponse(cacheResponse, cacheOptions);
 

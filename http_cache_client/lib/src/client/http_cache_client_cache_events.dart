@@ -24,13 +24,25 @@ extension _CacheClientEvents on CacheClient {
 
       final strategy = await CacheStrategyFactory(
         request: request,
-        cacheResponse: await _loadCacheResponse(request),
+        cacheResponse: await _loadCacheResponse(
+          request,
+          readHeaders: true,
+          readBody: false,
+        ),
         cacheOptions: options,
       ).compute();
 
       var cacheResponse = strategy.cacheResponse;
       if (cacheResponse != null) {
         // Cache hit
+
+        // Finish reading content from cached response
+        cacheResponse = await cacheResponse.readContent(
+          options,
+          readHeaders: false,
+          readBody: true,
+        );
+
         // Update cached response if needed
         cacheResponse = await _updateCacheResponse(cacheResponse, options);
 

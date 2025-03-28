@@ -30,18 +30,31 @@ extension _CacheClientUtils on CacheClient {
 
   /// Reads cached response from cache store and transforms it to Response object.
   Future<http.Response?> _loadResponse(HttpBaseRequest request) async {
-    final existing = await _loadCacheResponse(request);
+    final existing = await _loadCacheResponse(
+      request,
+      readHeaders: true,
+      readBody: true,
+    );
+
     // Transform CacheResponse to Response object
     return existing?.toResponse(request);
   }
 
   /// Reads cached response from cache store.
-  Future<CacheResponse?> _loadCacheResponse(HttpBaseRequest request) async {
+  Future<CacheResponse?> _loadCacheResponse(
+    HttpBaseRequest request, {
+    required bool readHeaders,
+    required bool readBody,
+  }) async {
     final cacheKey = _getCacheKey(request);
     final cacheStore = _getCacheStore(request.options);
     final response = await cacheStore.get(cacheKey);
 
-    return response?.readContent(request.options);
+    return response?.readContent(
+      request.options,
+      readHeaders: readHeaders,
+      readBody: readBody,
+    );
   }
 
   /// Updates cached response if input has maxStale

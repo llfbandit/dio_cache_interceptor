@@ -170,12 +170,18 @@ class CacheResponse {
     return 0;
   }
 
-  Future<CacheResponse> readContent(CacheOptions options) async {
+  Future<CacheResponse> readContent(
+    CacheOptions options, {
+    required bool readHeaders,
+    required bool readBody,
+  }) async {
     final cipher = options.cipher;
 
     return copyWith(
-      content: await cipher?.decryptContent(content) ?? content,
-      headers: await cipher?.decryptContent(headers) ?? headers,
+      content:
+          readBody ? await cipher?.decryptContent(content) ?? content : null,
+      headers:
+          readHeaders ? await cipher?.decryptContent(headers) ?? headers : null,
     );
   }
 

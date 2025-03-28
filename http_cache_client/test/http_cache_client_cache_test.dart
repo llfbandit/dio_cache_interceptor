@@ -26,11 +26,11 @@ void main() {
     );
 
     var resp = await getOk(cipherOptions);
-
     final key = options.keyBuilder(url: resp.request!.url);
     expect(await store.exists(key), isTrue);
+    expect(jsonDecode(resp.body)['path'], equals('/ok'));
 
-    resp = await getOk(cipherOptions.copyWith(policy: CachePolicy.forceCache));
+    resp = await getOk(cipherOptions);
     expect(await store.exists(key), isTrue);
     expect(jsonDecode(resp.body)['path'], equals('/ok'));
   });

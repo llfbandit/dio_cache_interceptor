@@ -94,9 +94,15 @@ void main() {
         ),
       );
 
-      final response = await cacheResponse.readContent(options);
-      expect(response.content, utf8.encode('tnetnoc esnopser'));
+      var response = await cacheResponse.readContent(options,
+          readHeaders: true, readBody: false);
       expect(response.headers, utf8.encode('}"01" :"ega"{'));
+      expect(response.content, utf8.encode('response content'));
+
+      response = await cacheResponse.readContent(options,
+          readHeaders: false, readBody: true);
+      expect(response.headers, utf8.encode('{"age": "10"}'));
+      expect(response.content, utf8.encode('tnetnoc esnopser'));
     });
 
     test('writeContent encrypts content and headers', () async {
