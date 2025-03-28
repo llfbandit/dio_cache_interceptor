@@ -1,5 +1,5 @@
 ## 5.0.1
-- feat: Allow to provide a Hive to be used.
+- feat: Allow to provide a Hive implementation to be used.
 
 ## 5.0.0
 - feat: Saves response status code.

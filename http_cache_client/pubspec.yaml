@@ -7,7 +7,6 @@ issue_tracker: https://github.com/llfbandit/dart_http_cache/issues
 environment:
   sdk: ^3.0.0
 
-
 dependencies:
   # https://pub.dev/packages/http
   http: ^1.2.0

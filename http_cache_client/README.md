@@ -125,9 +125,7 @@ enum CachePolicy {
 
 ## Features and bugs
 
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: https://github.com/llfbandit/dart_http_cache/issues
+Please file feature requests and bugs at the [issue tracker](https://github.com/llfbandit/dart_http_cache/issues).
 
 ## License
 
