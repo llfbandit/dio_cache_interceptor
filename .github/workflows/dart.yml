@@ -1,8 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Dart
 
 on:
@@ -18,10 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: http_cache_interceptor
-
     steps:
       - uses: actions/checkout@v3
 
@@ -29,16 +20,22 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      
+      - name: Activate melos
+        run: |
+          dart pub global activate melos
 
       - name: Install dependencies
-        run: dart pub get
+        run: melos bs
 
       # verify the use of 'dart format' on each commit.
       - name: Verify formatting
+        working-directory: dio_cache_interceptor
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
+        working-directory: dio_cache_interceptor
         run: dart analyze
 
       - name: Activate coverage
@@ -46,6 +43,7 @@ jobs:
           dart pub global activate coverage
 
       - name: Run tests with coverage
+        working-directory: dio_cache_interceptor
         run: |
           dart pub global run coverage:test_with_coverage
 
@@ -53,7 +51,12 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          files: http_cache_interceptor/coverage/lcov.info
+          files: dio_cache_interceptor/coverage/lcov.info
+      
+      - name: Run tests with coverage
+        working-directory: http_cache_client
+        run: |
+          dart pub global run coverage:test_with_coverage
 
       # Run store tests.
       - name: Run tests with coverage on DB Store
