@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      
       - name: Activate melos
         run: |
           dart pub global activate melos
