@@ -29,12 +29,12 @@ jobs:
         run: melos bs
 
       # verify the use of 'dart format' on each commit.
-      - name: Verify formatting
+      - name: Verify formatting - dio_cache_interceptor
         working-directory: dio_cache_interceptor
         run: dart format --output=none --set-exit-if-changed .
 
       # Consider passing '--fatal-infos' for slightly stricter analysis.
-      - name: Analyze project source
+      - name: Analyze project source - dio_cache_interceptor
         working-directory: dio_cache_interceptor
         run: dart analyze
 
@@ -42,62 +42,50 @@ jobs:
         run: |
           dart pub global activate coverage
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage - dio_cache_interceptor
         working-directory: dio_cache_interceptor
         run: |
           dart pub global run coverage:test_with_coverage
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to Codecov dio_cache_interceptor
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: dio_cache_interceptor/coverage/lcov.info
       
-      - name: Run tests with coverage
+      - name: Run tests - http_cache_client
         working-directory: http_cache_client
         run: |
-          dart pub global run coverage:test_with_coverage
+          dart test
 
       # Run store tests.
-      - name: Run tests with coverage on DB Store
+      - name: Run tests - Drift store
         working-directory: http_cache_drift_store
         run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
       
-      - name: Run tests with coverage on File Store
+      - name: Run tests - File store
         working-directory: http_cache_file_store
         run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
 
-      - name: Run tests with coverage on Hive Store
+      - name: Run tests - Hive store
         working-directory: http_cache_hive_store
         run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
       
-      - name: Run tests with coverage on Isar Store
+      - name: Run tests - Isar store
         working-directory: http_cache_isar_store
         run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
       
-      - name: Run tests with coverage on ObjectBox Store
+      - name: Run tests - ObjectBox store
         working-directory: http_cache_objectbox_store
         run: |
           bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
       
-      - name: Run tests with coverage on Sembast Store
+      - name: Run tests - Sembast store
         working-directory: http_cache_sembast_store
         run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
-      
-      - name: Run tests with coverage on Isar Store
-        working-directory: http_cache_isar_store
-        run: |
-          dart pub get
-          dart pub global run coverage:test_with_coverage
+          dart test
