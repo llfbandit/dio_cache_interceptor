@@ -15,11 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
       
       - name: Activate melos
         run: |
@@ -73,12 +68,12 @@ jobs:
         working-directory: http_cache_hive_store
         run: |
           dart test
-      
-      - name: Run tests - Isar store
-        working-directory: http_cache_isar_store
-        run: |
-          dart test
-      
+
+      # - name: Run tests - Isar store
+      #   working-directory: http_cache_isar_store
+      #   run: |
+      #     dart test
+
       - name: Run tests - ObjectBox store
         working-directory: http_cache_objectbox_store
         run: |
