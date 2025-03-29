@@ -36,20 +36,20 @@ void main() {
     );
   });
 
-  // test('Fetch canceled', () async {
-  //   try {
-  //     await dio.get(
-  //       '${MockHttpClientAdapter.mockBase}/ok',
-  //       cancelToken: CancelToken()..cancel(),
-  //     );
-  //   } catch (err) {
-  //     expect(err is DioError, isTrue);
-  //     expect((err as DioError).type == DioErrorType.cancel, isTrue);
-  //     return;
-  //   }
+  test('Fetch canceled', () async {
+    try {
+      await dio.get(
+        '${MockHttpClientAdapter.mockBase}/ok',
+        cancelToken: CancelToken()..cancel(),
+      );
+    } catch (err) {
+      expect(err is DioException, isTrue);
+      expect((err as DioException).type == DioExceptionType.cancel, isTrue);
+      return;
+    }
 
-  //   expect(false, isTrue, reason: 'Should never reach this check');
-  // });
+    expect(false, isTrue, reason: 'Should never reach this check');
+  });
 
   test('Fetch with cipher', () async {
     final cipherOptions = options.copyWith(
