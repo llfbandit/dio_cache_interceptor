@@ -81,10 +81,7 @@ extension _DioCacheInterceptorUtils on DioCacheInterceptor {
       cacheOptions: cacheOptions,
     ).compute(
       cacheResponseBuilder: () => response.toCacheResponse(
-        key: cacheOptions.keyBuilder(
-          url: response.requestOptions.uri,
-          headers: response.requestOptions.headers,
-        ),
+        key: _getCacheKey(cacheOptions, response.requestOptions),
         options: cacheOptions,
       ),
     );
@@ -126,7 +123,7 @@ extension _DioCacheInterceptorUtils on DioCacheInterceptor {
   String _getCacheKey(CacheOptions options, RequestOptions request) {
     return options.keyBuilder(
       url: request.uri,
-      headers: request.headers,
+      headers: request.getFlattenHeaders(),
     );
   }
 }

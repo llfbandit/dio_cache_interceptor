@@ -1,3 +1,6 @@
+## 4.0.2
+- fix: Missing exports to handle client only caching.
+
 ## 4.0.1
 - fix: Improve cache save time.
 - fix: `CacheOptions#maxStale` usage may lead to empty response body.
