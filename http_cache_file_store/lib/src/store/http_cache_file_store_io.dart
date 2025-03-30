@@ -311,13 +311,13 @@ class FileCacheStore extends CacheStore {
   CachePriority _getPriority(File file) {
     final priority = path.basename(file.parent.path);
 
-    if (priority == CachePriority.low.toShortString()) {
+    if (priority == CachePriority.low.name) {
       return CachePriority.low;
-    } else if (priority == CachePriority.normal.toShortString()) {
-      return CachePriority.normal;
+    } else if (priority == CachePriority.high.name) {
+      return CachePriority.high;
     }
 
-    return CachePriority.high;
+    return CachePriority.normal;
   }
 
   Future<File?> _findFile(String key) async {
@@ -338,7 +338,7 @@ class FileCacheStore extends CacheStore {
         (i) {
           final priority = CachePriority.values[i];
           final subDir = Directory(
-            path.join(directory, priority.toShortString()),
+            path.join(directory, priority.name),
           );
 
           return MapEntry(priority, subDir);
