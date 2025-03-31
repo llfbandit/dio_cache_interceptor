@@ -1,3 +1,6 @@
+## 2.0.1
+- chore: Update `http_cache_core` to 1.1.0.
+
 ## 2.0.0
 - feat: Saves response status code.
 - chore: Updated dependencies.

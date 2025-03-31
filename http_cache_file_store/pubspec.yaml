@@ -1,7 +1,7 @@
 name: http_cache_file_store
 description: A filesystem cache store agnostic HTTP client implementation.
 homepage: https://github.com/llfbandit/dart_http_cache/tree/master/http_cache_file_store
-version: 2.0.0
+version: 2.0.1
 
 environment:
   sdk: ^3.0.0
