@@ -1,2 +1,2 @@
 ignore:
-  - "*.g.dart"  # ignore generated files
+  - "**/*.g.dart"  # ignore generated files
