@@ -55,7 +55,11 @@ void main() {
     expect(resp304.statusCode, equals(200));
     final cacheResp2 = await store.get(key);
 
-    expect(cacheResp1, equals(cacheResp2));
+    expect(
+        cacheResp1!.copyWith(
+            requestDate: cacheResp2!.requestDate,
+            responseDate: cacheResp2.responseDate),
+        equals(cacheResp2));
   });
 
   test('Fetch noCache policy', () async {

@@ -253,7 +253,9 @@ class CacheResponse {
         other.maxStale == maxStale &&
         other.priority == priority &&
         other.url == url &&
-        other.statusCode == statusCode;
+        other.statusCode == statusCode &&
+        other.requestDate == requestDate &&
+        other.responseDate == responseDate;
   }
 
   @override
@@ -269,6 +271,8 @@ class CacheResponse {
         maxStale.hashCode ^
         priority.hashCode ^
         url.hashCode ^
-        statusCode.hashCode;
+        statusCode.hashCode ^
+        requestDate.hashCode ^
+        responseDate.hashCode;
   }
 }

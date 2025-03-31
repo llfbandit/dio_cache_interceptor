@@ -13,6 +13,7 @@ Future<void> _addFooResponse(
   List<int>? headers,
   DateTime? maxStale,
   String url = 'https://foo.com',
+  CachePriority priority = CachePriority.normal,
 }) {
   final resp = CacheResponse(
     cacheControl: cacheControl ?? CacheControl(),
@@ -24,7 +25,7 @@ Future<void> _addFooResponse(
     key: key,
     lastModified: lastModified,
     maxStale: maxStale,
-    priority: CachePriority.normal,
+    priority: priority,
     requestDate: DateTime.now().subtract(const Duration(milliseconds: 50)),
     responseDate: DateTime.now(),
     url: url,
@@ -49,12 +50,17 @@ Future<void> getItem(CacheStore store) async {
     contentTypeHeader: [jsonContentType]
   }));
   final cacheControl = CacheControl(maxAge: 10, privacy: 'public');
+  final expires = DateTime.now();
+  final lastModified = HttpDate.format(DateTime.now());
 
   await _addFooResponse(
     store,
     maxStale: DateTime.now().add(const Duration(days: 1)),
     headers: headers,
     cacheControl: cacheControl,
+    priority: CachePriority.high,
+    expires: expires,
+    lastModified: lastModified,
   );
 
   final resp = await store.get('foo');
@@ -62,14 +68,15 @@ Future<void> getItem(CacheStore store) async {
   expect(resp?.key, equals('foo'));
   expect(resp?.url, equals('https://foo.com'));
   expect(resp?.eTag, equals('an, etag'));
-  expect(resp?.lastModified, isNull);
+  expect(resp?.lastModified, lastModified);
   expect(resp?.maxStale, isNotNull);
   expect(resp?.content, equals(utf8.encode('foo')));
   expect(resp?.headers, equals(headers));
-  expect(resp?.priority, CachePriority.normal);
-  expect(resp?.cacheControl.maxAge, equals(cacheControl.maxAge));
-  expect(resp?.cacheControl.privacy, equals(cacheControl.privacy));
+  expect(resp?.priority, CachePriority.high);
+  expect(resp?.cacheControl, equals(cacheControl));
   expect(resp?.statusCode, equals(200));
+  expect(resp!.expires!.millisecondsSinceEpoch ~/ 1000,
+      equals(expires.millisecondsSinceEpoch ~/ 1000));
 }
 
 Future<void> deleteItem(CacheStore store) async {
