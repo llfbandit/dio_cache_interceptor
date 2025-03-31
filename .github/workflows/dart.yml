@@ -43,6 +43,15 @@ jobs:
         run: |
           flutter test --coverage
       
+      - name: Verify formatting - http_cache_client
+        working-directory: http_cache_client
+        run: dart format --output=none --set-exit-if-changed .
+
+      # Consider passing '--fatal-infos' for slightly stricter analysis.
+      - name: Analyze project source - http_cache_client
+        working-directory: http_cache_client
+        run: dart analyze
+      
       - name: Run tests - http_cache_client
         working-directory: http_cache_client
         run: |
