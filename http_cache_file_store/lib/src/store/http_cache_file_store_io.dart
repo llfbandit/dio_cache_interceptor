@@ -253,10 +253,7 @@ class FileCacheStore extends CacheStore {
       size = sizes[fieldIndex++];
       final rawRequestDate =
           size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
-      final requestDate = rawRequestDate != null
-          ? DateTime.parse(rawRequestDate)
-          : DateTime.parse(responseDate)
-              .subtract(const Duration(milliseconds: 150));
+      final requestDate = DateTime.parse(rawRequestDate!);
 
       i += size;
       size = sizes[fieldIndex++];

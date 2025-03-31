@@ -304,7 +304,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(10, urlOffset);
           fbb.addInt64(11, object.priority);
           fbb.addInt64(12, object.cacheControl.targetId);
-          fbb.addInt64(13, object.requestDate?.millisecondsSinceEpoch);
+          fbb.addInt64(13, object.requestDate.millisecondsSinceEpoch);
           fbb.addInt64(14, object.statusCode);
           fbb.finish(fbb.endTable());
           return object.id ?? 0;
@@ -318,8 +318,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 14);
           final maxStaleValue =
               const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 20);
-          final requestDateValue =
-              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 30);
           final keyParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
           final contentParam =
@@ -342,9 +340,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final maxStaleParam = maxStaleValue == null
               ? null
               : DateTime.fromMillisecondsSinceEpoch(maxStaleValue);
-          final requestDateParam = requestDateValue == null
-              ? null
-              : DateTime.fromMillisecondsSinceEpoch(requestDateValue);
+          final requestDateParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 30, 0));
           final priorityParam =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0);
           final responseDateParam = DateTime.fromMillisecondsSinceEpoch(

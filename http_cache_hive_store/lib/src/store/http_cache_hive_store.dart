@@ -69,14 +69,12 @@ class HiveCacheStore extends CacheStore {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     final checkedBox = _box;
     if (checkedBox != null && checkedBox.isOpen) {
       _box = null;
       return checkedBox.close();
     }
-
-    return Future.value();
   }
 
   @override
@@ -181,10 +179,7 @@ class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
       priority: fields[9] as CachePriority,
       responseDate: fields[10] as DateTime,
       url: fields[11] as String,
-      requestDate: fields[12] != null
-          ? fields[12] as DateTime
-          : (fields[10] as DateTime)
-              .subtract(const Duration(milliseconds: 150)),
+      requestDate: fields[12] as DateTime,
       statusCode: fields[13] as int? ?? 304,
     );
   }
@@ -222,16 +217,6 @@ class _CacheResponseAdapter extends TypeAdapter<CacheResponse> {
       ..writeByte(13)
       ..write(obj.statusCode);
   }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _CacheResponseAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
 }
 
 class _CacheControlAdapter extends TypeAdapter<CacheControl> {
@@ -279,16 +264,6 @@ class _CacheControlAdapter extends TypeAdapter<CacheControl> {
       ..writeByte(7)
       ..write(obj.mustRevalidate);
   }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _CacheControlAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
 }
 
 class _CachePriorityAdapter extends TypeAdapter<CachePriority> {
@@ -315,23 +290,10 @@ class _CachePriorityAdapter extends TypeAdapter<CachePriority> {
     switch (obj) {
       case CachePriority.low:
         writer.writeByte(0);
-        break;
       case CachePriority.normal:
         writer.writeByte(1);
-        break;
       case CachePriority.high:
         writer.writeByte(2);
-        break;
     }
   }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is _CachePriorityAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
 }

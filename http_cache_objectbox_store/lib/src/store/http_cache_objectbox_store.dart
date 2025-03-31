@@ -1,4 +1,5 @@
 import 'package:http_cache_core/http_cache_core.dart';
+// import 'package:objectbox/objectbox.dart';
 import 'package:http_cache_objectbox_store/objectbox.g.dart';
 
 /// A store saving responses using ObjectBox.
@@ -166,7 +167,7 @@ class CacheResponseBox {
     this.headers,
     this.lastModified,
     this.maxStale,
-    this.requestDate,
+    required this.requestDate,
     required this.priority,
     required this.responseDate,
     required this.url,
@@ -200,7 +201,7 @@ class CacheResponseBox {
   DateTime responseDate;
 
   @Property(type: PropertyType.date)
-  DateTime? requestDate;
+  DateTime requestDate;
 
   String url;
 
@@ -237,10 +238,7 @@ class CacheResponseBox {
       priority: cachePriority,
       responseDate: responseDate,
       url: url,
-      requestDate: requestDate ??
-          responseDate.subtract(
-            const Duration(milliseconds: 150),
-          ),
+      requestDate: requestDate,
       statusCode: statusCode ?? 304,
     );
   }
