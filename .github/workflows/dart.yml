@@ -48,6 +48,11 @@ jobs:
         run: |
           flutter test --coverage
 
+      - name: Run tests - http_cache_core
+        working-directory: http_cache_core
+        run: |
+          flutter test --coverage
+
       # Run store tests.
       - name: Run tests - Drift store
         working-directory: http_cache_drift_store
