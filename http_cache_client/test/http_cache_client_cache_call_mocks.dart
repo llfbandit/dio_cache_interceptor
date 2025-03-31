@@ -27,7 +27,7 @@ Future<http.Response> getOk(
     options: options,
   );
 
-  return client.get(url, options: options, headers: headers);
+  return client.get(url, headers: headers);
 }
 
 Future<http.Response> download(CacheOptions options) {

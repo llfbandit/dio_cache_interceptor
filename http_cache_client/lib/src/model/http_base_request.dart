@@ -1,9 +1,15 @@
 import 'package:http/http.dart' as http;
 import 'package:http_cache_core/http_cache_core.dart';
 
+/// http.BaseRequest adapter for http_cache_core
 class HttpBaseRequest extends BaseRequest {
+  /// http request implementation
   final http.BaseRequest inner;
+
+  /// CacheOptions to embed for later use
   final CacheOptions options;
+
+  /// Request generation date
   final DateTime _date;
 
   HttpBaseRequest(this.inner, this.options, this._date);
