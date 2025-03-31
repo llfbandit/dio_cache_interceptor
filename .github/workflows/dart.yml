@@ -74,6 +74,10 @@ jobs:
         working-directory: http_cache_sembast_store
         run: |
           flutter test --coverage
+      
+      - name: Activate combine_coverage
+        run: |
+          dart pub global activate combine_coverage
 
       - name: Merge test coverage
         run: |
