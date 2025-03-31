@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/http_cache_objectbox_store.svg)](https://pub.dev/packages/http_cache_objectbox_store)
+
 # http_cache_objectbox_store
 
 ObjectBox cache store implementation for:

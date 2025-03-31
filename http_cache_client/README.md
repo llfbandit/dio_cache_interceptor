@@ -1,3 +1,6 @@
+[![pub package](https://img.shields.io/pub/v/http_cache_client.svg)](https://pub.dev/packages/http_cache_client)
+[![codecov](https://codecov.io/gh/llfbandit/dart_http_cache/graph/badge.svg?token=QQQIXO7VZI)](https://codecov.io/gh/llfbandit/dart_http_cache)
+
 HTTP cache client with multiple stores respecting HTTP directives (or not).
 
 Also available as interceptor for [dio package](https://pub.dev/packages/dio_cache_interceptor).

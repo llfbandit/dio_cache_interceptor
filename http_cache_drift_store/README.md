@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/http_cache_drift_store.svg)](https://pub.dev/packages/http_cache_drift_store)
+
 # http_cache_drift_store
 
 Drift cache store implementation for:
