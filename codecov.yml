@@ -1,2 +1,36 @@
 ignore:
   - "**/*.g.dart"  # ignore generated files
+
+comment:
+  layout: "header, diff, components"  # show component info in the PR comment
+
+component_management:
+  default_rules:  # default rules that will be inherited by all components
+    statuses:
+      - type: project # in this case every component that doens't have a status defined will have a project type one
+        target: auto
+  individual_components:
+    - component_id: dio_cache_interceptor
+      paths:
+        - dio_cache_interceptor/**
+    - component_id: http_cache_client
+      paths:
+        - http_cache_client/**
+    - component_id: http_cache_core
+      paths:
+        - http_cache_core/**
+    - component_id: http_cache_drift_store
+      paths:
+        - http_cache_drift_store/**
+    - component_id: http_cache_file_store
+      paths:
+        - http_cache_file_store/**
+    - component_id: http_cache_hive_store
+      paths:
+        - http_cache_hive_store/**
+    - component_id: http_cache_objectbox_store
+      paths:
+        - http_cache_objectbox_store/**
+    - component_id: http_cache_sembast_store
+      paths:
+        - http_cache_sembast_store/**
