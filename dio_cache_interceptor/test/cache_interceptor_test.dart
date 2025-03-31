@@ -12,7 +12,12 @@ void main() {
   late CacheOptions options;
 
   setUp(() async {
-    dio = Dio()..httpClientAdapter = MockHttpClientAdapter();
+    dio = Dio(BaseOptions(
+      sendTimeout: Duration(seconds: 2),
+      connectTimeout: Duration(seconds: 2),
+      receiveTimeout: Duration(seconds: 2),
+    ))
+      ..httpClientAdapter = MockHttpClientAdapter();
 
     store = MemCacheStore();
     await store.clean();
@@ -92,7 +97,7 @@ void main() {
     final key = resp.extra[extraCacheKey];
     expect(await store.exists(key), isTrue);
 
-    final resp304 = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
+    var resp304 = await dio.get('${MockHttpClientAdapter.mockBase}/ok');
     expect(resp304.statusCode, equals(200));
     expect(resp.data['path'], equals('/ok'));
     expect(resp304.extra[extraCacheKey], equals(key));

@@ -6,82 +6,170 @@ import 'package:test/test.dart';
 void main() {
   group('CacheResponse', () {
     late CacheResponse cacheResponse;
-    late CacheControl cacheControl;
 
     setUp(() {
-      cacheControl = CacheControl(
-        maxAge: 60,
-        maxStale: 30,
-        mustRevalidate: false,
-        minFresh: 10,
-      );
-
       cacheResponse = CacheResponse(
-        cacheControl: cacheControl,
+        cacheControl: CacheControl(),
         content: utf8.encode('response content'),
-        date: DateTime.now(),
-        eTag: 'etag_value',
-        expires: DateTime.now().add(Duration(minutes: 1)),
-        headers: utf8.encode('{"age": "10"}'),
+        date: null,
+        eTag: null,
+        expires: null,
+        headers: null,
         key: 'cache_key',
-        lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT',
+        lastModified: null,
         maxStale: null,
         priority: CachePriority.normal,
-        requestDate: DateTime.now().subtract(Duration(minutes: 1)),
+        requestDate: DateTime.now().subtract(Duration(seconds: 2)),
         responseDate: DateTime.now(),
         url: 'https://example.com',
         statusCode: 200,
       );
     });
 
-    test('isStaled returns false when maxStale is in the future', () {
+    test('isStaled returns false when no maxStale is set', () {
       expect(cacheResponse.isStaled(), isFalse);
     });
 
-    test('isExpired returns false when response is fresh', () {
-      expect(cacheResponse.isExpired(cacheControl), isFalse);
-    });
-
-    test('isExpired returns true when response is expired', () {
+    test('isStaled returns false when maxStale is in the future', () {
       cacheResponse = cacheResponse.copyWith(
-        headers: utf8.encode('{"age": "100"}'),
+        maxStale: DateTime.now().add(Duration(minutes: 1)),
       );
-      expect(cacheResponse.isExpired(cacheControl), isTrue);
+      expect(cacheResponse.isStaled(), isFalse);
     });
 
-    test('isExpired returns true when response is expired', () {
-      final cacheResponse = CacheResponse(
+    test('isStaled returns true when maxStale is in the past', () {
+      cacheResponse = cacheResponse.copyWith(
+        maxStale: DateTime.now().subtract(Duration(minutes: 1)),
+      );
+      expect(cacheResponse.isStaled(), isTrue);
+    });
+
+    test('isExpired returns true when response has no expiration time', () {
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test(
+        'isExpired returns true when response is expired - max-age (w/ request date)',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        requestDate: DateTime.now().subtract(Duration(seconds: 2)),
+        cacheControl: CacheControl(maxAge: 1),
+      );
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test(
+        'isExpired returns true when response is expired - max-age (w/ date header)',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        date: DateTime.now().subtract(const Duration(seconds: 2)),
+        cacheControl: CacheControl(maxAge: 1),
+      );
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test(
+        'isExpired returns true when response is expired - max-age from request',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        date: DateTime.now().subtract(const Duration(seconds: 2)),
+      );
+      expect(cacheResponse.isExpired(CacheControl(maxAge: 1)), isTrue);
+    });
+
+    test(
+        'isExpired returns false when response is fresh - max-age from request',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        date: DateTime.now().subtract(const Duration(seconds: 2)),
+        cacheControl: CacheControl(maxAge: 5),
+      );
+      expect(cacheResponse.isExpired(CacheControl(maxAge: 6)), isFalse);
+    });
+
+    test(
+        'isExpired returns false when response is fresh - max-stale from request',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        date: DateTime.now().subtract(const Duration(seconds: 2)),
+        cacheControl: CacheControl(maxAge: 2),
+      );
+      expect(cacheResponse.isExpired(CacheControl(maxStale: 3)), isFalse);
+    });
+
+    test('isExpired returns true when response is expired - expires', () {
+      cacheResponse = cacheResponse.copyWith(
         cacheControl: CacheControl(),
-        content: utf8.encode('response content'),
-        date: DateTime.now(),
-        eTag: 'etag_value',
-        expires: null,
-        headers: utf8.encode('{"age": "10"}'),
-        key: 'cache_key',
-        lastModified: 'Wed, 21 Oct 2015 07:28:00 GMT',
-        maxStale: null,
-        priority: CachePriority.normal,
-        requestDate: DateTime.now().subtract(Duration(minutes: 1)),
-        responseDate: DateTime.now(),
-        url: 'https://example.com',
-        statusCode: 200,
+        expires: DateTime.now().subtract(Duration(minutes: 2)),
       );
 
-      expect(cacheResponse.isExpired(cacheControl), isFalse);
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test('isExpired returns false when response is fresh - expires', () {
+      cacheResponse = cacheResponse.copyWith(
+        cacheControl: CacheControl(),
+        expires: DateTime.now().add(Duration(minutes: 2)),
+      );
+
+      expect(cacheResponse.isExpired(CacheControl()), isFalse);
+    });
+
+    test(
+        'isExpired returns true when response is expired - max-age precedence on expires',
+        () {
+      cacheResponse = cacheResponse.copyWith(
+        cacheControl: CacheControl(maxAge: 1),
+        expires: DateTime.now().add(Duration(minutes: 2)),
+      );
+
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test('isExpired returns true when response is expired - lastModified', () {
+      cacheResponse = cacheResponse.copyWith(
+        requestDate: DateTime.now().subtract(Duration(seconds: 1)),
+        cacheControl: CacheControl(),
+        lastModified: HttpDate.format(
+            DateTime.now().subtract(Duration(seconds: 2))), // 10% => 0.2
+      );
+
+      expect(cacheResponse.isExpired(CacheControl()), isTrue);
+    });
+
+    test('isExpired returns false when response is fresh - lastModified', () {
+      cacheResponse = cacheResponse.copyWith(
+        requestDate: DateTime.now().subtract(Duration(seconds: 1)),
+        cacheControl: CacheControl(),
+        lastModified: HttpDate.format(DateTime.now()
+            .subtract(Duration(seconds: 19))), // 10% => 1.9 rounded to 2
+      );
+
+      expect(cacheResponse.isExpired(CacheControl()), isFalse);
     });
 
     test('getHeaders returns decoded headers', () {
+      cacheResponse = cacheResponse.copyWith(
+        headers: utf8.encode('{"age": "10"}'),
+      );
+
       final headers = cacheResponse.getHeaders();
       expect(headers['age'], '10');
     });
 
     test('copyWith creates a new instance with updated values', () {
       final newCacheResponse = cacheResponse.copyWith(eTag: 'new_etag');
+
       expect(newCacheResponse.eTag, 'new_etag');
+      expect(newCacheResponse, isNot(equals(cacheResponse)));
       expect(newCacheResponse.cacheControl, cacheResponse.cacheControl);
     });
 
     test('readContent decrypts content and headers', () async {
+      cacheResponse = cacheResponse.copyWith(
+        headers: utf8.encode('{"age": "10"}'),
+      );
+
       final options = CacheOptions(
         store: MemCacheStore(),
         cipher: CacheCipher(
@@ -106,6 +194,10 @@ void main() {
     });
 
     test('writeContent encrypts content and headers', () async {
+      cacheResponse = cacheResponse.copyWith(
+        headers: utf8.encode('{"age": "10"}'),
+      );
+
       final options = CacheOptions(
         store: MemCacheStore(),
         cipher: CacheCipher(

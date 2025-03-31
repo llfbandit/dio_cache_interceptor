@@ -23,10 +23,10 @@ extension RequestExtension on RequestOptions {
     final h = <String, String>{};
 
     for (var header in headers.entries) {
-      if (header.value is Iterable<String>) {
+      if (header.value is Iterable) {
         h[header.key] = header.value.join(',');
-      } else if (header.value is String) {
-        h[header.key] = header.value;
+      } else if (header.value != null) {
+        h[header.key] = header.value.toString();
       }
     }
 

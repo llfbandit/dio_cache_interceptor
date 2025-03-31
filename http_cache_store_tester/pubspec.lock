@@ -111,7 +111,7 @@ packages:
       path: "../http_cache_core"
       relative: true
     source: path
-    version: "1.0.2"
+    version: "1.1.0"
   http_multi_server:
     dependency: transitive
     description:

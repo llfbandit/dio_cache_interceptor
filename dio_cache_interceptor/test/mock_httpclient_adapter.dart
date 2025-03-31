@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 
 class MockHttpClientAdapter implements HttpClientAdapter {
   static const String mockHost = 'mockserver';
@@ -26,7 +27,6 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
               'etag': ['5678'],
-              'age': ['10'],
             },
           );
         }
@@ -112,7 +112,7 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             options.headers.containsKey('if-none-match') ? 304 : 200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
-              'cache-control': ['public', 'max-age=0'],
+              cacheControlHeader: ['public', 'max-age=0'],
               'date': ['Wed, 21 Oct 2000 07:28:00 GMT'],
               'expires': [
                 HttpDate.format(DateTime.now().add(Duration(days: 10)))
@@ -128,7 +128,7 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             options.headers.containsKey('if-none-match') ? 304 : 200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
-              'cache-control': ['public'],
+              cacheControlHeader: ['public'],
               'expires': ['Wed, 21 Oct 2000 07:28:00 GMT'],
               'etag': ['9875'],
             },
@@ -141,7 +141,7 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             options.headers.containsKey('if-none-match') ? 304 : 200,
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
-              'cache-control': ['no-store'],
+              cacheControlHeader: ['no-store'],
               'expires': [
                 HttpDate.format(DateTime.now().add(Duration(days: 10)))
               ],
@@ -157,7 +157,7 @@ class MockHttpClientAdapter implements HttpClientAdapter {
             headers: {
               Headers.contentTypeHeader: [Headers.jsonContentType],
               'last-modified': [HttpDate.format(DateTime.now())],
-              'cache-control': ['public, max-age=1'],
+              cacheControlHeader: ['public, max-age=1'],
             },
           );
         }

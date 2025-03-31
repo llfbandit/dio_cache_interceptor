@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:collection';
 import 'dart:convert' show jsonDecode, utf8;
 import 'dart:math';
 
@@ -74,77 +75,86 @@ class CacheResponse {
 
   /// Checks if response is expired.
   bool isExpired(CacheControl rqCacheCtrl) {
-    final respCacheCtrl = cacheControl;
-
     final ageMillis = _cacheResponseAge();
-
     var freshMillis = _computeFreshnessLifetime();
+
     final maxAge = rqCacheCtrl.maxAge;
-    if (maxAge != -1) {
+    if (maxAge > -1) {
       freshMillis = min(freshMillis, maxAge * 1000);
     }
 
-    var maxStaleMillis = 0;
-    final maxStale = rqCacheCtrl.maxStale;
-    if (!respCacheCtrl.mustRevalidate && maxStale != -1) {
-      maxStaleMillis = maxStale * 1000;
-    }
+    final maxStaleMillis =
+        (!cacheControl.mustRevalidate && rqCacheCtrl.maxStale > -1)
+            ? rqCacheCtrl.maxStale * 1000
+            : 0;
+    final minFreshMillis = max(0, rqCacheCtrl.minFresh * 1000);
 
-    var minFreshMillis = 0;
-    final minFresh = rqCacheCtrl.minFresh;
-    if (minFresh != -1) {
-      minFreshMillis = minFresh * 1000;
-    }
-
-    if (ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
+    if (!cacheControl.noCache &&
+        ageMillis + minFreshMillis < freshMillis + maxStaleMillis) {
       return false;
     }
 
     return true;
   }
 
-  Map<String, dynamic> getHeaders() {
+  Map<String, String> getHeaders() {
     if (headers case final headers?) {
-      return jsonDecode(utf8.decode(headers));
+      final map = jsonDecode(utf8.decode(headers));
+
+      /// Get headers flatten to String & case insensitive
+      final h = LinkedHashMap<String, String>(
+        equals: (a, b) => a.toLowerCase() == b.toLowerCase(),
+        hashCode: (key) => key.toLowerCase().hashCode,
+      );
+
+      for (var header in map.entries) {
+        if (header.value is Iterable) {
+          h[header.key] = header.value.join(',');
+        } else if (header.value != null) {
+          h[header.key] = header.value.toString();
+        }
+      }
+
+      return h;
     }
 
     return {};
   }
 
   /// Returns the current age of the response, in milliseconds.
-  /// Calculating Age.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-4.2.3
   int _cacheResponseAge() {
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
-    final servedDate = date;
     final sentRequestMillis = requestDate.millisecondsSinceEpoch;
     final receivedResponseMillis = responseDate.millisecondsSinceEpoch;
+    final dateMillis = date?.millisecondsSinceEpoch;
+
+    final apparentReceivedAge =
+        (dateMillis != null) ? max(0, receivedResponseMillis - dateMillis) : 0;
 
     final headers = getHeaders();
-    final ageSeconds = (headers[ageHeader] is String)
-        ? int.tryParse(headers[ageHeader]) ?? -1
-        : -1;
-
-    final apparentReceivedAge = (servedDate != null)
-        ? max(0, receivedResponseMillis - servedDate.millisecondsSinceEpoch)
-        : 0;
+    final ageValue = headers[ageHeader];
+    final ageSeconds = (ageValue != null) ? int.tryParse(ageValue) ?? -1 : -1;
 
     final receivedAge = (ageSeconds > -1)
         ? max(apparentReceivedAge, ageSeconds * 1000)
         : apparentReceivedAge;
 
-    final responseDuration = receivedResponseMillis - sentRequestMillis;
-    final residentDuration = nowMillis - receivedResponseMillis;
+    final responseDuration = max(0, receivedResponseMillis - sentRequestMillis);
+    final residentDuration = max(0, nowMillis - receivedResponseMillis);
 
     return receivedAge + responseDuration + residentDuration;
   }
 
-  /// Returns the number of milliseconds that the response was fresh for.
-  /// Calculating Freshness Lifetime.
+  /// Computes the freshness lifetime of a cached response.
+  ///
+  /// Returns the freshness lifetime in milliseconds.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-4.2.1
   int _computeFreshnessLifetime() {
     final maxAge = cacheControl.maxAge;
-    if (maxAge != -1) {
+    if (maxAge > -1) {
       return maxAge * 1000;
     }
 
@@ -152,18 +162,17 @@ class CacheResponse {
     if (checkedExpires != null) {
       final delta =
           checkedExpires.difference(date ?? responseDate).inMilliseconds;
-      return (delta > 0) ? delta : 0;
+      return delta > 0 ? delta : 0;
     }
 
     if (lastModified != null && Uri.parse(url).query.isEmpty) {
-      final sentRequestMillis = requestDate.millisecondsSinceEpoch;
       // As recommended by the HTTP RFC, the max age of a document
       // should be defaulted to 10% of the document's age
       // at the time it was served.
       // Default expiration dates aren't used for URIs containing a query.
-      final servedMillis = date?.millisecondsSinceEpoch ?? sentRequestMillis;
-      final delta =
-          servedMillis - HttpDate.parse(lastModified!).millisecondsSinceEpoch;
+      final delta = (date ?? requestDate)
+          .difference(HttpDate.parse(lastModified!))
+          .inMilliseconds;
       return ((delta > 0) ? delta / 10 : 0).round();
     }
 

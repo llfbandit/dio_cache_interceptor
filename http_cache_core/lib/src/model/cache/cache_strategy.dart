@@ -11,10 +11,18 @@ class CacheStrategy {
             request == null && cacheResponse != null);
 }
 
+/// A factory class for creating cache strategies based on HTTP requests and responses.
 class CacheStrategyFactory {
+  /// The HTTP request to be processed.
   final BaseRequest request;
+
+  /// The HTTP response received, if any.
   final BaseResponse? response;
+
+  /// The cached response, if available.
   final CacheResponse? cacheResponse;
+
+  /// Options that dictate caching behavior.
   final CacheOptions cacheOptions;
 
   static const allowedStatusCodes = [
@@ -38,6 +46,12 @@ class CacheStrategyFactory {
     501,
   ];
 
+  /// Constructor for the CacheStrategyFactory.
+  ///
+  /// - [request] represents the HTTP request that will be processed.
+  /// - [cacheOptions] defines the caching behavior to be applied.
+  /// - [response] represents the HTTP response received, if any.
+  /// - [cacheResponse] represents the cached response, if available.
   CacheStrategyFactory({
     required this.request,
     required this.cacheOptions,
@@ -45,53 +59,66 @@ class CacheStrategyFactory {
     this.cacheResponse,
   });
 
-  /// Returns a strategy to use assuming the request can use the network.
+  /// Computes a cache strategy based on the current request and response.
+  ///
+  /// This method assumes that the request can use the network and returns
+  /// a [CacheStrategy] based on the cache options and the state of the
+  /// response and cache.
+  ///
+  /// [cacheResponseBuilder] is an optional function that can be used to
+  /// build a cache response if one does not already exist.
   Future<CacheStrategy> compute({
     Future<CacheResponse> Function()? cacheResponseBuilder,
   }) async {
+    final resp = response;
+    var cache = cacheResponse;
+
     final rqCacheCtrl = CacheControl.fromHeader(
       request.headerValuesAsList(cacheControlHeader),
     );
 
-    final resp = response;
-    if (cacheResponseBuilder != null && resp != null && cacheResponse == null) {
-      // No cache response...
+    if (cacheResponseBuilder != null && resp != null && cache == null) {
+      // No cached response...
       if (_isCacheable(rqCacheCtrl, resp)) {
         // build it!
         return CacheStrategy(null, await cacheResponseBuilder());
       }
     }
 
-    if (cacheResponse case final cacheResponse?) {
+    if (_hasConditions(request, rqCacheCtrl)) {
+      return CacheStrategy(request, null);
+    }
+
+    // Check if the cached response is stale and should be discarded.
+    if (cache?.maxStale != null && (cache?.isStaled() ?? false)) {
+      cache = null;
+    }
+
+    if (cache case final cache?) {
       // We have a cached response
 
-      // Regardless cache response data, return it.
+      // If the cache policy is to force cache, return the cached response.
       if (cacheOptions.policy == CachePolicy.forceCache) {
-        return CacheStrategy(null, cacheResponse);
+        return CacheStrategy(null, cache);
       }
 
-      // maxStale takes precedence on HTTP directives
-      if (cacheResponse.maxStale != null && !cacheResponse.isStaled()) {
-        return CacheStrategy(null, cacheResponse);
+      // Check if the cached response is still fresh.
+      if (!cache.isExpired(rqCacheCtrl)) {
+        return CacheStrategy(null, cache);
       }
 
-      // Check cached response freshness
-      final respCtrl = cacheResponse.cacheControl;
-      if (!respCtrl.noCache && !cacheResponse.isExpired(rqCacheCtrl)) {
-        return CacheStrategy(null, cacheResponse);
-      }
-
-      // Find conditions to add to the request for validation.
-      if (cacheResponse.eTag case final eTag?) {
+      // Prepare to validate the cached response with the server.
+      if (cache.eTag case final eTag?) {
         request.setHeader(ifNoneMatchHeader, eTag);
       }
-      if (cacheResponse.lastModified case final lastModified?) {
+      if (cache.lastModified case final lastModified?) {
         request.setHeader(ifModifiedSinceHeader, lastModified);
-      } else if (cacheResponse.date case final date?) {
+      } else if (cache.date case final date?) {
         request.setHeader(ifModifiedSinceHeader, HttpDate.format(date));
       }
     }
 
+    // If no valid cached response is available, return a strategy to fetch from the network.
     return CacheStrategy(request, null);
   }
 
@@ -121,7 +148,7 @@ class CacheStrategyFactory {
       if (statusCode == 302 || statusCode == 307) {
         // 302 & 307 can only be cached with the right response headers.
         // https://datatracker.ietf.org/doc/html/rfc7234#section-3
-        if (response.headers[expiresHeader]?.first == null &&
+        if (response.headers[expiresHeader] == null &&
             respCacheCtrl.maxAge == -1 &&
             respCacheCtrl.privacy != null) {
           return false;
@@ -146,5 +173,13 @@ class CacheStrategyFactory {
     result |= respCacheCtrl.maxAge > 0;
 
     return result;
+  }
+
+  /// Returns true if the request already contains conditions that save
+  /// the server from sending a response that the client has locally.
+  bool _hasConditions(BaseRequest request, CacheControl rqCacheCtrl) {
+    return rqCacheCtrl.noCache ||
+        request.headerValuesAsList(ifModifiedSinceHeader) != null ||
+        request.headerValuesAsList(ifNoneMatchHeader) != null;
   }
 }

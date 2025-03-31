@@ -17,37 +17,47 @@ const _noStoreHeader = 'no-store';
 
 /// Cache-Control header subset representation
 class CacheControl {
-  /// How long the response can be used from the time it was requested (in seconds).
+  /// The duration past the response's served date that it can be served without validation. (in seconds).
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.2.8
   final int maxAge;
 
   /// 'public' / 'private'.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.2.5
   final String? privacy;
 
-  /// Must first submit a validation request to an origin server.
+  /// In a response, this field's name "no-cache" is misleading. It doesn't prevent from caching
+  /// the response; it only means we have to validate the response with the origin server.
+  ///
+  /// In a request, it means do not use a cache to satisfy the request.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.2.2
   final bool noCache;
 
-  /// Disallow cache, overriding any other directives (Etag, Last-Modified)
+  /// Disallow to store the response into cache.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.2.3
   final bool noStore;
 
   /// The "max-stale" request directive indicates that the client is
   /// willing to accept a response that has exceeded its freshness
   /// lifetime.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.1.2
   final int maxStale;
 
   /// The "min-fresh" request directive indicates that the client is
   /// willing to accept a response whose freshness lifetime is no less than
   /// its current age.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.1.3
   final int minFresh;
 
   /// The "must-revalidate" response directive indicates that once it has
   /// become stale, a cache MUST NOT use the response to satisfy subsequent
   /// requests without successful validation on the origin server.
+  ///
   /// https://datatracker.ietf.org/doc/html/rfc7234#section-5.2.2.1
   final bool mustRevalidate;
 

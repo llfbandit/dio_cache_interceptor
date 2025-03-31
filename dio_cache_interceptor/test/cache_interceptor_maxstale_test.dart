@@ -51,14 +51,14 @@ void main() {
     expect(await store.exists(key), isTrue);
 
     // 2nd time - the response is restored from cache, no remote call
-    resp = await request(options);
+    resp = await request(options.copyWith(policy: CachePolicy.forceCache));
     var fromNetwork = resp.extra[extraFromNetworkKey];
     expect(fromNetwork, isFalse);
 
     await Future.delayed(const Duration(seconds: 1));
 
     // 3rd time - the response is staled, remote call
-    resp = await request(options);
+    resp = await request(options.copyWith(policy: CachePolicy.forceCache));
     fromNetwork = resp.extra[extraFromNetworkKey];
     expect(fromNetwork, isTrue);
   });
@@ -74,7 +74,7 @@ void main() {
     expect(await store.exists(key), isTrue);
 
     // 2nd time - the response is restored from cache, no remote call
-    resp = await request(options);
+    resp = await request(options.copyWith(policy: CachePolicy.forceCache));
     var fromNetwork = resp.extra[extraFromNetworkKey];
     expect(fromNetwork, isFalse);
 
@@ -82,6 +82,7 @@ void main() {
 
     // 3rd time - the response is staled, remote call
     resp = await request(options.copyWith(
+      policy: CachePolicy.forceCache,
       maxStale: const Duration(seconds: 1),
     ));
     fromNetwork = resp.extra[extraFromNetworkKey];
