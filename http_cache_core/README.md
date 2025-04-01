@@ -1,1 +1,1 @@
-Common HTTP cache models and utils for dio_cache_interceptor & http_cache_interceptor with associated stores.
+Common HTTP cache models and utils for [dio_cache_interceptor](https://pub.dev/packages/dio_cache_interceptor) & [http_cache_client](https://pub.dev/packages/http_cache_client) with associated stores.

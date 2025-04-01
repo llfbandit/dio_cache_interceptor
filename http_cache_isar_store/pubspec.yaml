@@ -9,7 +9,7 @@ environment:
   flutter: ">=3.0.0"
 
 dependencies:
-  http_cache_core: ^1.1.0
+  http_cache_core: ^1.1.1
 
   # https://pub.dev/packages/isar
   isar: ^3.1.0+1

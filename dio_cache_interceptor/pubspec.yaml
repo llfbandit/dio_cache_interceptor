@@ -11,7 +11,7 @@ environment:
 dependencies:
   # https://pub.dev/packages/dio
   dio: ^5.2.0+1
-  http_cache_core: ^1.1.0
+  http_cache_core: ^1.1.1
 
 dev_dependencies:
   # https://pub.dev/packages/lints

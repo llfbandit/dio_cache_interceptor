@@ -1,3 +1,6 @@
+## 1.1.1
+- fix: Send only one condition on request cache validation.
+
 ## 1.1.0
 - feat: Early skip strategy calculation when request has already cache check conditions.
 - feat: Better handling of headers.

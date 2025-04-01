@@ -300,26 +300,37 @@ void main() {
           isNotNull);
     });
 
-    Future<void> testWithPreconditionRequest(
-        Map<String, String> headers) async {
+    Future<BaseRequest> testWithPreconditionRequest(
+      Map<String, String> headers, {
+      String? eTag,
+      DateTime? lastModified,
+      DateTime? date,
+    }) async {
       final request = MockRequest(
         url: Uri.parse('https://ok.org'),
-        headers: {cacheControlHeader: 'no-cache'},
+        headers: headers,
       );
-      final response = MockResponse(statusCode: 200);
+      final response = MockResponse(
+        statusCode: 200,
+        eTag: eTag,
+        lastModified: lastModified,
+        date: date,
+      );
       final cacheResponse = cacheResponsefrom(cacheOptions, request, response);
 
-      final factory = CacheStrategyFactory(
+      final strategy = CacheStrategyFactory(
         request: request,
         cacheOptions: cacheOptions,
         response: response,
         cacheResponse: cacheResponse,
       );
 
-      final strategy = await factory.compute();
+      final result = await strategy.compute();
 
-      expect(strategy.request, isNotNull);
-      expect(strategy.cacheResponse, isNull);
+      expect(result.request, isNotNull);
+      expect(result.cacheResponse, isNull);
+
+      return result.request!;
     }
 
     test('compute returns request from preconditions - no-cache', () async {
@@ -346,6 +357,49 @@ void main() {
           cacheControlHeader: 'no-cache'
         },
       );
+    });
+
+    test(
+        'compute returns request from preconditions - ifNoneMatch takes precedence on ifModifiedSince',
+        () async {
+      final request = await testWithPreconditionRequest(
+        {
+          ifNoneMatchHeader: '123',
+          ifModifiedSinceHeader: HttpDate.format(DateTime.now())
+        },
+      );
+
+      expect(request.headerValuesAsList(ifNoneMatchHeader), isNotNull);
+      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNull);
+    });
+
+    test(
+        'compute returns request - ifNoneMatch takes precedence on ifModifiedSince',
+        () async {
+      final request = await testWithPreconditionRequest(
+        {},
+        eTag: '123',
+        lastModified: DateTime.now().subtract(Duration(seconds: 10)),
+        date: DateTime.now().subtract(Duration(seconds: 5)),
+      );
+
+      expect(request.headerValuesAsList(ifNoneMatchHeader), isNotNull);
+      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNull);
+    });
+
+    test(
+        'compute returns request - ifNoneMatch takes precedence on ifModifiedSince',
+        () async {
+      final lastModified = DateTime.now().subtract(Duration(seconds: 10));
+
+      final request = await testWithPreconditionRequest(
+        {},
+        lastModified: lastModified,
+        date: DateTime.now().subtract(Duration(seconds: 5)),
+      );
+
+      expect(request.headerValuesAsList(ifNoneMatchHeader), isNull);
+      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNotNull);
     });
   });
 }

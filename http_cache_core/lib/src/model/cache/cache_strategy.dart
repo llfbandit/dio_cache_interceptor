@@ -110,8 +110,7 @@ class CacheStrategyFactory {
       // Prepare to validate the cached response with the server.
       if (cache.eTag case final eTag?) {
         request.setHeader(ifNoneMatchHeader, eTag);
-      }
-      if (cache.lastModified case final lastModified?) {
+      } else if (cache.lastModified case final lastModified?) {
         request.setHeader(ifModifiedSinceHeader, lastModified);
       } else if (cache.date case final date?) {
         request.setHeader(ifModifiedSinceHeader, HttpDate.format(date));
@@ -178,8 +177,12 @@ class CacheStrategyFactory {
   /// Returns true if the request already contains conditions that save
   /// the server from sending a response that the client has locally.
   bool _hasConditions(BaseRequest request, CacheControl rqCacheCtrl) {
+    final ifNoneMatch = request.headerValuesAsList(ifNoneMatchHeader);
+    if (ifNoneMatch != null) {
+      request.setHeader(ifModifiedSinceHeader, null);
+    }
+
     return rqCacheCtrl.noCache ||
-        request.headerValuesAsList(ifModifiedSinceHeader) != null ||
-        request.headerValuesAsList(ifNoneMatchHeader) != null;
+        request.headerValuesAsList(ifModifiedSinceHeader) != null;
   }
 }
