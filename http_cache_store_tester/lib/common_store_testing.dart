@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http_cache_core/http_cache_core.dart';
 import 'package:test/test.dart';
 
-Future<void> _addFooResponse(
+Future<void> addFooResponse(
   CacheStore store, {
   String key = 'foo',
   CacheControl? cacheControl,
@@ -41,8 +41,17 @@ Future<void> emptyByDefault(CacheStore store) async {
 }
 
 Future<void> addItem(CacheStore store) async {
-  await _addFooResponse(store);
-  expect(await store.exists('foo'), isTrue);
+  await addFooResponse(store, priority: CachePriority.low);
+  var resp = await store.get('foo');
+  expect(resp?.priority, CachePriority.low);
+
+  await addFooResponse(store, priority: CachePriority.normal);
+  resp = await store.get('foo');
+  expect(resp?.priority, CachePriority.normal);
+
+  await addFooResponse(store, priority: CachePriority.high);
+  resp = await store.get('foo');
+  expect(resp?.priority, CachePriority.high);
 }
 
 Future<void> getItem(CacheStore store) async {
@@ -53,7 +62,7 @@ Future<void> getItem(CacheStore store) async {
   final expires = DateTime.now();
   final lastModified = HttpDate.format(DateTime.now());
 
-  await _addFooResponse(
+  await addFooResponse(
     store,
     maxStale: DateTime.now().add(const Duration(days: 1)),
     headers: headers,
@@ -80,14 +89,14 @@ Future<void> getItem(CacheStore store) async {
 }
 
 Future<void> deleteItem(CacheStore store) async {
-  await _addFooResponse(store);
+  await addFooResponse(store);
   expect(await store.exists('foo'), isTrue);
 
   await store.delete('foo');
   expect(await store.exists('foo'), isFalse);
   await store.delete('foo'); // check for non exception
 
-  await _addFooResponse(
+  await addFooResponse(
     store,
     maxStale: DateTime.now().add(const Duration(days: 1)),
   );
@@ -98,12 +107,12 @@ Future<void> deleteItem(CacheStore store) async {
 }
 
 Future<void> clean(CacheStore store) async {
-  await _addFooResponse(
+  await addFooResponse(
     store,
     key: 'not-stale',
     maxStale: DateTime.now().add(const Duration(days: 1)),
   );
-  await _addFooResponse(
+  await addFooResponse(
     store,
     key: 'stale',
     maxStale: DateTime.now().subtract(const Duration(days: 1)),
@@ -127,7 +136,7 @@ Future<void> clean(CacheStore store) async {
 
 Future<void> expires(CacheStore store) async {
   final now = DateTime.now();
-  await _addFooResponse(store, expires: DateTime.now());
+  await addFooResponse(store, expires: DateTime.now());
   final resp = await store.get('foo');
   expect(
     resp!.expires!.subtract(
@@ -146,7 +155,7 @@ Future<void> expires(CacheStore store) async {
 Future<void> lastModified(CacheStore store) async {
   final lastModified = 'Wed, 21 Oct 2015 07:28:00 GMT';
 
-  await _addFooResponse(store, lastModified: lastModified);
+  await addFooResponse(store, lastModified: lastModified);
   final resp = await store.get('foo');
   expect(resp!.lastModified, equals(lastModified));
 }
@@ -159,7 +168,7 @@ Future<void> concurrentAccess(CacheStore store) async {
 
   for (var i = 1; i <= max; i++) {
     final key = i % 3 == 0 ? 'bar' : 'foo';
-    _addFooResponse(store, key: key, lastModified: lastModified).then(
+    addFooResponse(store, key: key, lastModified: lastModified).then(
       (value) {
         store.get(key).then(
           (resp) {
@@ -265,12 +274,12 @@ void pathExists(CacheStore store) {
 }
 
 Future<void> deleteFromPath(CacheStore store) async {
-  await _addFooResponse(store);
+  await addFooResponse(store);
   expect(await store.exists('foo'), isTrue);
   await store.deleteFromPath(RegExp('https://foo.com'));
   expect(await store.exists('foo'), isFalse);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   expect(await store.exists('foo'), isTrue);
   await store.deleteFromPath(
     RegExp('https://foo.com'),
@@ -278,7 +287,7 @@ Future<void> deleteFromPath(CacheStore store) async {
   );
   expect(await store.exists('foo'), isFalse);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   expect(await store.exists('foo'), isTrue);
   await store.deleteFromPath(
     RegExp('https://foo.com'),
@@ -286,7 +295,7 @@ Future<void> deleteFromPath(CacheStore store) async {
   );
   expect(await store.exists('foo'), isFalse);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   expect(await store.exists('foo'), isTrue);
   await store.deleteFromPath(
     RegExp('https://foo.com'),
@@ -296,25 +305,25 @@ Future<void> deleteFromPath(CacheStore store) async {
 }
 
 Future<void> getFromPath(CacheStore store) async {
-  await _addFooResponse(store);
+  await addFooResponse(store);
   var list = await store.getFromPath(RegExp('https://foo.com'));
   expect(list.length, 1);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   list = await store.getFromPath(
     RegExp('https://foo.com'),
     queryParams: {'bar': null},
   );
   expect(list.length, 1);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   list = await store.getFromPath(
     RegExp('https://foo.com'),
     queryParams: {'bar': 'bar'},
   );
   expect(list.length, 1);
 
-  await _addFooResponse(store, url: 'https://foo.com?bar=bar');
+  await addFooResponse(store, url: 'https://foo.com?bar=bar');
   list = await store.getFromPath(
     RegExp('https://foo.com'),
     queryParams: {'bar': 'foobar'},

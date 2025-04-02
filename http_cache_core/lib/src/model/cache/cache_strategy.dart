@@ -143,15 +143,13 @@ class CacheStrategyFactory {
       return false;
     }
 
-    if (!allowedStatusCodes.contains(statusCode)) {
-      if (statusCode == 302 || statusCode == 307) {
-        // 302 & 307 can only be cached with the right response headers.
-        // https://datatracker.ietf.org/doc/html/rfc7234#section-3
-        if (response.headers[expiresHeader] == null &&
-            respCacheCtrl.maxAge == -1 &&
-            respCacheCtrl.privacy != null) {
-          return false;
-        }
+    if (statusCode == 302 || statusCode == 307) {
+      // 302 & 307 can only be cached with the right response headers.
+      // https://datatracker.ietf.org/doc/html/rfc7234#section-3
+      if (response.headers[expiresHeader] == null &&
+          respCacheCtrl.maxAge == -1 &&
+          respCacheCtrl.privacy == null) {
+        return false;
       }
     }
 

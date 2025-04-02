@@ -30,6 +30,7 @@ abstract class CacheStore {
   Future<void> set(CacheResponse response);
 
   /// Removes the given key from store.
+  ///
   /// [staleOnly] flag will remove it only if the key is expired
   /// (from maxStale).
   Future<void> delete(String key, {bool staleOnly = false});
@@ -52,7 +53,9 @@ abstract class CacheStore {
   });
 
   /// Removes all keys from store.
+  ///
   /// [priorityOrBelow] flag will remove keys only for the priority or below.
+  ///
   /// [staleOnly] flag will remove keys only if expired
   /// (from maxStale).
   ///

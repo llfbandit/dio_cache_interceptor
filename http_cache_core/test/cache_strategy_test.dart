@@ -274,6 +274,79 @@ void main() {
       expect(strategy.request!.headers[ifModifiedSinceHeader], isNotNull);
     });
 
+    test('compute returns cached response when cache is valid on 302 or 307',
+        () async {
+      Future<CacheStrategy> computeStrategy(
+        int statusCode,
+        Map<String, List<String>>? headers,
+      ) {
+        final request = MockRequest(
+          url: Uri.parse('https://ok.org'),
+          headers: {etagHeader: '1234'},
+        );
+        final response = MockResponse(statusCode: statusCode, headers: headers);
+
+        final factory = CacheStrategyFactory(
+          request: request,
+          cacheOptions: cacheOptions,
+          response: response,
+        );
+
+        return factory.compute(
+          cacheResponseBuilder: () async =>
+              cacheResponsefrom(cacheOptions, request, response),
+        );
+      }
+
+      Future<void> testStatusCode(int statusCode) async {
+        // public
+        var strategy = await computeStrategy(statusCode, {
+          'cache-control': ['public'],
+          etagHeader: ['1234'],
+        });
+        expect(strategy.cacheResponse, isNotNull);
+
+        // max-age
+        strategy = await computeStrategy(statusCode, {
+          'cache-control': ['max-age=3600'],
+          etagHeader: ['1234'],
+        });
+        expect(strategy.cacheResponse, isNotNull);
+
+        // expires
+        strategy = await computeStrategy(statusCode, {
+          expiresHeader: [HttpDate.format(DateTime.now())],
+          etagHeader: ['1234'],
+        });
+        expect(strategy.cacheResponse, isNotNull);
+
+        // public & max-age
+        strategy = await computeStrategy(statusCode, {
+          'cache-control': ['public, max-age=3600'],
+          etagHeader: ['1234'],
+        });
+        expect(strategy.cacheResponse, isNotNull);
+
+        // public & max-age & expires
+        strategy = await computeStrategy(statusCode, {
+          'cache-control': ['public, max-age=3600'],
+          expiresHeader: [HttpDate.format(DateTime.now())],
+          etagHeader: ['1234'],
+        });
+        expect(strategy.cacheResponse, isNotNull);
+
+        // no headers (default values)
+        strategy = await computeStrategy(statusCode, {
+          etagHeader: ['1234']
+        });
+        expect(strategy.request, isNotNull);
+        expect(strategy.cacheResponse, isNull);
+      }
+
+      await testStatusCode(302);
+      await testStatusCode(307);
+    });
+
     Future<BaseRequest> testWithPreconditionRequest(
       Map<String, String> headers, {
       String? eTag,
