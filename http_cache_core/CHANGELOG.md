@@ -1,5 +1,6 @@
 ## 1.1.1
 - fix: Send only one condition on request cache validation.
+- fix: BaseRequest now has `headers` getter instead of `headerValuesAsList`.
 
 ## 1.1.0
 - feat: Early skip strategy calculation when request has already cache check conditions.

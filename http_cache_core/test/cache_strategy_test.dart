@@ -5,44 +5,21 @@ import 'package:test/test.dart';
 
 class MockRequest extends BaseRequest {
   final Uri url;
-  final Map<String, String> _headers;
 
-  MockRequest({required this.url, Map<String, String> headers = const {}})
-      : _headers = Map.of(headers);
+  MockRequest({required this.url, Map<String, String>? headers})
+      : headers = headers ?? {};
 
   @override
-  List<String>? headerValuesAsList(String header) {
-    final value = _headers[header.toLowerCase()];
-
-    if (value != null) {
-      final values = <String>[];
-
-      if (!value.contains(',')) {
-        values.add(value);
-      } else {
-        if (header == 'set-cookie') {
-          return value.split(setCookieSplitter);
-        } else {
-          return value.split(headerSplitter);
-        }
-      }
-
-      return values;
-    }
-
-    return null;
-  }
+  final Map<String, String> headers;
 
   @override
   void setHeader(String header, String? value) {
     if (value == null) {
-      _headers.remove(header);
+      headers.remove(header);
     } else {
-      _headers[header] = value;
+      headers[header] = value;
     }
   }
-
-  Map<String, String> get headers => _headers;
 }
 
 class MockResponse extends BaseResponse {
@@ -56,9 +33,9 @@ class MockResponse extends BaseResponse {
     this.eTag,
     this.lastModified,
     this.date,
-    this.headers = const {},
+    Map<String, List<String>>? headers,
     this.attachment = false,
-  });
+  }) : headers = headers ?? {};
 
   @override
   final int statusCode;
@@ -242,8 +219,7 @@ void main() {
 
       expect(strategy.request, isNotNull);
       expect(strategy.cacheResponse, isNull);
-      expect(
-          strategy.request!.headerValuesAsList(ifNoneMatchHeader), isNotNull);
+      expect(strategy.request!.headers[ifNoneMatchHeader], isNotNull);
     });
 
     test('compute returns conditional request on lastModified', () async {
@@ -269,8 +245,7 @@ void main() {
 
       expect(strategy.request, isNotNull);
       expect(strategy.cacheResponse, isNull);
-      expect(strategy.request!.headerValuesAsList(ifModifiedSinceHeader),
-          isNotNull);
+      expect(strategy.request!.headers[ifModifiedSinceHeader], isNotNull);
     });
 
     test('compute returns conditional request on date', () async {
@@ -296,8 +271,7 @@ void main() {
 
       expect(strategy.request, isNotNull);
       expect(strategy.cacheResponse, isNull);
-      expect(strategy.request!.headerValuesAsList(ifModifiedSinceHeader),
-          isNotNull);
+      expect(strategy.request!.headers[ifModifiedSinceHeader], isNotNull);
     });
 
     Future<BaseRequest> testWithPreconditionRequest(
@@ -369,8 +343,8 @@ void main() {
         },
       );
 
-      expect(request.headerValuesAsList(ifNoneMatchHeader), isNotNull);
-      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNull);
+      expect(request.headers[ifNoneMatchHeader], isNotNull);
+      expect(request.headers[ifModifiedSinceHeader], isNull);
     });
 
     test(
@@ -383,8 +357,8 @@ void main() {
         date: DateTime.now().subtract(Duration(seconds: 5)),
       );
 
-      expect(request.headerValuesAsList(ifNoneMatchHeader), isNotNull);
-      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNull);
+      expect(request.headers[ifNoneMatchHeader], isNotNull);
+      expect(request.headers[ifModifiedSinceHeader], isNull);
     });
 
     test(
@@ -398,8 +372,8 @@ void main() {
         date: DateTime.now().subtract(Duration(seconds: 5)),
       );
 
-      expect(request.headerValuesAsList(ifNoneMatchHeader), isNull);
-      expect(request.headerValuesAsList(ifModifiedSinceHeader), isNotNull);
+      expect(request.headers[ifNoneMatchHeader], isNull);
+      expect(request.headers[ifModifiedSinceHeader], isNotNull);
     });
   });
 }

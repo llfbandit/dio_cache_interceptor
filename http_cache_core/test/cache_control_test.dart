@@ -67,4 +67,32 @@ void main() {
     final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
     expect(cacheControl1, equals(cacheControl3));
   });
+
+  test('CacheControl.fromString', () {
+    final cacheControl1 = CacheControl(
+      maxAge: 1,
+      noCache: true,
+      noStore: true,
+      privacy: 'public',
+      maxStale: 2,
+      minFresh: 3,
+      mustRevalidate: true,
+    );
+
+    final cacheControl2 = CacheControl.fromString([
+      'max-age=1',
+      'no-store',
+      'no-cache="set-cookie"', // no-cache is detected but set-cookie is lost
+      'public',
+      'max-stale=2',
+      'min-fresh=3',
+      'must-revalidate',
+    ].join(', '));
+
+    expect(cacheControl1, equals(cacheControl2));
+
+    // Redo test with toHeader()
+    final cacheControl3 = CacheControl.fromHeader([cacheControl2.toHeader()]);
+    expect(cacheControl1, equals(cacheControl3));
+  });
 }

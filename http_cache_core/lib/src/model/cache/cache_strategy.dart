@@ -73,8 +73,8 @@ class CacheStrategyFactory {
     final resp = response;
     var cache = cacheResponse;
 
-    final rqCacheCtrl = CacheControl.fromHeader(
-      request.headerValuesAsList(cacheControlHeader),
+    final rqCacheCtrl = CacheControl.fromString(
+      request.headers[cacheControlHeader],
     );
 
     if (cacheResponseBuilder != null && resp != null && cache == null) {
@@ -177,12 +177,12 @@ class CacheStrategyFactory {
   /// Returns true if the request already contains conditions that save
   /// the server from sending a response that the client has locally.
   bool _hasConditions(BaseRequest request, CacheControl rqCacheCtrl) {
-    final ifNoneMatch = request.headerValuesAsList(ifNoneMatchHeader);
+    final ifNoneMatch = request.headers[ifNoneMatchHeader];
     if (ifNoneMatch != null) {
       request.setHeader(ifModifiedSinceHeader, null);
     }
 
     return rqCacheCtrl.noCache ||
-        request.headerValuesAsList(ifModifiedSinceHeader) != null;
+        request.headers[ifModifiedSinceHeader] != null;
   }
 }

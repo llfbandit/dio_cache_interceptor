@@ -122,7 +122,7 @@ class DioCacheDao extends DatabaseAccessor<DioCacheDatabase>
 
   CacheResponse _mapDataToResponse(DioCacheData data) {
     return CacheResponse(
-      cacheControl: CacheControl.fromHeader(data.cacheControl?.split(', ')),
+      cacheControl: CacheControl.fromString(data.cacheControl),
       content: data.content,
       date: data.date,
       eTag: data.eTag,

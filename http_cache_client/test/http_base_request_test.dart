@@ -13,7 +13,7 @@ void main() {
       DateTime.now(),
     );
 
-    expect(request.headerValuesAsList(cacheControlHeader), isNull);
+    expect(request.headers[cacheControlHeader], isNull);
   });
 
   test('headerValuesAsList simple', () {
@@ -26,9 +26,8 @@ void main() {
       DateTime.now(),
     );
 
-    final values = request.headerValuesAsList(cacheControlHeader);
-    expect(values, isNotNull);
-    expect(values?.first, equals('no-store'));
+    final values = request.headers[cacheControlHeader];
+    expect(values, equals('no-store'));
   });
 
   test('headerValuesAsList set-cookie', () {
@@ -44,14 +43,14 @@ void main() {
       DateTime.now(),
     );
 
-    final values = request.headerValuesAsList('set-cookie');
+    final values = request.headers['set-cookie'];
     expect(values, isNotNull);
     expect(
-        values?.first,
+        values,
         equals(
             'id=a3fWa; Max-Age=2592000; Expires=Wed, 21 Oct 2015 07:28:00 GMT'));
     expect(
-        values?.last,
+        values,
         equals(
             'id=a3fWa; Max-Age=2592000; Expires=Wed, 21 Oct 2015 07:28:00 GMT'));
   });
@@ -68,11 +67,8 @@ void main() {
       DateTime.now(),
     );
 
-    final values = request.headerValuesAsList(cacheControlHeader);
-    expect(values, isNotNull);
-    expect(values?.first, equals('no-cache'));
-    expect(values![1], equals('private'));
-    expect(values.last, equals('max-age=3600'));
+    final values = request.headers[cacheControlHeader];
+    expect(values, equals('no-cache, private,max-age=3600'));
   });
 
   test('setHeader null value', () {
@@ -87,11 +83,11 @@ void main() {
       DateTime.now(),
     );
 
-    var values = request.headerValuesAsList(cacheControlHeader);
+    var values = request.headers[cacheControlHeader];
     expect(values, isNotNull);
 
     request.setHeader(cacheControlHeader, null);
-    values = request.headerValuesAsList(cacheControlHeader);
+    values = request.headers[cacheControlHeader];
     expect(values, isNull);
   });
 
@@ -107,12 +103,12 @@ void main() {
       DateTime.now(),
     );
 
-    var values = request.headerValuesAsList(cacheControlHeader);
-    expect(values?.length, 3);
+    var values = request.headers[cacheControlHeader];
+    expect(values, equals('no-cache, private,max-age=3600'));
 
     request.setHeader(cacheControlHeader, 'no-store');
-    values = request.headerValuesAsList(cacheControlHeader);
-    expect(values?.first, equals('no-store'));
+    values = request.headers[cacheControlHeader];
+    expect(values, equals('no-store'));
   });
 
   test('requestDate returns given date', () {

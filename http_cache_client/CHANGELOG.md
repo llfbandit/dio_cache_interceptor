@@ -1,3 +1,7 @@
+## 1.0.2
+- fix: BaseRequest now has `headers` getter instead of `headerValuesAsList`.
+- chore: Updated dependencies.
+
 ## 1.0.1
 - fix: Improve cache save time.
 - fix: Improve request date assignment.

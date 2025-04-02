@@ -76,6 +76,13 @@ class CacheControl {
   });
 
   /// Builds Cache Control from header values
+  factory CacheControl.fromString(String? headerValues) {
+    return CacheControl.fromHeader(
+      headerValues != null ? [headerValues] : null,
+    );
+  }
+
+  /// Builds Cache Control from header values
   factory CacheControl.fromHeader(List<String>? headerValues) {
     // Parses single header value
     void parseHeaderValue(

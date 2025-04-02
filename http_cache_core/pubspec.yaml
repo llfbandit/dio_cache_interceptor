@@ -12,7 +12,7 @@ dependencies:
   # https://pub.dev/packages/collection
   collection: ^1.17.2
   # https://pub.dev/packages/string_scanner
-  string_scanner: ^1.1.0
+  string_scanner: ^1.2.0
   # https://pub.dev/packages/uuid
   uuid: ^4.5.0
 

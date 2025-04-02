@@ -1,3 +1,7 @@
+## 4.0.3
+- fix: BaseRequest now has `headers` getter instead of `headerValuesAsList`.
+- chore: Updated dependencies.
+
 ## 4.0.2
 - fix: Missing exports to handle client only caching.
 

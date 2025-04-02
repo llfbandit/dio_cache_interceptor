@@ -15,27 +15,7 @@ class HttpBaseRequest extends BaseRequest {
   HttpBaseRequest(this.inner, this.options, this._date);
 
   @override
-  List<String>? headerValuesAsList(String header) {
-    final value = inner.headers[header];
-
-    if (value != null) {
-      final values = <String>[];
-
-      if (!value.contains(',')) {
-        values.add(value);
-      } else {
-        if (header == 'set-cookie') {
-          return value.split(setCookieSplitter);
-        } else {
-          return value.split(headerSplitter);
-        }
-      }
-
-      return values;
-    }
-
-    return null;
-  }
+  Map<String, String> get headers => inner.headers;
 
   @override
   void setHeader(String header, String? value) {

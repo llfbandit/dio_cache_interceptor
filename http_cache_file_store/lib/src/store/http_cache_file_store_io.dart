@@ -261,7 +261,7 @@ class FileCacheStore extends CacheStore {
           size != 0 ? utf8.decode(data.skip(i).take(size).toList()) : null;
 
       return CacheResponse(
-        cacheControl: CacheControl.fromHeader(cacheControl?.split(', ')),
+        cacheControl: CacheControl.fromString(cacheControl),
         content: content,
         date: date != null ? DateTime.tryParse(date) : null,
         eTag: etag,

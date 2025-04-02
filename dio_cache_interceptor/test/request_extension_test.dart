@@ -4,47 +4,7 @@ import 'package:http_cache_core/http_cache_core.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('request cache control from String', () {
-    final cacheControlReference = [
-      'max-age=1',
-      'no-store',
-      'no-cache',
-      'public',
-      'max-stale=2',
-      'min-fresh=3',
-      'must-revalidate',
-    ];
-
-    // Correctly formatted
-    var rq = RequestOptions(
-      path: 'https://foo.com',
-      headers: {
-        cacheControlHeader:
-            'max-age=1, no-store, no-cache, public, max-stale=2, min-fresh=3, must-revalidate'
-      },
-    );
-
-    expect(
-      cacheControlReference,
-      rq.headerValuesAsList(cacheControlHeader),
-    );
-
-    // Without spaces
-    rq = RequestOptions(
-      path: 'https://foo.com',
-      headers: {
-        cacheControlHeader:
-            'max-age=1,no-store,no-cache,public,max-stale=2,min-fresh=3,must-revalidate'
-      },
-    );
-
-    expect(
-      cacheControlReference,
-      rq.headerValuesAsList(cacheControlHeader),
-    );
-  });
-
-  test('cache control with field name', () {
+  test('getFlattenHeaders returns correct header', () {
     final cacheControlReference = [
       'max-age=1',
       'no-store',
@@ -55,18 +15,47 @@ void main() {
       'must-revalidate',
     ];
 
-    // Correctly formatted
+    // Correctly formatted from list
     var rq = RequestOptions(
       path: 'https://foo.com',
-      headers: {
-        cacheControlHeader:
-            'max-age=1, no-store, no-cache="set-cookie", public, max-stale=2, min-fresh=3, must-revalidate'
-      },
+      headers: {cacheControlHeader: cacheControlReference},
     );
 
     expect(
-      cacheControlReference,
-      rq.headerValuesAsList(cacheControlHeader),
+      rq.getFlattenHeaders()[cacheControlHeader],
+      cacheControlReference.join(', '),
+    );
+
+    // Without spaces from String
+    final values =
+        'max-age=1,no-store,no-cache,public,max-stale=2,min-fresh=3,must-revalidate';
+    rq = RequestOptions(
+      path: 'https://foo.com',
+      headers: {cacheControlHeader: values},
+    );
+
+    expect(rq.getFlattenHeaders()[cacheControlHeader], values);
+  });
+
+  test('getFlattenHeaders cache control with field name', () {
+    final cacheControlReference = [
+      'max-age=1',
+      'no-store',
+      'no-cache="set-cookie"',
+      'public',
+      'max-stale=2',
+      'min-fresh=3',
+      'must-revalidate',
+    ];
+
+    var rq = RequestOptions(
+      path: 'https://foo.com',
+      headers: {cacheControlHeader: cacheControlReference},
+    );
+
+    expect(
+      rq.getFlattenHeaders()[cacheControlHeader],
+      cacheControlReference.join(', '),
     );
   });
 }

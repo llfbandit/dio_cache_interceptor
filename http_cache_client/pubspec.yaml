@@ -1,6 +1,6 @@
 name: http_cache_client
 description: HTTP cache client with multiple stores respecting HTTP directives (or not).
-version: 1.0.1
+version: 1.0.2
 repository: https://github.com/llfbandit/dart_http_cache
 issue_tracker: https://github.com/llfbandit/dart_http_cache/issues
 
