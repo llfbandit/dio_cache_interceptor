@@ -15,8 +15,6 @@ Add the following dependencies to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  dio: ^<latest_version>
-  dio_cache_interceptor: ^<latest_version>
   http_cache_mmkv_store: ^<latest_version>
 ```
 
