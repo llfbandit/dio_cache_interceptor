@@ -1,0 +1,19 @@
+name: http_cache_mmkv_store
+description: A DB cache store implementation with mmkv for dio_cache_interceptor and http_cache_client packages.
+homepage: https://github.com/llfbandit/dio_cache_interceptor/tree/master/http_cache_mmkv_store
+version: 1.0.1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  http_cache_core: ^1.1.1
+  messagepack: ^0.2.1
+  mmkv: ^2.2.0
+
+dev_dependencies:
+  # https://pub.dev/packages/lints
+  lints: ^5.0.0
+  # https://pub.dev/packages/test
+  test: ^1.24.4
+  http_cache_store_tester: ^1.0.0

@@ -31,6 +31,7 @@ Also available as client for [http](https://pub.dev/packages/http_cache_client) 
 - __IsarCacheStore__: Cache using Isar package (available on all platforms) [Get it](https://pub.dev/packages/http_cache_isar_store).
 - __ObjectBoxCacheStore__: Cache using ObjectBox package (no web support) [Get it](https://pub.dev/packages/http_cache_objectbox_store).
 - __SembastCacheStore__: Cache using Sembast package [Get it](https://pub.dev/packages/http_cache_sembast_store).
+- __MMKVCacheStore__: Cache using MMKV package (iOS & Android only) [Get it](https://pub.dev/packages/http_cache_mmkv_store).
 - __MemCacheStore__: Volatile cache with LRU strategy.
 
 ## Usage

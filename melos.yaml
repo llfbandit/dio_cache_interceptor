@@ -11,6 +11,7 @@ packages:
   - http_cache_isar_store
   - http_cache_objectbox_store
   - http_cache_sembast_store
+  - http_cache_mmkv_store
   - http_cache_store_tester
 
 # Don't generate intellij files
