@@ -1,5 +1,5 @@
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor_mmkv_store/src/store/cache_response_adapteur.dart';
+import 'package:http_cache_core/http_cache_core.dart';
+import 'package:http_cache_mmkv_store/src/store/cache_response_adaptor.dart';
 import 'package:mmkv/mmkv.dart';
 
 /// A store saving responses using MMKV.
@@ -43,7 +43,7 @@ class MMKVCacheStore extends CacheStore {
   ///
   /// 2. Using MMKVCacheStore convenience method:
   /// ```dart
-  /// import 'package:dio_cache_interceptor_mmkv_store/dio_cache_interceptor_mmkv_store.dart';
+  /// import 'package:http_cache_mmkv_store/http_cache_mmkv_store.dart';
   ///
   /// void main() async {
   ///   // Initialize MMKV through MMKVCacheStore
@@ -134,7 +134,7 @@ class MMKVCacheStore extends CacheStore {
     final bytes = _mmkv.decodeBytes(key);
     if (bytes == null) return null;
 
-    final response = CacheResponseAdapteur.cacheResponseFromMMBuffer(bytes);
+    final response = CacheResponseAdaptor.cacheResponseFromMMBuffer(bytes);
     bytes.destroy();
     return response;
   }
@@ -152,7 +152,7 @@ class MMKVCacheStore extends CacheStore {
           if (bytes == null) return null;
 
           final response =
-              CacheResponseAdapteur.cacheResponseFromMMBuffer(bytes);
+              CacheResponseAdaptor.cacheResponseFromMMBuffer(bytes);
           bytes.destroy();
           return response;
         })
@@ -164,7 +164,7 @@ class MMKVCacheStore extends CacheStore {
 
   @override
   Future<void> set(CacheResponse response) async {
-    final buffer = CacheResponseAdapteur.cacheResponseToMMBuffer(response);
+    final buffer = CacheResponseAdaptor.cacheResponseToMMBuffer(response);
     _mmkv.encodeBytes(response.key, buffer);
     buffer?.destroy();
   }

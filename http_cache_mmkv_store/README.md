@@ -1,4 +1,4 @@
-# dio_cache_interceptor_mmkv_store
+# http_cache_mmkv_store
 
 A Dart package that provides a caching store for Dio HTTP requests using MMKV for fast and persistent storage. This package offers an efficient way to cache responses, with support for encryption and multiple storage spaces.
 
@@ -17,7 +17,7 @@ Add the following dependencies to your pubspec.yaml:
 dependencies:
   dio: ^<latest_version>
   dio_cache_interceptor: ^<latest_version>
-  dio_cache_interceptor_mmkv_store: ^<latest_version>
+  http_cache_mmkv_store: ^<latest_version>
 ```
 
 Then, run:
@@ -48,7 +48,7 @@ void main() async {
 2. Initialize Using MMKVCacheStore Convenience Method
 
 ```dart
-import 'package:dio_cache_interceptor_mmkv_store/dio_cache_interceptor_mmkv_store.dart';
+import 'package:http_cache_mmkv_store/http_cache_mmkv_store.dart';
 
 void main() async {
   // Initialize MMKV through MMKVCacheStore.
@@ -75,7 +75,7 @@ Integrate the cache store with your Dio client by setting up the DioCacheInterce
 ```dart
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor_mmkv_store/dio_cache_interceptor_mmkv_store.dart';
+import 'package:http_cache_mmkv_store/http_cache_mmkv_store.dart';
 
 void setupDio() async {
   // Initialize MMKV

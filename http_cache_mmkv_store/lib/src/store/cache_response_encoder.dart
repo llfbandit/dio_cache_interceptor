@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 import 'package:messagepack/messagepack.dart';
 
 extension CachePriorityEncoder on CachePriority {
@@ -26,7 +26,7 @@ extension CachePriorityEncoder on CachePriority {
 extension CacheResponseEncoder on CacheResponse {
   Uint8List toBytes() {
     final packer = Packer()
-      ..packListLength(13)
+      ..packListLength(14)
       ..packBinary(cacheControl.toBytes())
       ..packBinary(content)
       ..packString(date?.toIso8601String())
@@ -39,7 +39,8 @@ extension CacheResponseEncoder on CacheResponse {
       ..packBinary(priority.toBytes())
       ..packString(responseDate.toIso8601String())
       ..packString(url)
-      ..packString(requestDate.toIso8601String());
+      ..packString(requestDate.toIso8601String())
+      ..packInt(statusCode);
     return packer.takeBytes();
   }
 
@@ -64,6 +65,7 @@ extension CacheResponseEncoder on CacheResponse {
           ? DateTime.parse(fields[12] as String)
           : DateTime.parse(fields[10] as String)
               .subtract(const Duration(milliseconds: 150)),
+      statusCode: fields[13] as int,
     );
   }
 }

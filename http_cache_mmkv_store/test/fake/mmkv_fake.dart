@@ -187,4 +187,9 @@ class MMKVFake implements MMKV {
   int writeValueToNativeBuffer(String key, MMBuffer buffer) {
     return 0;
   }
+  
+  @override
+  int importFrom(MMKV src) {
+    return 0;
+  }
 }

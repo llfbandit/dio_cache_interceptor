@@ -1,8 +1,8 @@
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dio_cache_interceptor_mmkv_store/src/store/cache_response_encoder.dart';
+import 'package:http_cache_mmkv_store/src/store/cache_response_encoder.dart';
 import 'package:mmkv/mmkv.dart';
+import 'package:http_cache_core/http_cache_core.dart';
 
-class CacheResponseAdapteur {
+class CacheResponseAdaptor {
   static MMBuffer? cacheResponseToMMBuffer(CacheResponse response) =>
       MMBuffer.fromList(response.toBytes());
 

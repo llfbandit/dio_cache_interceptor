@@ -1,7 +1,7 @@
-import 'package:dio_cache_interceptor_mmkv_store/dio_cache_interceptor_mmkv_store.dart';
+import 'package:http_cache_mmkv_store/http_cache_mmkv_store.dart';
 import 'package:test/test.dart';
+import 'package:http_cache_store_tester/common_store_testing.dart';
 
-import '../../dio_cache_interceptor/test/common_store_testing.dart';
 import 'fake/mmkv_fake.dart';
 
 void main() async {
