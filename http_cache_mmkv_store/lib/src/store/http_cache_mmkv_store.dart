@@ -16,7 +16,7 @@ class MMKVCacheStore extends CacheStore {
   ///   encrypted using this key.
   MMKVCacheStore({
     String? cryptKey,
-  }) : _mmkv =  MMKV.defaultMMKV(cryptKey: cryptKey);
+  }) : _mmkv = MMKV.defaultMMKV(cryptKey: cryptKey);
 
   /// Useful for testing purposes.
   /// Allows injecting a mock MMKV instance for testing and dependency injection.
